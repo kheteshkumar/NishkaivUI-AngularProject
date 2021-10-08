@@ -1,0 +1,35 @@
+<div class="header" *ngIf="modal.context.title">{{ modal.context.title }}
+    <i (click)="modal.deny()" class="close link icon item-right"></i>
+</div>
+<div class="content">
+    <div class="ui large icon message">
+        <div class="content">
+            <p>{{ modal.context.question }}</p>
+        </div>
+    </div>
+</div>
+
+<div class="actions">
+    <div class="ui tiny">
+        <button class="tiny ui orange button" (click)="modal.approve('payInFull')" autofocus
+            *ngIf="permissions.invoicePayInFull">
+            1 Time Payment
+        </button>
+        <button class="tiny ui orange button" (click)="modal.approve('payInFull')" autofocus *ngIf="(
+                modal.context.invoice.invoiceStatus === invoiceStatusEnum['Unpaid'] &&
+            modal.context.invoice.invoiceType == invoiceTypeEnum['OneTime'] && 
+            permissions.invoicePayInFull) &&
+            (modal.context.invoice.paymentStatus !== 12 || modal.context.invoice.paymentStatus !== 11)">
+            1 Time Payment
+        </button>
+        <button class="tiny ui orange button" (click)="modal.approve('createPaymentPlan')" autofocus
+            *ngIf="permissions.createPaymentPlan">
+            Create Payment Plan
+        </button>
+        <button class="tiny ui orange button" (click)="modal.approve('createSubscriptionPlan')"
+            *ngIf="loggedInUserData.userType != 0 && permissions.createPaymentPlan" autofocus>
+            Create Subscription Plan
+        </button>
+        <button class="ui tiny button" (click)="modal.deny(undefined)">No</button>
+    </div>
+</div>

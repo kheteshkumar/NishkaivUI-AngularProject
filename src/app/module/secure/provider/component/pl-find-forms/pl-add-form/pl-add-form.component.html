@@ -1,0 +1,70 @@
+<div>
+
+  <form [formGroup]="addFormForm" class="ui form">
+    <div class="ui" *ngIf="isLoader_processing">
+      <div class="ui active dimmer">
+        <div class="ui indeterminate text loader">{{'common.loading' | translate}}</div>
+      </div>
+    </div>
+    <div class="toaster-static toaster-e" *ngIf="showErrorMessage">
+      <span><a href="javascript:void(0)" (click)="showErrorMessage = !showErrorMessage"><i
+            class="close icon"></i></a></span>
+      <p>{{ errorMessage }}</p>
+    </div>
+    <br />
+
+    <sui-checkbox *ngIf="!InputData.isEdit" class="toggle field" formControlName="isLink">
+      {{ 'plforms.link.linkWith' | translate }}</sui-checkbox>
+    <div *ngIf="addFormForm.value['isLink']" class="required field">
+      <label> {{ 'plforms.link.form' | translate }}</label>
+      <sui-select [ngClass]="{ loading: isLoadingLinking }" class="selection" formControlName="formId" #Status
+        labelField="formTitle" valueField="id" (selectedOptionChange)="fetchForm()" [isSearchable]="true"
+        [options]="lookupList" icon="search">
+        <sui-select-option *ngFor="let o of Status.filteredOptions" [value]="o"></sui-select-option>
+      </sui-select>
+      <span>{{ addFormFormErrors.formId }}</span>
+    </div>
+    <ng-container *ngIf="!showFormPreview">
+      <div class="required field">
+        <label> {{ 'plforms.add.title' | translate }}</label>
+        <input placeholder="Form Title" type="text" formControlName="formTitle" />
+        <span>{{ addFormFormErrors.formTitle }}</span>
+      </div>
+      <div class="field">
+        <label> {{ 'plforms.add.description' | translate }}</label>
+        <input placeholder="{{ 'plforms.add.description' | translate }}" type="text"
+          formControlName="formDescription" />
+        <span>{{ addFormFormErrors.formDescription }}</span>
+      </div>
+      <div class="field">
+        <app-formio-builder [form]="fetchedForm" (formChanged)="onFormChange($event)"></app-formio-builder>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="showFormPreview">
+      <div class="field">
+        <div class="ui segment">
+          <app-formio-renderer [form]="formJson" [readOnly]="true">
+          </app-formio-renderer>
+        </div>
+      </div>
+    </ng-container>
+  </form>
+  <div class="ui fitted divider wizard-footer"></div>
+  <div class="actions">
+    <div class="ui tiny">
+      <button class="ui orange tiny button" autofocus [ngClass]="{ loading: isLoading_Btn }" (click)="onAddForm()"
+        [disabled]="!addFormForm.dirty" *ngIf="!InputData.isEdit">
+        {{ addFormForm.value['isLink'] ? ('plforms.link.link' | translate) : ('plforms.add.add' | translate) }}
+      </button>
+      <button class="ui orange tiny button" autofocus (click)="onEditForm()" [ngClass]="{ loading: isLoading_Btn }"
+        [disabled]="addFormForm.invalid || !addFormForm.dirty" *ngIf="InputData.isEdit">
+        {{ 'plforms.edit.save' | translate }}
+      </button>
+      <button *ngIf="!InputData.isEdit" class="tiny ui button" (click)="reset()">
+        {{ 'plforms.add.reset' | translate }}
+      </button>
+      <button class="tiny ui button" (click)="cancel()">{{ 'plforms.link.cancel' | translate }}</button>
+    </div>
+  </div>
+</div>

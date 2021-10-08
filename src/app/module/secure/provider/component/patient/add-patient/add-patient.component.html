@@ -1,0 +1,604 @@
+<ng-template let-result let-query="query" #template>
+  {{ result.displayName}}
+</ng-template>
+<div class="ui" *ngIf="isLoader_AddCust">
+  <div class="ui active dimmer">
+    <div class="ui indeterminate text loader">{{'common.processing' | translate}}</div>
+  </div>
+</div>
+<div class="ui" *ngIf="isLoader_Country || 
+                        isLoader_PatientLookup || isLoader_Insurance || 
+                        isLoader_Practitioner || isLoader_EditPatient || isLoader_FormsList">
+  <div class="ui active dimmer">
+    <div class="ui indeterminate text loader">{{'common.loading' | translate}}</div>
+  </div>
+</div>
+<form [formGroup]="addPatientForm" class="ui form">
+  <sui-accordion [closeOthers]="true">
+    <div class="toaster-static toaster-s" *ngIf="showSuccessMessage">
+      <span><a href="javascript:void(0)" (click)="showSuccessMessage=!showSuccessMessage"><i
+            class="close icon"></i></a></span>
+      <p>{{successMessage}}</p>
+    </div>
+    <div class="toaster-static toaster-e" *ngIf="showErrorMessage">
+      <span><a href="javascript:void(0)" (click)="showErrorMessage=!showErrorMessage"><i
+            class="close icon"></i></a></span>
+      <p>{{errorMessage}}</p>
+    </div>
+
+    <sui-accordion-panel [(isOpen)]="accordian.basicDetails">
+      <div title>
+        <i class="dropdown icon"></i>
+        {{'patient.add.basicDetails' | translate}}
+      </div>
+      <div content (click)="$event.stopPropagation()">
+        <div class="ui tiny form">
+
+          <div class="two fields">
+            <div class="required field">
+              <label> {{'patient.add.firstName' | translate}}</label>
+              <input placeholder="First Name" type="text" *ngIf="isEditPatient"
+                [attr.disabled]="(loggedInUserData.userType == 0)? true: null" formControlName="FirstName" #firstName>
+              <sui-select class="selection" icon="search" [options]="searchPatientList"
+                [optionsFilter]="updateFirstName(searchInput)" *ngIf="!isEditPatient" labelField="displayName"
+                valueField="id" [isSearchable]="true" placeholder="Search Patient..."
+                (selectedOptionChange)="selectPatient(searchInput)" #searchInput>
+                <sui-select-option *ngFor="let o of searchInput.filteredOptions" [value]="o"></sui-select-option>
+              </sui-select>
+              <span>{{addPatientFormErrors.FirstName}}</span>
+            </div>
+
+            <div class="required field">
+              <label> {{'patient.add.lastName' | translate}}</label>
+              <input placeholder="Last Name" type="text" [attr.disabled]="(loggedInUserData.userType == 0)? true: null"
+                formControlName="LastName" #lastName>
+              <span>{{addPatientFormErrors.LastName}}</span>
+            </div>
+          </div>
+          <div class="two fields">
+            <div class="field">
+              <label> {{'patient.add.mrn' | translate}}</label>
+              <input placeholder="MRN Number" type="text" formControlName="Mrn">
+              <span>{{addPatientFormErrors.Mrn}}</span>
+            </div>
+            <div class="required field">
+              <label>{{'patient.add.dob' | translate}}</label>
+              <div class="ui left icon input">
+                <i class="calendar icon"></i>
+                <input placeholder="MM/DD/YYYY" type="text"
+                  [attr.disabled]="(loggedInUserData.userType == 0)? true: null" mask="00/00/0000"
+                  [dropSpecialCharacters]="false" [validation]="false" formControlName="Dob">
+                <!-- <input suiDatepicker placeholder="MM/DD/YYYY" [pickerMaxDate]="maxDate" [pickerMinDate]="minDate" [pickerMode]="dateMode"  [pickerUseNativeOnMobile]="false" 
+                 formControlName="Dob"  > -->
+
+                <!-- <input placeholder="MM/DD/YYYY"  type="text" mask="MM/dd/0000" [validation]="false"
+                formControlName="Dob"> -->
+
+              </div>
+              <span>{{addPatientFormErrors.Dob}}</span>
+              <!-- <input placeholder="MM/DD/YYYY"  type="text" mask="00/00/0000" unmask=false [validation]="false"
+                formControlName="Dob">
+               -->
+            </div>
+          </div>
+          <div class="two fields">
+            <div class="required field">
+              <label> {{'patient.add.phone' | translate}}</label>
+              <input placeholder="Phone" type="text" formControlName="Phone" mask="000-000-0000" unmask=true
+                [validation]="false" #phone>
+              <span>{{addPatientFormErrors.Phone}}</span>
+              <div class="field" style="padding-top: .5em;">
+                <sui-checkbox formControlName="IsOptIn">Opt-In for text messages?</sui-checkbox>
+              </div>
+            </div>
+            <div [ngClass]="isOptIn ? 'field' : 'required field'">
+              <label> {{'patient.add.email' | translate}}</label>
+              <input placeholder="Email" type="text" formControlName="Email" #email>
+              <span>{{addPatientFormErrors.Email}}</span>
+            </div>
+          </div>
+          <span *ngIf="!isOptIn" style="color: red">*If opted out of text notifications, email address is
+            required.</span>
+          <div class="two fields">
+            <div class="field">
+              <label> {{'patient.add.ssn' | translate}}</label>
+              <div class="ui icon input">
+                <input placeholder="SSN" type="text" formControlName="SSN" mask="XXX-XX-0000"
+                  [hiddenInput]="ssnHiddenMaskInput" unmask=true [validation]="false" #ssn>
+                <a style="margin-top:0.6rem" *ngIf="ssnShowEye" class="ui icon view-pw" suiPopup popupInverted
+                  popupText="{{ !ssnHiddenMaskInput ?  'Hide SSN' : 'Show SSN' }}" popupPlacement="right"
+                  (click)="ssnHiddenMaskInput = !ssnHiddenMaskInput">
+                  <i [ngClass]="ssnHiddenMaskInput ? 'eye icon' : 'low vision icon'"></i>
+                </a>
+              </div>
+              <span>{{addPatientFormErrors.SSN}}</span>
+            </div>
+          </div>
+          <div class="fields"
+            *ngIf="loggedInUserData.userType != 0 && permissions.addEligibility && hasModuleAccess(16)">
+            <div class="field">
+              <div class="field">
+                <label></label>
+                <sui-checkbox formControlName="CheckEligibility" #CheckEligibility>
+                  {{'Check Eligibility' | translate}} - <span style="font-size: 10px;">Charges may apply</span>
+                </sui-checkbox>
+              </div>
+            </div>
+          </div>
+          <div class="fields" *ngIf="addPatientForm.value.CheckEligibility && loggedInUserData.userType != 0">
+            <div class="field required sixteen wide column">
+              <label>{{'patient.add.doctorId' | translate}}</label>
+              <sui-select class="selection" [options]="searchDoctorList" formControlName="DoctorId"
+                labelField="displayName" valueField="id" #DoctorId [isSearchable]="true" icon="search">
+                <sui-select-option *ngFor="let o of DoctorId.filteredOptions" [value]="o"></sui-select-option>
+              </sui-select>
+              <span>{{addPatientFormErrors.DoctorId}}</span>
+            </div>
+            <!-- <div class="required field">
+              <label>{{'claims.add.serviceDate' | translate}}</label>
+              <div class="ui left icon input">
+                <i class="calendar icon"></i>
+                <input suiDatepicker [pickerMode]="dateMode" [pickerMinDate]="minServiceDate"
+                  [pickerMaxDate]="maxServiceDate" [pickerUseNativeOnMobile]="false" formControlName="ServiceDate"
+                  readonly>
+              </div>
+              <span>{{addPatientFormErrors.ServiceDate}}</span>
+            </div> -->
+          </div>
+        </div>
+      </div>
+    </sui-accordion-panel>
+    <div class="ui fitted divider"></div>
+    <sui-accordion-panel [(isOpen)]="accordian.addressDetails">
+      <div title>
+        <i class="dropdown icon"></i>
+        {{'patient.add.addressDetails' | translate}}
+      </div>
+      <div content (click)="$event.stopPropagation()">
+        <div class="ui tiny form">
+          <div class="field">
+            <label>{{'patient.add.addressLine1' | translate}}</label>
+            <input placeholder="Address Line 1" type="text" formControlName="AddressLine1" #A1>
+            <span>{{addPatientFormErrors.AddressLine1}}</span>
+          </div>
+          <div class="field">
+            <label>{{'patient.add.addressLine2' | translate}}</label>
+            <input placeholder="Address Line 2" type="text" formControlName="AddressLine2" #A2>
+            <span>{{addPatientFormErrors.AddressLine2}}</span>
+          </div>
+          <div class="two fields">
+            <div class="field">
+              <label>{{'patient.add.city' | translate}}</label>
+              <input placeholder="City" type="text" formControlName="City" #city>
+              <span>{{addPatientFormErrors.City}}</span>
+            </div>
+            <div class="field">
+              <label>{{'patient.add.country' | translate}}</label>
+              <sui-select class="selection" [options]="countryList" formControlName="Country"
+                (selectedOptionChange)="populateState($event)" labelField="name" valueField="countryId" #country>
+                <div class="ui icon search input">
+                  <i class="search icon"></i>
+                  <input suiSelectSearch type="text" placeholder="Search options...">
+                </div>
+                <div class="divider"></div>
+                <sui-select-option *ngFor="let o of country.filteredOptions" [value]="o"></sui-select-option>
+              </sui-select>
+              <span>{{addPatientFormErrors.Country}}</span>
+            </div>
+          </div>
+          <div class="two fields">
+            <div class="field">
+              <label>{{'patient.add.state' | translate}}</label>
+              <sui-select class="selection" [options]="stateList" formControlName="State" labelField="name"
+                valueField="abbreviation" #state>
+                <div class="ui icon search input">
+                  <i class="search icon"></i>
+                  <input suiSelectSearch type="text" placeholder="Search options...">
+                </div>
+                <div class="divider"></div>
+                <sui-select-option *ngFor="let o of state.filteredOptions" [value]="o"></sui-select-option>
+              </sui-select>
+              <span>{{addPatientFormErrors.State}}</span>
+            </div>
+            <div class="field">
+              <label>{{'patient.add.postalCode' | translate}}</label>
+              <input placeholder="Postal (Zip) Code" type="text" mask="00000-0000" unmask=true [validation]="false"
+                formControlName="PostalCode" #postalCode>
+              <span>{{addPatientFormErrors.PostalCode}}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </sui-accordion-panel>
+    <div class="ui fitted divider"></div>
+    <sui-accordion-panel [(isOpen)]="accordian.insuranceDetails">
+      <div title>
+        <i class="dropdown icon"></i>
+        {{'patient.add.insuranceDetails' | translate}}
+        <span style="color: red;" *ngIf="addPatientForm.value.CheckEligibility"> *</span>
+      </div>
+      <div content (click)="$event.stopPropagation()">
+        <div class="ui tiny form">
+          <div class="required field">
+            <label for="HasInsurance">{{'patient.add.hasInsurance' | translate}}</label>
+            <div class="inline fields">
+              <div class="ui radio checkbox">
+                <sui-radio-button name="hasInsurance" value="1" formControlName="HasInsurance" #HasInsurance>
+                  {{'patient.add.yes' | translate}}
+                </sui-radio-button>
+              </div>
+              &nbsp;&nbsp;&nbsp;&nbsp;
+              <!-- </div>
+                          <div class="field"> -->
+              <div class="ui radio checkbox">
+                <sui-radio-button name="hasInsurance" value="0" formControlName="HasInsurance" #HasInsurance>
+                  {{'patient.add.no' | translate}}
+                </sui-radio-button>
+              </div>
+            </div>
+            <span>{{addPatientFormErrors.HasInsurance}}</span>
+          </div>
+
+          <div *ngIf="isInsuredSelected">
+            <sui-tabset>
+              <div class="ui top attached tabular menu">
+                <a class="item" suiTabHeader="1">Primary Insurance</a>
+                <a class="item" suiTabHeader="2" [(isActive)]="secondActive" *ngIf="isSecInsuredSelected">Secondary
+                  Insurance</a>
+              </div>
+              <div class="ui bottom attached segment" suiTabContent="1">
+                <div class="two fields">
+                  <div class="required field">
+                    <label>{{'patient.add.insurancePartner' | translate}}</label>
+                    <sui-select class="selection" formControlName="InsurancePartner" #InsurancePartner labelField="name"
+                      valueField="id" [isSearchable]="true" [optionsLookup]="filterInsurancePartners" icon="search">
+                      <sui-select-option *ngFor="let o of InsurancePartner.filteredOptions" [value]="o">
+                      </sui-select-option>
+                    </sui-select>
+                    <span>{{addPatientFormErrors.InsurancePartner}}</span>
+                  </div>
+                  <div class="required field">
+                    <label>{{'patient.add.policyNo' | translate}}</label>
+                    <input type="text" placeholder="{{'patient.add.policyNo' | translate}}" formControlName="PolicyNo">
+                    <span>{{addPatientFormErrors.PolicyNo}}</span>
+                  </div>
+                </div>
+                <div class="two fields">
+                  <div class="field">
+                    <label>{{'patient.add.groupNo' | translate}}</label>
+                    <input type="text" placeholder="{{'patient.add.groupNo' | translate}}" formControlName="GroupNo">
+                    <span>{{addPatientFormErrors.GroupNo}}</span>
+                  </div>
+                  <div class="field">
+                    <label>{{'patient.add.binNo' | translate}}</label>
+                    <input type="text" placeholder="{{'patient.add.binNo' | translate}}" formControlName="BinNo">
+                    <span>{{addPatientFormErrors.BinNo}}</span>
+                  </div>
+                </div>
+                <div class="two fields">
+                  <div class="required field">
+                    <label>{{'patient.add.relation' | translate}}</label>
+                    <sui-select class="selection" [options]="relationList" formControlName="Relation" labelField="title"
+                      valueField="value" #relation
+                      (selectedOptionChange)="onRelationSelectionClick(relation,firstName,lastName,phone,email)">
+                      <sui-select-option *ngFor="let option of relationList" [value]="option">
+                      </sui-select-option>
+                    </sui-select>
+                    <span>{{addPatientFormErrors.Relation}}</span>
+                  </div>
+                </div>
+                <div class="two fields">
+                  <div class="required field" *ngIf="addPatientForm.value.Relation == 0">
+                    <label> {{'patient.add.firstName' | translate}}</label>
+                    <input placeholder="{{'patient.add.firstName' | translate}}" type="text"
+                      formControlName="InsureFirstName">
+                    <span>{{addPatientFormErrors.InsureFirstName}}</span>
+                  </div>
+                  <div class="required field" *ngIf="addPatientForm.value.Relation != 0">
+                    <label> {{'patient.add.subscriberFirstName' | translate}}</label>
+                    <input placeholder="{{'patient.add.subscriberFirstName' | translate}}" type="text"
+                      formControlName="InsureFirstName">
+                    <span>{{addPatientFormErrors.InsureFirstName}}</span>
+                  </div>
+                  <div class="required field" *ngIf="addPatientForm.value.Relation == 0">
+                    <label> {{'patient.add.lastName' | translate}}</label>
+                    <input placeholder="{{'patient.add.lastName' | translate}}" type="text"
+                      formControlName="InsureLastName">
+                    <span>{{addPatientFormErrors.InsureLastName}}</span>
+                  </div>
+                  <div class="required field" *ngIf="addPatientForm.value.Relation != 0">
+                    <label> {{'patient.add.subscriberLastName' | translate}}</label>
+                    <input *ngIf="addPatientForm.value.Relation != 0"
+                      placeholder="{{'patient.add.subscriberLastName' | translate}}" type="text"
+                      formControlName="InsureLastName">
+                    <span>{{addPatientFormErrors.InsureLastName}}</span>
+                  </div>
+                </div>
+                <div class="two fields">
+                  <div class="required field">
+                    <label> {{'patient.add.phone' | translate}}</label>
+                    <input placeholder="Phone" type="text" mask="000-000-0000" unmask=true [validation]="false"
+                      formControlName="InsurePhone">
+                    <span>{{addPatientFormErrors.InsurePhone}}</span>
+                  </div>
+                  <div class="field">
+                    <label> {{'patient.add.email' | translate}}</label>
+                    <input placeholder="Email" type="text" formControlName="InsureEmail">
+                    <span>{{addPatientFormErrors.InsureEmail}}</span>
+                  </div>
+                </div>
+                <div class="field">
+                  <!-- <label>&nbsp;</label> -->
+                  <sui-checkbox class="toggle" formControlName="SameAsPatientAddress" #SameAsPatientAddress
+                    (checkChange)="onSameAddSelectionClick(SameAsPatientAddress,country,state,A1,A2,city,postalCode)">
+                    {{'patient.add.sameAsInsurerAddress' | translate}}</sui-checkbox>
+                </div>
+                <div class="field">
+                  <label>{{'patient.add.addressLine1' | translate}}</label>
+                  <input placeholder="Address Line 1" type="text" formControlName="InsureAddressLine1"
+                    [attr.disabled]="(addPatientForm.value.SameAsPatientAddress)?true:null">
+                  <span>{{addPatientFormErrors.InsureAddressLine1}}</span>
+                </div>
+                <div class="field">
+                  <label>{{'patient.add.addressLine2' | translate}}</label>
+                  <input placeholder="Address Line 2" type="text" formControlName="InsureAddressLine2"
+                    [attr.disabled]="(addPatientForm.value.SameAsPatientAddress)?true:null">
+                  <span>{{addPatientFormErrors.InsureAddressLine2}}</span>
+                </div>
+                <div class="two fields">
+                  <div class="field">
+                    <label>{{'patient.add.city' | translate}}</label>
+                    <input placeholder="City" type="text" formControlName="InsureCity"
+                      [attr.disabled]="(addPatientForm.value.SameAsPatientAddress)?true:null">
+                    <span>{{addPatientFormErrors.InsureCity}}</span>
+                  </div>
+                  <div class="field">
+                    <label>{{'patient.add.country' | translate}}</label>
+                    <sui-select class="selection" [options]="countryInsureList" formControlName="InsureCountry"
+                      (selectedOptionChange)="populateStateInsurance($event)" labelField="name" valueField="countryId"
+                      #InsureCountry [isDisabled]="(addPatientForm.value.SameAsPatientAddress)?true:null">
+                      <div class="ui icon search input">
+                        <i class="search icon"></i>
+                        <input suiSelectSearch type="text" placeholder="Search options...">
+                      </div>
+                      <div class="divider"></div>
+                      <sui-select-option *ngFor="let o of InsureCountry.filteredOptions" [value]="o">
+                      </sui-select-option>
+                    </sui-select>
+                    <span>{{addPatientFormErrors.InsureCountry}}</span>
+                  </div>
+                </div>
+                <div class="two fields">
+                  <div class="field">
+                    <label>{{'patient.add.state' | translate}}</label>
+                    <sui-select class="selection" [options]="stateListInsurance" formControlName="InsureState"
+                      labelField="name" valueField="abbreviation" #InsureState
+                      [isDisabled]="(addPatientForm.value.SameAsPatientAddress)?true:null">
+                      <div class="ui icon search input">
+                        <i class="search icon"></i>
+                        <input suiSelectSearch type="text" placeholder="Search options...">
+                      </div>
+                      <div class="divider"></div>
+                      <sui-select-option *ngFor="let o of InsureState.filteredOptions" [value]="o"></sui-select-option>
+                    </sui-select>
+                    <span>{{addPatientFormErrors.InsureState}}</span>
+                  </div>
+                  <div class="field">
+                    <label>{{'patient.add.postalCode' | translate}}</label>
+                    <input placeholder="Postal (Zip) Code" mask="00000-0000" unmask=true [validation]="false"
+                      type="text" formControlName="InsurePostalCode"
+                      [attr.disabled]="(addPatientForm.value.SameAsPatientAddress)?true:null">
+                    <span>{{addPatientFormErrors.InsurePostalCode}}</span>
+                  </div>
+                </div>
+                <!--second insurance div-->
+                <div class="required field">
+                  <label for="SecondInsurance">{{'patient.add.secondInsurance' | translate}}</label>
+                  <div class="inline fields">
+                    <div class="ui radio checkbox">
+                      <sui-radio-button name="secondInsurance" value="1" formControlName="SecondInsurance"
+                        #SecondInsurance>
+                        {{'patient.add.yes' | translate}}
+                      </sui-radio-button>
+                    </div>
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    <!-- </div>
+                                  <div class="field"> -->
+                    <div class="ui radio checkbox">
+                      <sui-radio-button name="secondInsurance" value="0" formControlName="SecondInsurance"
+                        #SecondInsurance>
+                        {{'patient.add.no' | translate}}
+                      </sui-radio-button>
+                    </div>
+                  </div>
+                  <span>{{addPatientFormErrors.SecondInsurance}}</span>
+                </div>
+              </div>
+              <div class="ui bottom attached segment" suiTabContent="2" *ngIf="isSecInsuredSelected">
+
+                <div class="two fields">
+                  <div class="required field">
+                    <label>{{'patient.add.insurancePartner' | translate}}</label>
+                    <sui-select class="selection" formControlName="InsurancePartner2" #InsurancePartner2
+                      labelField="name" valueField="id" [isSearchable]="true" [optionsLookup]="filterInsurancePartners"
+                      icon="search">
+                      <sui-select-option *ngFor="let o of InsurancePartner2.filteredOptions" [value]="o">
+                      </sui-select-option>
+                    </sui-select>
+                    <span>{{addPatientFormErrors.InsurancePartner2}}</span>
+                  </div>
+                  <div class="required field">
+                    <label>{{'patient.add.policyNo' | translate}}</label>
+                    <input type="text" #assetInput placeholder="{{'patient.add.policyNo' | translate}}"
+                      formControlName="PolicyNo2">
+                    <span>{{addPatientFormErrors.PolicyNo2}}</span>
+                  </div>
+                </div>
+                <div class="two fields">
+                  <div class="field">
+                    <label>{{'patient.add.groupNo' | translate}}</label>
+                    <input type="text" placeholder="{{'patient.add.groupNo' | translate}}" formControlName="GroupNo2">
+                    <span>{{addPatientFormErrors.GroupNo2}}</span>
+                  </div>
+                  <div class="field">
+                    <label>{{'patient.add.binNo' | translate}}</label>
+                    <input type="text" placeholder="{{'patient.add.binNo' | translate}}" formControlName="BinNo2">
+                    <span>{{addPatientFormErrors.BinNo2}}</span>
+                  </div>
+                </div>
+                <div class="two fields">
+                  <div class="required field">
+                    <label>{{'patient.add.relation' | translate}}</label>
+                    <sui-select class="selection" [options]="relationList" formControlName="Relation2"
+                      labelField="title" valueField="value" #relation2
+                      (selectedOptionChange)="onRelation2SelectionClick(relation2,firstName,lastName,phone,email)">
+                      <sui-select-option *ngFor="let option of relationList" [value]="option">
+                      </sui-select-option>
+                    </sui-select>
+                    <span>{{addPatientFormErrors.Relation2}}</span>
+                  </div>
+                </div>
+                <div class="two fields">
+                  <div class="required field" *ngIf="addPatientForm.value.Relation2 == 0">
+                    <label> {{'patient.add.firstName' | translate}}</label>
+                    <input placeholder="{{'patient.add.firstName' | translate}}" type="text"
+                      formControlName="InsureFirstName2">
+                    <span>{{addPatientFormErrors.InsureFirstName2}}</span>
+                  </div>
+                  <div class="required field" *ngIf="addPatientForm.value.Relation2 != 0">
+                    <label> {{'patient.add.subscriberFirstName' | translate}}</label>
+                    <input placeholder="{{'patient.add.subscriberFirstName' | translate}}" type="text"
+                      formControlName="InsureFirstName2">
+                    <span>{{addPatientFormErrors.InsureFirstName2}}</span>
+                  </div>
+                  <div class="required field" *ngIf="addPatientForm.value.Relation2 == 0">
+                    <label> {{'patient.add.lastName' | translate}}</label>
+                    <input placeholder="{{'patient.add.lastName' | translate}}" type="text"
+                      formControlName="InsureLastName2">
+                    <span>{{addPatientFormErrors.InsureLastName2}}</span>
+                  </div>
+                  <div class="required field" *ngIf="addPatientForm.value.Relation2 != 0">
+                    <label> {{'patient.add.subscriberLastName' | translate}}</label>
+                    <input placeholder="{{'patient.add.subscriberLastName' | translate}}" type="text"
+                      formControlName="InsureLastName2">
+                    <span>{{addPatientFormErrors.InsureLastName2}}</span>
+                  </div>
+                </div>
+                <div class="two fields">
+                  <div class="required field">
+                    <label> {{'patient.add.phone' | translate}}</label>
+                    <input placeholder="Phone" type="text" formControlName="InsurePhone2" mask="000-000-0000"
+                      unmask=true [validation]="false">
+                    <span>{{addPatientFormErrors.InsurePhone2}}</span>
+                  </div>
+                  <div class="field">
+                    <label> {{'patient.add.email' | translate}}</label>
+                    <input placeholder="Email" type="text" formControlName="InsureEmail2">
+                    <span>{{addPatientFormErrors.InsureEmail2}}</span>
+                  </div>
+                </div>
+                <div class="field">
+                  <!-- <label>&nbsp;</label> -->
+                  <sui-checkbox class="toggle" formControlName="SameAsPatientAddress2" #SameAsPatientAddress2
+                    (checkChange)="onSameAdd2SelectionClick(SameAsPatientAddress2,country,state,A1,A2,city,postalCode)">
+                    {{'patient.add.sameAsInsurerAddress' | translate}}</sui-checkbox>
+                </div>
+                <div class="field">
+                  <label>{{'patient.add.addressLine1' | translate}}</label>
+                  <input placeholder="Address Line 1" type="text" formControlName="SecInsureAddressLine1"
+                    [attr.disabled]="(addPatientForm.value.SameAsPatientAddress2)?true:null">
+                  <span>{{addPatientFormErrors.SecInsureAddressLine1}}</span>
+                </div>
+                <div class="field">
+                  <label>{{'patient.add.addressLine2' | translate}}</label>
+                  <input placeholder="Address Line 2" type="text" formControlName="SecInsureAddressLine2"
+                    [attr.disabled]="(addPatientForm.value.SameAsPatientAddress2)?true:null">
+                  <span>{{addPatientFormErrors.SecInsureAddressLine2}}</span>
+                </div>
+                <div class="two fields">
+                  <div class="field">
+                    <label>{{'patient.add.city' | translate}}</label>
+                    <input placeholder="City" type="text" formControlName="InsureCity2"
+                      [attr.disabled]="(addPatientForm.value.SameAsPatientAddress2)?true:null">
+                    <span>{{addPatientFormErrors.InsureCity}}</span>
+                  </div>
+                  <div class="field">
+                    <label>{{'patient.add.country' | translate}}</label>
+                    <sui-select class="selection" [options]="countryInsure2List" formControlName="InsureCountry2"
+                      (selectedOptionChange)="populateStateSecInsurance($event)" labelField="name"
+                      valueField="countryId" #InsureCountry2
+                      [isDisabled]="(addPatientForm.value.SameAsPatientAddress2)?true:null">
+                      <div class="ui icon search input">
+                        <i class="search icon"></i>
+                        <input suiSelectSearch type="text" placeholder="Search options...">
+                      </div>
+                      <div class="divider"></div>
+                      <sui-select-option *ngFor="let o of InsureCountry2.filteredOptions" [value]="o">
+                      </sui-select-option>
+                    </sui-select>
+                    <span>{{addPatientFormErrors.InsureCountry2}}</span>
+                  </div>
+                </div>
+                <div class="two fields">
+                  <div class="field">
+                    <label>{{'patient.add.state' | translate}}</label>
+                    <sui-select class="selection" [options]="stateListSecInsurance" formControlName="InsureState2"
+                      labelField="name" valueField="abbreviation" #InsureState2
+                      [isDisabled]="(addPatientForm.value.SameAsPatientAddress2)?true:null">
+                      <div class="ui icon search input">
+                        <i class="search icon"></i>
+                        <input suiSelectSearch type="text" placeholder="Search options...">
+                      </div>
+                      <div class="divider"></div>
+                      <sui-select-option *ngFor="let o of InsureState2.filteredOptions" [value]="o"></sui-select-option>
+                    </sui-select>
+                    <span>{{addPatientFormErrors.InsureState2}}</span>
+                  </div>
+                  <div class="field">
+                    <label>{{'patient.add.postalCode' | translate}}</label>
+                    <input placeholder="Postal (Zip) Code" type="text" mask="00000-0000" unmask=true
+                      [validation]="false" formControlName="InsurePostalCode2"
+                      [attr.disabled]="(addPatientForm.value.SameAsPatientAddress2)?true:null">
+                    <span>{{addPatientFormErrors.InsurePostalCode2}}</span>
+                  </div>
+                </div>
+              </div>
+            </sui-tabset>
+          </div>
+        </div>
+      </div>
+    </sui-accordion-panel>
+    <!-- forms Start -->
+    <div *ngIf="loggedInUserData.userType !== userTypeEnum.PATIENT" class="ui fitted divider"></div>
+    <sui-accordion-panel *ngIf="loggedInUserData.userType !== userTypeEnum.PATIENT" [(isOpen)]="accordian.patientForms">
+      <div title>
+        <i class="dropdown icon"></i>
+        {{'patient.add.patientForms' | translate}}
+      </div>
+      <div content (click)="$event.stopPropagation()">
+        <div class="toaster-static toaster-e" *ngIf="errorMessageForms">
+          <span><a href="javascript:void(0)" (click)="errorMessageForms=null"><i class="close icon"></i></a></span>
+          <p>{{errorMessageForms}}</p>
+        </div>
+        <div class="ui tiny form">
+          <div *ngIf="allFormsList && allFormsList.length;else noForms">
+            <form [formGroup]="patientFormsForm" id="formChecks" novalidate>
+              <div class="field" *ngFor="let form of allFormsList; let i=index">
+                <label>
+                  <input type="checkbox" [value]="form.id" (change)="onCheckboxChange($event)" />
+                  {{form.formTitle}}
+                </label>
+              </div>
+            </form>
+          </div>
+          <ng-template #noForms>
+            <sui-message class="attached warning" [isDismissable]="false">
+              <p>{{ 'plforms.attach.noFormsFound' | translate }}</p>
+            </sui-message>
+          </ng-template>
+        </div>
+      </div>
+    </sui-accordion-panel>
+    <!-- forms END -->
+  </sui-accordion>
+</form>

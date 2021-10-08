@@ -1,0 +1,11 @@
+div.formio-dialog-content > div.component-edit-container > div:nth-child(1) > div:nth-child(2) > div {
+  display: none;
+}
+
+  .ui.button.mini.icon.component-settings-button-move i::before{
+      content: "\f0b2"
+  }
+  .ui.button.mini.icon.component-settings-button-edit i::before{
+      content: "\f0ad"
+  }
+

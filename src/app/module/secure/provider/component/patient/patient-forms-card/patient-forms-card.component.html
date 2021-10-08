@@ -1,0 +1,263 @@
+<app-toaster [toaster]="toastData"></app-toaster>
+<div
+  class="ui cards cards-overflow"
+  style="margin: 0px; margin-bottom: 0.5em"
+  *ngIf="PatientData.formsDetails && PatientData.formsDetails.length; else noRecords"
+>
+  <!-- <div class="selectionX ui dropdown multiple" style="width: auto; padding: 0 0 5px 0"> -->
+  <!--   <div class="chipX transition visible ui orange tiny label" *ngFor="let form of PatientData.formsDetails"> -->
+  <!--     <span>{{ form.formTitle }}</span> -->
+  <!--   </div> -->
+  <!-- </div> -->
+  <!-- <div class="ui segment modal-loader" *ngIf="(formsData.has(form.formId) && formsData.get(form.formId).formData)"> -->
+  <!--   <div class="ui active dimmer"> -->
+  <!--     <div class="ui medium text loader">Loading</div> -->
+  <!--   </div> -->
+  <!-- </div> -->
+  <div
+    class="card segment ui"
+    [ngClass]="{
+      'loading ui active dimmer tall': !(formsData.has(form.formId) && formsData.get(form.formId).formData)
+    }"
+    style="min-height: 10rem"
+    *ngFor="let form of PatientData.formsDetails"
+  >
+    <div *ngIf="formsData.get(form.formId) as data" class="content">
+      <div class="ui active dimmer" *ngIf="data.formData && data.formData.sendForm_Loader">
+        <div class="ui small text loader"></div>
+      </div>
+      <div
+        class="ui right floated pointing dropdown mr0"
+        *ngIf="data.operations && data.operations.length"
+        suiDropdown
+        (click)="$event.stopPropagation()"
+      >
+        <i class="ellipsis horizontal icon"></i>
+        <div class="menu" suiDropdownMenu>
+          <div class="item" *ngFor="let operation of data.operations" (click)="onOperationClick(operation, data)">
+            <div class="w100">{{ operation.value }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ui mini bottom right attached label" [ngClass]="data.meta.color || form.statusHelper.color">
+        <!-- //status -->
+        {{ data.meta.text || form.statusHelper.text }}
+      </div>
+      <div class="header">
+        {{ form.formTitle }}
+      </div>
+      <div>
+        <div class="meta">
+          <!-- <div> -->
+          <!--   <strong>{{ 'Last Updated On' | translate }}</strong -->
+          <!--   >: {{ data.formData.modifiedDate }} -->
+          <!-- </div> -->
+          <div>
+            <strong>{{ 'Submitted By' | translate }}</strong
+            >: {{ data.submissionData ? data.submissionData.submittedBy : '--' }}
+          </div>
+          <div>
+            <strong>{{ 'Created On' | translate }}</strong
+            >: {{ data.submissionData ? data.submissionData.createdDate : '--' }}
+          </div>
+          <!-- <div><strong>{{'Created On' | translate}}</strong>: {{details.groupNo !=null && details.groupNo != ""? -->
+          <!--   details.groupNo: '--'}}</div> -->
+        </div>
+        <br />
+        <div class="description">
+          <div class="item">
+            <!-- <span>{{ data.formData.formDescription }}</span> -->
+          </div>
+        </div>
+      </div>
+
+      <button
+        class="orange circular ui left floated icon button"
+        type="button"
+        (click)="$event.stopPropagation(); viewForm(data)"
+        suiPopup
+        popupText="View"
+        popupInverted
+        [popupPlacement]="'top'"
+      >
+        <i class="eye alternate outline sign icon" style="color: #ffffff"></i>
+      </button>
+      <button
+        class="orange circular ui left floated icon button"
+        type="button"
+        (click)="$event.stopPropagation(); viewFormHistory(data)"
+        suiPopup
+        popupText="View History"
+        popupInverted
+        [disabled]="!data.submissionData"
+        [popupPlacement]="'top'"
+      >
+        <i class="history alternate outline sign icon" style="color: #ffffff"></i>
+      </button>
+      <button
+        *ngIf="form.status === 1; else addBtn"
+        class="orange circular ui left floated icon button"
+        type="button"
+        (click)="$event.stopPropagation(); editForm(data)"
+        suiPopup
+        [popupText]="'plforms.view.update' | translate"
+        popupInverted
+        [popupPlacement]="'top'"
+        [disabled]="data.formData.isActivated === activationEnum.Deactivated"
+      >
+        <i class="pencil sign icon"></i>
+      </button>
+      <ng-template #addBtn>
+        <button
+          class="orange circular ui left floated icon button"
+          type="button"
+          (click)="$event.stopPropagation(); editForm(data)"
+          suiPopup
+          [disabled]="data.formData.isActivated === activationEnum.Deactivated"
+          [popupText]="'plforms.view.add' | translate"
+          popupInverted
+          [popupPlacement]="'top'"
+        >
+          <i class="plus icon"></i>
+        </button>
+      </ng-template>
+    </div>
+  </div>
+
+  <ng-container>
+    <!-- *ngIf="lessThan(patientInsuranceDetails.length, 5)"> -->
+    <div class="card add-insurance" (click)="openAddFormsModal()">
+      <div class="content">
+        <i
+          class="plus circle orange link icon huge"
+          suiPopup
+          popupText="Add/Edit Forms"
+          popupInverted
+          [popupPlacement]="'top'"
+        ></i>
+      </div>
+    </div>
+  </ng-container>
+</div>
+<ng-template #noRecords>
+  <div class="ui cards cards-overflow">
+    <div class="ui card add-insurance">
+      <sui-message class="attached warning" [isDismissable]="false">
+        <p>{{ 'plforms.find.noRecordsFound' | translate }}</p>
+      </sui-message>
+    </div>
+    <ng-container>
+      <div class="card add-insurance" (click)="openAddFormsModal()">
+        <div class="content">
+          <i
+            class="plus circle orange link icon huge"
+            suiPopup
+            popupText="Add/Edit Forms"
+            popupInverted
+            [popupPlacement]="'top'"
+          ></i>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+</ng-template>
+
+<!-- Attach/Deattach forms Starts -->
+<ng-template let-context let-modal="modal" #modalFormAttach>
+  <div class="header">
+    <span>{{ 'plforms.attach.heading' | translate }}</span>
+    <i #closeWizardAttach (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-patient-add-forms (updateStatus)="updateFormStatusTrigger()" [patientData]="PatientData">
+    </app-patient-add-forms>
+    <button (click)="closeWizardAttach.click()" class="tiny ui orange button">
+      {{ 'plforms.attach.cancel' | translate }}
+    </button>
+  </div>
+</ng-template>
+<!-- Attach/Deattach Ends -->
+
+<!-- Add forms data / update -->
+<ng-template let-context let-modal="modal" #modalFormRenderer>
+  <div class="header">
+    <span>{{ currentForm.form.formTitle }}</span>
+    <i #closeWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content" id="print-section">
+    <div class="item segment ui">
+      <div class="ui sub header" style="font-size: 1.28571429rem">
+        {{ PatientData.fullName }}
+      </div>
+      <strong> {{ 'patient.find.dob' | translate }}: </strong
+      >{{ PatientData.dob != null ? getFormattedDateToDisplay(PatientData.dob) : '--'
+      }}<span class="separator">|</span> <strong> {{ 'patient.find.email' | translate }}: </strong
+      >{{ PatientData.email != null && PatientData.email != '' ? PatientData.email : '--' }}
+      <br />
+      <strong> {{ 'patient.find.phone' | translate }}: </strong
+      >{{ PatientData.mobile != null ? (PatientData.mobile | mask: '000-000-0000') : '--'
+      }}<span class="separator">|</span> <strong> {{ 'patient.find.creationDate' | translate }}: </strong
+      >{{ PatientData.createdOn }}
+    </div>
+    <div class="toaster-static toaster-e" *ngIf="showErrorMessage">
+      <span
+        ><a href="javascript:void(0)" (click)="showErrorMessage = !showErrorMessage"><i class="close icon"></i></a
+      ></span>
+      <p>{{ errorMessage }}</p>
+    </div>
+    <!-- <br /> -->
+    <app-patient-view-forms-sub-history
+      *ngIf="currentForm.isHistory"
+      [patient]="PatientData"
+      [form]="currentForm.form"
+    ></app-patient-view-forms-sub-history>
+    <app-formio-renderer
+      *ngIf="!currentForm.isHistory"
+      [submission]="currentForm.submission"
+      [form]="currentForm.form"
+      [viewOnly]="currentForm.viewOnly"
+      [viewTitle]="false"
+      [readOnly]="currentForm.readOnly"
+      (submit)="addSubmission($event)"
+    >
+    </app-formio-renderer>
+  </div>
+  <div class="actions">
+    <div class="ui tiny">
+      <ng-container *ngIf="!currentForm.isEdit">
+        <button
+          class="ui tiny orange button"
+          [disabled]="formsData.get(currentForm.form.id).formData.isActivated === activationEnum.Deactivated"
+          (click)="editForm(formsData.get(currentForm.form.id), true)"
+        >
+          {{ currentForm.submission ? ('plforms.view.update' | translate) : ('plforms.view.edit' | translate) }}
+        </button>
+        <button
+          class="ui tiny orange button"
+          [disabled]="
+            !formsData.get(currentForm.form.id).submissionData &&
+            formsData.get(currentForm.form.id).formData.isActivated === activationEnum.Deactivated
+          "
+          (click)="viewFormHistory(formsData.get(currentForm.form.id))"
+          *ngIf="currentForm.submission && !currentForm.isHistory"
+        >
+          {{ 'plforms.view.history' | translate }}
+        </button>
+        <button
+          class="ui tiny orange button"
+          printSectionId="print-section"
+          ngxPrint=""
+          [useExistingCss]="true"
+          (click)="currentForm.viewOnly = false"
+          #printBtn
+        >
+          {{ 'plforms.view.print' | translate }}
+        </button>
+        <button class="ui tiny button" (click)="modal.deny()">
+          {{ 'plforms.view.close' | translate }}
+        </button>
+      </ng-container>
+    </div>
+  </div>
+</ng-template>

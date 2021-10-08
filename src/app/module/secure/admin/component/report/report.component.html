@@ -1,0 +1,990 @@
+<app-toaster [toaster]="toastData"></app-toaster>
+<div id="initialLoad">
+  <form novalidate [formGroup]="findProviderForm">
+    <div class="main-content">
+      <h1 class="ui header">{{'admin.report.heading' | translate}}</h1>
+      <div class="ui segment apf-search">
+        <div class="u-cf-m"></div>
+        <sui-tabset>
+          <div class="tiny ui secondary menu">
+            <a class="item" suiTabHeader="1">{{'admin.report.providerName' | translate}}</a>
+          </div>
+          <div class="ui segment selection-area">
+            <a class="ui label" *ngIf="findProviderForm.value.ProviderName">
+              {{'admin.report.providerName' | translate}}: {{displayFilter}}
+              <i class="delete icon" (click)="clear('ProviderName');"></i>
+            </a>
+          </div>
+          <!-- Provider Name -->
+          <div class="ui" suiTabContent="1">
+            <div class="ui tiny form">
+              <div class="three fields mb0">
+                <div class="field">
+
+                  <sui-multi-select class="selection" formControlName="ProviderName" #ProviderName
+                    (selectedOptionsChange)="onMultiSelectClick(ProviderName)" [hasLabels]="true" [maxSelected]="5"
+                    labelField="name" valueField="id" [isSearchable]="true" [options]="searchProviderList"
+                    icon="search">
+                    <sui-select-option *ngFor="let o of ProviderName.filteredOptions" [value]="o"></sui-select-option>
+                  </sui-multi-select>
+
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ui clearing divider"></div>
+          <button [ngClass]="isLoader_FindProvider ? 'tiny ui orange button loading' : 'tiny ui orange button'"
+            class="tiny ui orange button" type="submit" (click)="find()">{{'admin.report.find' | translate}}</button>
+          <button class="tiny ui tiny button" (click)="clearForm()">{{'admin.report.clear' | translate}}</button>
+        </sui-tabset>
+      </div>
+      <sui-tabset>
+        <div class="ui mini top attached tabular menu" style="flex-wrap: wrap;font-size: 1rem;">
+          <ng-container>
+            <a class="item" suiTabHeader="Transaction">Transaction</a>
+          </ng-container>
+          <ng-container>
+            <a class="item" suiTabHeader="Appointment">Appointment</a>
+          </ng-container>
+          <ng-container>
+            <a class="item" suiTabHeader="PatientReport">Patient Report</a>
+          </ng-container>
+        </div>
+        <ng-container>
+          <div class="ui" suiTabContent="Transaction">
+            <br>
+            <div class="ui three column stackable grid dashboard-block">
+              <div class="three column row">
+                <!-- Transaction Volume Start -->
+                <div class="four wide column" style="max-height: 500px; ">
+                  <div class="ui segment chart-col1">
+                    <div class="ui orange ribbon label">
+                      <i class="chart pie icon"></i>
+                      {{'report.provider.transactionVolume' | translate}}
+                    </div>
+                    <div class="ui relaxed divided list">
+                      <div class="ui" *ngIf="isLoader_TransactionVolume">
+                        <div class="ui active inverted dimmer">
+                          <div class="ui indeterminate text loader"></div>
+                        </div>
+                      </div>
+                      <div class="item">
+                        <div class="right floated content">
+                          <div
+                            [ngClass]="transactionVolumeDetails.totalSale.showDetails ? 'ui orange icon tiny right floated button':'ui icon tiny right floated button'"
+                            (click)="onChangeTransactionVolume('totalSale')" suiPopup popupText="Generate Chart"
+                            popupInverted><i class="chart bar icon"></i> View</div>
+                        </div>
+                        <i class="large green calculator middle aligned icon" style="cursor: pointer;"
+                          (click)="onChangeTransactionVolume('totalSale')"></i>
+                        <!-- {{'report.provider.totalSale' | translate}} ${{transactionVolumeDetails.totalSale.salesAmount | number:'1.2-2'}} -->
+                        <div class="content" (click)="onChangeTransactionVolume('totalSale')" style="cursor: pointer;">
+                          <!-- <a class="header"></a> -->
+                          <div class="description" style="color: #21ba45;">{{'report.provider.totalSale' | translate}}
+                            ${{transactionVolumeDetails.totalSale.salesAmount | number:'1.2-2'}}</div>
+                        </div>
+                        <div class="ui list rpt-indent" *ngIf="transactionVolumeDetails.totalSale.showDetails">
+                          <!-- <div class="ui list rpt-indent" *ngIf="true"> -->
+                          <div class="item">
+                            <i class="credit card outline icon"></i> {{'report.provider.creditCard' | translate}}
+                            ${{transactionVolumeDetails.totalSale.creditCard.salesAmount | number:'1.2-2'}}
+                          </div>
+                          <!-- <div class="item">
+                  <i class="credit card outline icon"></i> {{'report.provider.debitCard' | translate}}
+                  ${{transactionVolumeDetails.totalSale.debitCard.salesAmount | number:'1.2-2'}}
+                </div> -->
+                          <div class="item">
+                            <i class="money bill alternate outline icon"></i> {{'report.provider.ach' | translate}}
+                            ${{transactionVolumeDetails.totalSale.ach.salesAmount | number:'1.2-2'}}
+                          </div>
+                          <div class="item">
+                            <i class="money bill outline icon"></i> {{'report.provider.cash' | translate}}
+                            ${{transactionVolumeDetails.totalSale.cash.salesAmount | number:'1.2-2'}}
+                          </div>
+                          <div class="item">
+                            <i class="money bill alternate outline icon"></i> {{'report.provider.check' | translate}}
+                            ${{transactionVolumeDetails.totalSale.check.salesAmount | number:'1.2-2'}}
+                          </div>
+                        </div>
+                      </div>
+                      <!-- As discussed with Laiq (Hide inProcess tab) -->
+                      <div class="item" *ngIf="false">
+                        <div class="right floated content">
+                          <div class="ui icon tiny button" suiPopup popupText="Generate Chart" popupInverted><i
+                              class="chart bar outlineX icon"></i></div>
+                        </div>
+                        <i class="large calendar minus outline middle aligned icon chrome-yellow"></i>
+                        <div class="content">
+                          <!-- <a class="header">{{'report.merchant.inProcess' | translate}}</a> -->
+                          <div class="description">{{'report.provider.inProcess' | translate}}
+                            ${{transactionVolumeDetails.inProcess.salesAmount | number:'1.2-2'}}</div>
+                        </div>
+                        <!-- <div class="ui list rpt-indent" *ngIf="transactionVolumeDetails.inProcess.showDetails"> -->
+                        <div class="ui list rpt-indent" *ngIf="true">
+                          <div class="item">
+                            <i class="credit card outline icon"></i> {{'report.provider.creditCard' | translate}}
+                            ${{transactionVolumeDetails.inProcess.creditCard.salesAmount | number:'1.2-2'}}
+                          </div>
+                          <!-- <div class="item">
+                  <i class="credit card outline icon"></i> {{'report.provider.debitCard' | translate}}
+                  ${{transactionVolumeDetails.inProcess.debitCard.salesAmount | number:'1.2-2'}}
+                </div> -->
+                          <div class="item">
+                            <i class="money bill alternate outline icon"></i> {{'report.provider.ach' | translate}}
+                            ${{transactionVolumeDetails.inProcess.ach.salesAmount | number:'1.2-2'}}
+                          </div>
+                          <div class="item">
+                            <i class="money bill outline icon"></i> {{'report.provider.cash' | translate}}
+                            ${{transactionVolumeDetails.inProcess.debitCard.salesAmount | number:'1.2-2'}}
+                          </div>
+                          <div class="item">
+                            <i class="money bill alternate outline icon"></i> {{'report.provider.check' | translate}}
+                            ${{transactionVolumeDetails.inProcess.ach.salesAmount | number:'1.2-2'}}
+                          </div>
+                        </div>
+                      </div>
+                      <!--Refund -->
+                      <div class="item">
+                        <!-- <div class="right floated content">
+                <div class="ui icon tiny button" suiPopup popupText="Generate Chart" popupInverted><i
+                    class="chart bar outlineX icon"></i></div>
+              </div>
+              <i class="large calendar times outline middle aligned icon negative"></i>
+              <div class="content">
+                <a class="header">{{'report.provider.refunds' | translate}}</a>
+                <div class="description">${{transactionVolumeDetails.refund.salesAmount | number:'1.2-2'}}</div>
+              </div> -->
+                        <div class="right floated content">
+                          <div
+                            [ngClass]="transactionVolumeDetails.refund.showDetails ? 'ui orange icon tiny right floated button':'ui icon tiny right floated button'"
+                            (click)="onChangeTransactionVolume('refund')" suiPopup popupText="Generate Chart"
+                            popupInverted><i class="chart bar icon"></i> View</div>
+                        </div>
+                        <i class="large calendar minus outline middle aligned icon blue" style="cursor: pointer;"
+                          (click)="onChangeTransactionVolume('refund')"></i>
+                        <div class="content" (click)="onChangeTransactionVolume('refund')" style="cursor: pointer;">
+                          <div class="description">
+                            {{'report.provider.refunds' | translate}}
+                            ${{transactionVolumeDetails.refund.salesAmount | number:'1.2-2'}}
+                          </div>
+                        </div>
+                        <div class="ui list rpt-indent" *ngIf="transactionVolumeDetails.refund.showDetails">
+                          <!-- <div class="ui list rpt-indent" *ngIf="true"> -->
+                          <div class="item">
+                            <i class="credit card outline icon"></i> {{'report.provider.creditCard' | translate}}
+                            ${{transactionVolumeDetails.refund.creditCard.salesAmount | number:'1.2-2'}}
+                          </div>
+                          <!-- <div class="item">
+                  <i class="credit card outline icon"></i> {{'report.provider.debitCard' | translate}}
+                  ${{transactionVolumeDetails.refund.debitCard.salesAmount | number:'1.2-2'}}
+                </div>-->
+                          <div class="item">
+                            <i class="money bill alternate outline icon"></i> {{'report.provider.ach' | translate}}
+                            ${{transactionVolumeDetails.refund.ach.salesAmount | number:'1.2-2'}}
+                          </div>
+                          <div class="item">
+                            <i class="money bill outline icon"></i> {{'report.provider.cash' | translate}}
+                            ${{transactionVolumeDetails.refund.cash.salesAmount | number:'1.2-2'}}
+                          </div>
+                          <div class="item">
+                            <i class="money bill alternate outline icon"></i> {{'report.provider.check' | translate}}
+                            ${{transactionVolumeDetails.refund.check.salesAmount | number:'1.2-2'}}
+                          </div>
+                        </div>
+                      </div>
+                      <!--Refund  end-->
+                      <!-- As discussed with Laiq (Hide Decline tab) -->
+                      <div class="item" *ngIf="true">
+                        <!-- <div class="right floated content">
+                <div class="ui icon tiny button" suiPopup popupText="Generate Chart" popupInverted><i
+                    class="chart bar outlineX icon"></i></div>
+              </div>
+              <i class="large calendar times outline middle aligned icon negative"></i>
+              <div class="content">
+                <a class="header">{{'report.provider.declines' | translate}}</a>
+                <div class="description">${{transactionVolumeDetails.decline.salesAmount | number:'1.2-2'}}</div>
+              </div> -->
+                        <div class="right floated content">
+                          <div
+                            [ngClass]="transactionVolumeDetails.decline.showDetails ? 'ui orange icon tiny right floated button':'ui icon tiny right floated button'"
+                            (click)="onChangeTransactionVolume('decline')" suiPopup popupText="Generate Chart"
+                            popupInverted><i class="chart bar icon"></i> View</div>
+                        </div>
+                        <i class="large calendar times outline middle aligned icon negative" style="cursor: pointer;"
+                          (click)="onChangeTransactionVolume('decline')"></i>
+                        <div class="content" (click)="onChangeTransactionVolume('decline')" style="cursor: pointer;">
+                          <div class="description">
+                            {{'report.provider.declines' | translate}}
+                            ${{transactionVolumeDetails.decline.salesAmount | number:'1.2-2'}}
+                          </div>
+                        </div>
+                        <div class="ui list rpt-indent" *ngIf="transactionVolumeDetails.decline.showDetails">
+                          <!-- <div class="ui list rpt-indent" *ngIf="true"> -->
+                          <div class="item">
+                            <i class="credit card outline icon"></i> {{'report.provider.creditCard' | translate}}
+                            ${{transactionVolumeDetails.decline.creditCard.salesAmount | number:'1.2-2'}}
+                          </div>
+                          <!-- <div class="item">
+                  <i class="credit card outline icon"></i> {{'report.provider.debitCard' | translate}}
+                  ${{transactionVolumeDetails.decline.debitCard.salesAmount | number:'1.2-2'}}
+                </div>-->
+                          <div class="item">
+                            <i class="money bill alternate outline icon"></i> {{'report.provider.ach' | translate}}
+                            ${{transactionVolumeDetails.decline.ach.salesAmount | number:'1.2-2'}}
+                          </div>
+                          <div class="item">
+                            <i class="money bill outline icon"></i> {{'report.provider.cash' | translate}}
+                            ${{transactionVolumeDetails.decline.cash.salesAmount | number:'1.2-2'}}
+                          </div>
+                          <div class="item">
+                            <i class="money bill alternate outline icon"></i> {{'report.provider.check' | translate}}
+                            ${{transactionVolumeDetails.decline.check.salesAmount | number:'1.2-2'}}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+                <!-- Transaction Volume End -->
+
+                <!-- Transaction Graph Start  -->
+                <div class="eight wide column" style="max-height: 500px; ">
+                  <div class="chart-col2" *ngIf="displayChart">
+                    <div class="ui" *ngIf="isLoader_TransactionVolume">
+                      <div class="ui active inverted dimmer">
+                        <div class="ui indeterminate text loader"></div>
+                      </div>
+                    </div>
+                    <div class="row" style="text-align: center;">
+                      <span class="chart-title"
+                        *ngIf="selectedTransactionVolumeType=='totalSale'">{{'report.provider.totalSale' |
+                        translate}}</span>
+                      <span class="chart-title"
+                        *ngIf="selectedTransactionVolumeType=='inProcess'">{{'report.provider.inProcess' |
+                        translate}}</span>
+                      <span class="chart-title"
+                        *ngIf="selectedTransactionVolumeType=='refund'">{{'report.provider.refunds' | translate}}</span>
+                      <span class="chart-title"
+                        *ngIf="selectedTransactionVolumeType=='decline'">{{'report.provider.declines' |
+                        translate}}</span>
+                    </div>
+                    <div class="ui container">
+                      <div content>
+                        <div class="ui tiny form">
+                          <div class="inline fields" style="margin: 1em 0 0;">
+                            <div class="field">
+                              Select :
+                            </div>
+                            <div class="field">
+                              <sui-radio-button name="selectReport" value="year" formControlName="eRadio"
+                                (currentValueChange)="OnRadioChange($event)">Year</sui-radio-button>
+                            </div>
+                            <div class="field">
+                              <sui-radio-button name="selectReport" value="month" formControlName="eRadio"
+                                (currentValueChange)="OnRadioChange($event)">Month</sui-radio-button>
+                            </div>
+                            <div class="field">
+                              <sui-radio-button name="selectReport" value="week" formControlName="eRadio"
+                                (currentValueChange)="OnRadioChange($event)">Week</sui-radio-button>
+                            </div>
+                            <div class="field">
+                              <sui-radio-button name="selectReport" value="day" formControlName="eRadio"
+                                (currentValueChange)="OnRadioChange($event)">Day</sui-radio-button>
+                            </div>
+                            <div class="field">
+                              <sui-radio-button name="selectReport" value="custom" formControlName="eRadio"
+                                (currentValueChange)="OnRadioChange($event)">Custom</sui-radio-button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="ui mini compact segment sort left floated">
+                        <div class="inline field">
+                          <sui-select class="selection span-select" [options]="channelTypeList"
+                            formControlName="ChannelType" #ChannelType style="margin-right:3px" labelField="title"
+                            valueField="value"
+                            (selectedOptionChange)="prepareGraphObject(selectedDateRangeForGraph,newInitialReqObject)">
+                            <sui-select-option *ngFor="let option of channelTypeList" [value]="option">
+                            </sui-select-option>
+                          </sui-select>
+                          <div class="ui left icon input" *ngIf="findProviderForm.value.eRadio=='year'">
+                            <i class="calendar icon"></i>
+                            <input suiDatepicker formControlName="selectedYear" [pickerMode]="yearMode"
+                              [pickerUseNativeOnMobile]="false" [pickerMaxDate]="maxGraph"
+                              (pickerSelectedDateChange)="onGraphRangeChange($event,'year')">
+                          </div>
+                          <!-- <div
+                          [ngClass]="selectedDateRangeForGraph == 'year' ? 'orange ui icon mini primary button' : 'ui icon mini button'"
+                          suiPopup popupText="One Year" popupInverted (click)="onChangeSlabs('year')">1Y</div> -->
+                          <!-- <div [ngClass]= "selectedDateRangeForGraph == '3month' ? 'ui icon mini primary button' : 'ui icon mini button'"
+            suiPopup popupText="Three Months" popupInverted (click)="onChangeSlabs('3month')">3M</div> -->
+                          <div class="ui left icon input" *ngIf="findProviderForm.value.eRadio=='month'">
+                            <i class="calendar icon"></i>
+                            <input suiDatepicker formControlName="selectedMonth" [pickerMode]="monthMode"
+                              [pickerUseNativeOnMobile]="false" [pickerMaxDate]="maxGraph"
+                              (pickerSelectedDateChange)="onGraphRangeChange($event,'newmonth')">
+                          </div>
+                          <!-- <div style="display:inline-block" class="ui icon mini "
+                          [ngClass]="{'orange': selectedDateRangeForGraph == '1month'}">
+                          <sui-select class="selection span-select" [options]="" formControlName="SelectedWordMonth"
+                            #SelectedWordMonth labelField="month" valueField="index" placeholder="select"
+                            (selectedOptionChange)="showMonthWiseGraph(selectedDateRangeForGraph)">
+                            <sui-select-option *ngFor="let option of wordMonth" [value]="option">
+                            </sui-select-option>
+                          </sui-select>
+                        </div> -->
+                          <!-- <div
+                          [ngClass]="selectedDateRangeForGraph == '1month' || selectedDateRangeForGraph == 'wordMonth' ? 'orange ui icon mini primary button' : 'ui icon mini button'"
+                          suiPopup popupText="One Month" popupInverted
+                          (click)="onChangeSlabs('1month',{ wordMonth: findProviderForm.value.SelectedWordMonth })">1M
+                        </div> -->
+                          <div class="ui left icon input" *ngIf="findProviderForm.value.eRadio=='week'">
+                            <i class="calendar icon"></i>
+                            <input suiDatepicker formControlName="selectedWeek" [pickerMode]="dateMode"
+                              [pickerUseNativeOnMobile]="false" [pickerMaxDate]="maxGraph"
+                              (pickerSelectedDateChange)="onGraphRangeChange($event,'week')">
+                          </div>
+                          <!-- <div
+                          [ngClass]="selectedDateRangeForGraph == 'week' ? 'orange ui icon mini primary button' : 'ui icon mini button'"
+                          suiPopup popupText="One Week" popupInverted (click)="onChangeSlabs('week')">1W</div> -->
+                          <div class="ui left icon input" *ngIf="findProviderForm.value.eRadio=='day'">
+                            <i class="calendar icon"></i>
+                            <input suiDatepicker formControlName="selectedDate" [pickerMode]="dateMode"
+                              [pickerUseNativeOnMobile]="false" [pickerMaxDate]="maxGraph"
+                              (pickerSelectedDateChange)="onGraphRangeChange($event,'day')">
+                          </div>
+                          <!-- <div
+                          [ngClass]="selectedDateRangeForGraph == 'day' ? 'orange ui icon mini primary button' : 'ui icon mini button'"
+                          suiPopup popupText="One Day" popupInverted (click)="onChangeSlabs('day')">1D</div> -->
+                          <div class="ui left icon input" *ngIf="findProviderForm.value.eRadio=='custom'">
+                            <i class="calendar icon"></i>
+                            <input type="text" ngxDaterangepickerMd formControlName="selectedCustom" autoApply="true"
+                              closeOnAutoApply="true" placeholder="Choose Date Range" [singleDatePicker]="false"
+                              [showRangeLabelOnInput]="true" [showCustomRangeLabel]="true" [alwaysShowCalendars]="true"
+                              [ranges]="ranges" [linkedCalendars]="true" (rangeClicked)="onCustomRangeChange($event)"
+                              (datesUpdated)="onGraphRangeChange($event,'custom')" />
+                          </div>
+                        </div>
+                      </div>
+                      <canvas class="canvas" id="canvas"></canvas>
+
+                      <div class="canvas-legend"
+                        *ngIf="findProviderForm.value.ChannelType != 0 && showGraphDetailsCredit">
+                        <span style="color:blue; font-size: 20px">&#x25A0;</span> MASTERCARD &nbsp; &nbsp;
+                        <span style="color:orangered; font-size: 20px">&#x25A0;</span> VISA &nbsp; &nbsp;
+                        <span style="color:purple; font-size: 20px">&#x25A0;</span> JCB &nbsp; &nbsp;
+                        <span style="color:#ffff00; font-size: 20px">&#x25A0;</span> DISCOVER &nbsp; &nbsp;
+                        <span style="color:pink; font-size: 20px">&#x25A0;</span> DINERS &nbsp; &nbsp;
+                        <span style="color: green; font-size: 20px">&#x25A0;</span> AMEX &nbsp; &nbsp;
+                      </div>
+                      <div class="canvas-legend" *ngIf="findProviderForm.value.ChannelType != 0 && showGraphDetailsAch">
+                        <span style="color:orangered; font-size: 20px">&#x25A0;</span> WEB &nbsp; &nbsp;
+                        <span style="color:blue; font-size: 20px">&#x25A0;</span> TEL &nbsp; &nbsp;
+                        <span style="color: green; font-size: 20px">&#x25A0;</span> CCD &nbsp; &nbsp;
+                        <span style="color:#ffff00; font-size: 20px">&#x25A0;</span> PPD &nbsp; &nbsp;
+                      </div>
+                      <div class="canvas-legend"
+                        *ngIf="findProviderForm.value.ChannelType != 0 && showGraphDetailsCash">
+                        <span style="color: #800080; font-size: 20px">&#x25A0;</span> Cash &nbsp; &nbsp;
+                      </div>
+                      <div class="canvas-legend"
+                        *ngIf="findProviderForm.value.ChannelType != 0 && showGraphDetailsCheck">
+                        <span style="color:#ffff00; font-size: 20px">&#x25A0;</span> Check &nbsp; &nbsp;
+                      </div>
+                      <div class="canvas-legend" *ngIf="findProviderForm.value.ChannelType == 0">
+                        <span style="color:green; font-size: 20px">&#x25A0;</span> Credit Card &nbsp; &nbsp;
+                        <!-- <span style="color:#2271A2; font-size: 20px">&#x25A0;</span> Debit Card &nbsp; &nbsp;-->
+                        <span style="color:orangered; font-size: 20px">&#x25A0;</span> ACH &nbsp; &nbsp;
+                        <span style="color: #800080; font-size: 20px">&#x25A0;</span> Cash &nbsp; &nbsp;
+                        <span style="color:#ffff00; font-size: 20px">&#x25A0;</span> Check &nbsp; &nbsp;
+                      </div>
+                      <div class="canvas-legend" *ngIf="canvasLable" style="text-align: center;">
+                        <span>{{canvasLable}}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- Transaction Graph End  -->
+
+                <!-- Transaction Graph Details Start  -->
+                <div class="four wide column" style="max-height: 500px;">
+                  <div class="graph-dtl" style="cursor: default; overflow-y: auto; overflow-x: hidden;">
+                    <div class="ui" *ngIf="isLoader_TransactionVolume">
+                      <div class="ui active inverted dimmer">
+                        <div class="ui indeterminate text loader"></div>
+                      </div>
+                    </div>
+
+                    <sui-select style="float: right; font-size: 10px; margin-top: -5px;"
+                      class="ui mini floating labeled basic icon button" icon="download"
+                      (selectedOptionChange)="download($event, 'Transaction_Report')" [isSearchable]="false"
+                      placeholder="Export" #filterSelect>
+                      <sui-select-option value="PDF"></sui-select-option>
+                      <sui-select-option value="CSV"></sui-select-option>
+                    </sui-select>
+                    <!-- Credit Transaction Graph Details Start -->
+                    <div *ngIf="showGraphDetailsCredit">
+                      <h4 class="ui header">Credit
+                        <div class="sub header" *ngIf="graphDetailsObject.credit.transactionCount == 0">
+                          ${{graphDetailsObject.credit.salesAmount | number:'1.2-2'}}
+                        </div>
+                      </h4>
+                      <div class="trans-set" *ngIf="graphDetailsObject.credit.subTypes.MASTERCARD.transactionCount!=0">
+                        <div class="ui mini horizontal statistic">
+                          <div class="value"> ${{graphDetailsObject.credit.subTypes.MASTERCARD.salesAmount |
+                            number:'1.2-2'}}
+                          </div>
+                          <div class="label"> <span
+                              [ngStyle]="{'color': [color.black]}">{{graphDetailsObject.credit.subTypes.MASTERCARD.channelSubType}}</span>
+                          </div>
+                        </div>
+                        <div class="item">{{graphDetailsObject.credit.subTypes.MASTERCARD.transactionCount}}
+                          Transactions @ Avg
+                          ${{graphDetailsObject.credit.subTypes.MASTERCARD.average | number:'1.2-2'}}</div>
+                        <div class="ui fitted divider"></div>
+                      </div>
+                      <div class="trans-set" *ngIf="graphDetailsObject.credit.subTypes.VISA.transactionCount!=0">
+                        <div class="ui mini horizontal statistic">
+                          <div class="value"> ${{graphDetailsObject.credit.subTypes.VISA.salesAmount | number:'1.2-2'}}
+                          </div>
+                          <div class="label"> <span
+                              [ngStyle]="{'color': [color.black]}">{{graphDetailsObject.credit.subTypes.VISA.channelSubType}}</span>
+                          </div>
+                        </div>
+                        <div class="item">{{graphDetailsObject.credit.subTypes.VISA.transactionCount}} Transactions @
+                          Avg
+                          ${{graphDetailsObject.credit.subTypes.VISA.average | number:'1.2-2'}}</div>
+                        <div class="ui fitted divider"></div>
+                      </div>
+                      <div class="trans-set" *ngIf="graphDetailsObject.credit.subTypes.JCB.transactionCount!=0">
+                        <div class="ui mini horizontal statistic">
+                          <div class="value"> ${{graphDetailsObject.credit.subTypes.JCB.salesAmount | number:'1.2-2'}}
+                          </div>
+                          <div class="label"> <span
+                              [ngStyle]="{'color': [color.black]}">{{graphDetailsObject.credit.subTypes.JCB.channelSubType}}</span>
+                          </div>
+                        </div>
+                        <div class="item">{{graphDetailsObject.credit.subTypes.JCB.transactionCount}} Transactions @ Avg
+                          ${{graphDetailsObject.credit.subTypes.JCB.average | number:'1.2-2'}}</div>
+                        <div class="ui fitted divider"></div>
+                      </div>
+                      <div class="trans-set" *ngIf="graphDetailsObject.credit.subTypes.DISCOVER.transactionCount!=0">
+                        <div class="ui mini horizontal statistic">
+                          <div class="value"> ${{graphDetailsObject.credit.subTypes.DISCOVER.salesAmount |
+                            number:'1.2-2'}}
+                          </div>
+                          <div class="label"> <span
+                              [ngStyle]="{'color': [color.black]}">{{graphDetailsObject.credit.subTypes.DISCOVER.channelSubType}}</span>
+                          </div>
+                        </div>
+                        <div class="item">{{graphDetailsObject.credit.subTypes.DISCOVER.transactionCount}} Transactions
+                          @ Avg
+                          ${{graphDetailsObject.credit.subTypes.DISCOVER.average | number:'1.2-2'}}</div>
+                        <div class="ui fitted divider"></div>
+                      </div>
+                      <div class="trans-set" *ngIf="graphDetailsObject.credit.subTypes.DINERS.transactionCount!=0">
+                        <div class="ui mini horizontal statistic">
+                          <div class="value"> ${{graphDetailsObject.credit.subTypes.DINERS.salesAmount |
+                            number:'1.2-2'}}
+                          </div>
+                          <div class="label"> <span
+                              [ngStyle]="{'color': [color.black]}">{{graphDetailsObject.credit.subTypes.DINERS.channelSubType}}</span>
+                          </div>
+                        </div>
+                        <div class="item">{{graphDetailsObject.credit.subTypes.DINERS.transactionCount}} Transactions @
+                          Avg
+                          ${{graphDetailsObject.credit.subTypes.DINERS.average | number:'1.2-2'}}</div>
+                        <div class="ui fitted divider"></div>
+                      </div>
+                      <div class="trans-set" *ngIf="graphDetailsObject.credit.subTypes.AMEX.transactionCount!=0">
+                        <div class="ui mini horizontal statistic">
+                          <div class="value"> ${{graphDetailsObject.credit.subTypes.AMEX.salesAmount | number:'1.2-2'}}
+                          </div>
+                          <div class="label"> <span
+                              [ngStyle]="{'color': [color.black]}">{{graphDetailsObject.credit.subTypes.AMEX.channelSubType}}</span>
+                          </div>
+                        </div>
+                        <div class="item">{{graphDetailsObject.credit.subTypes.AMEX.transactionCount}} Transactions @
+                          Avg
+                          ${{graphDetailsObject.credit.subTypes.AMEX.average | number:'1.2-2'}}</div>
+                        <div class="ui fitted divider"></div>
+                      </div>
+                    </div>
+                    <br />
+                    <!-- Credit Transaction Graph Details End -->
+                    <!-- Debit Transaction Graph Details Start -->
+                    <!-- <div *ngIf="showGraphDetailsDebit">
+            <h4 class="ui header">Debit
+              <div class="sub header" *ngIf="graphDetailsObject.debit.transactionCount == 0">
+                ${{graphDetailsObject.debit.salesAmount | number:'1.2-2'}}
+              </div>
+            </h4>
+            <div class="trans-set" *ngIf="graphDetailsObject.debit.subTypes.MASTERCARD.transactionCount!=0">
+              <div class="ui mini horizontal statistic">
+                <div class="value"> ${{graphDetailsObject.debit.subTypes.MASTERCARD.salesAmount | number:'1.2-2'}}</div>
+                <div class="label"> <span
+                    [ngStyle]="{'color': [color.blue]}">{{graphDetailsObject.debit.subTypes.MASTERCARD.channelSubType}}</span>
+                </div>
+              </div>
+              <div class="item">{{graphDetailsObject.debit.subTypes.MASTERCARD.transactionCount}} Transactions @ Avg
+                ${{graphDetailsObject.debit.subTypes.MASTERCARD.average | number:'1.2-2'}}</div>
+              <div class="ui fitted divider"></div>
+            </div>
+            <div class="trans-set" *ngIf="graphDetailsObject.debit.subTypes.VISA.transactionCount!=0">
+              <div class="ui mini horizontal statistic">
+                <div class="value"> ${{graphDetailsObject.debit.subTypes.VISA.salesAmount | number:'1.2-2'}}</div>
+                <div class="label"> <span
+                    [ngStyle]="{'color': [color.red]}">{{graphDetailsObject.debit.subTypes.VISA.channelSubType}}</span>
+                </div>
+              </div>
+              <div class="item">{{graphDetailsObject.debit.subTypes.VISA.transactionCount}} Transactions @ Avg
+                ${{graphDetailsObject.debit.subTypes.VISA.average | number:'1.2-2'}}</div>
+              <div class="ui fitted divider"></div>
+            </div>
+            <div class="trans-set" *ngIf="graphDetailsObject.debit.subTypes.JCB.transactionCount!=0">
+              <div class="ui mini horizontal statistic">
+                <div class="value"> ${{graphDetailsObject.debit.subTypes.JCB.salesAmount | number:'1.2-2'}}</div>
+                <div class="label"> <span
+                    [ngStyle]="{'color': [color.green]}">{{graphDetailsObject.debit.subTypes.JCB.channelSubType}}</span>
+                </div>
+              </div>
+              <div class="item">{{graphDetailsObject.debit.subTypes.JCB.transactionCount}} Transactions @ Avg
+                ${{graphDetailsObject.debit.subTypes.JCB.average | number:'1.2-2'}}</div>
+              <div class="ui fitted divider"></div>
+            </div>
+            <div class="trans-set" *ngIf="graphDetailsObject.debit.subTypes.DISCOVER.transactionCount!=0">
+              <div class="ui mini horizontal statistic">
+                <div class="value"> ${{graphDetailsObject.debit.subTypes.DISCOVER.salesAmount | number:'1.2-2'}}</div>
+                <div class="label"> <span
+                    [ngStyle]="{'color': [color.yellow]}">{{graphDetailsObject.debit.subTypes.DISCOVER.channelSubType}}</span>
+                </div>
+              </div>
+              <div class="item">{{graphDetailsObject.debit.subTypes.DISCOVER.transactionCount}} Transactions @ Avg
+                ${{graphDetailsObject.debit.subTypes.DISCOVER.average | number:'1.2-2'}}</div>
+              <div class="ui fitted divider"></div>
+            </div>
+            <div class="trans-set" *ngIf="graphDetailsObject.debit.subTypes.DINERS.transactionCount!=0">
+              <div class="ui mini horizontal statistic">
+                <div class="value"> ${{graphDetailsObject.debit.subTypes.DINERS.salesAmount | number:'1.2-2'}}</div>
+                <div class="label"> <span
+                    [ngStyle]="{'color': [color.pink]}">{{graphDetailsObject.debit.subTypes.DINERS.channelSubType}}</span>
+                </div>
+              </div>
+              <div class="item">{{graphDetailsObject.debit.subTypes.DINERS.transactionCount}} Transactions @ Avg
+                ${{graphDetailsObject.debit.subTypes.DINERS.average | number:'1.2-2'}}</div>
+              <div class="ui fitted divider"></div>
+            </div>
+            <div class="trans-set" *ngIf="graphDetailsObject.debit.subTypes.AMEX.transactionCount!=0">
+              <div class="ui mini horizontal statistic">
+                <div class="value"> ${{graphDetailsObject.debit.subTypes.AMEX.salesAmount | number:'1.2-2'}}</div>
+                <div class="label"> <span
+                    [ngStyle]="{'color': [color.purple]}">{{graphDetailsObject.debit.subTypes.AMEX.channelSubType}}</span>
+                </div>
+              </div>
+              <div class="item">{{graphDetailsObject.debit.subTypes.AMEX.transactionCount}} Transactions @ Avg
+                ${{graphDetailsObject.debit.subTypes.AMEX.average | number:'1.2-2'}}</div>
+              <div class="ui fitted divider"></div>
+            </div>
+          </div>
+          <br /> -->
+                    <!-- Debit Transaction Graph Details End -->
+                    <!-- ACH Transaction Graph Details Start -->
+                    <div *ngIf="showGraphDetailsAch">
+                      <h4 class="ui header">ACH
+                        <div class="sub header" *ngIf="graphDetailsObject.ach.transactionCount == 0">
+                          ${{graphDetailsObject.ach.salesAmount | number:'1.2-2'}}
+
+                        </div>
+                      </h4>
+                      <div class="trans-set" *ngIf="graphDetailsObject.ach.subTypes.WEB.transactionCount!=0">
+                        <div class="ui mini horizontal statistic">
+                          <div class="value"> ${{graphDetailsObject.ach.subTypes.WEB.salesAmount | number:'1.2-2'}}
+                          </div>
+                          <div class="label"> <span
+                              [ngStyle]="{'color': [color.red]}">{{graphDetailsObject.ach.subTypes.WEB.channelSubType}}</span>
+                          </div>
+                        </div>
+                        <div class="item">{{graphDetailsObject.ach.subTypes.WEB.transactionCount}} Transactions @ Avg
+                          ${{graphDetailsObject.ach.subTypes.WEB.average | number:'1.2-2'}}</div>
+                        <div class="ui fitted divider"></div>
+                      </div>
+                      <div class="trans-set" *ngIf="graphDetailsObject.ach.subTypes.TEL.transactionCount!=0">
+                        <div class="ui mini horizontal statistic">
+                          <div class="value"> ${{graphDetailsObject.ach.subTypes.TEL.salesAmount | number:'1.2-2'}}
+                          </div>
+                          <div class="label"> <span
+                              [ngStyle]="{'color': [color.blue]}">{{graphDetailsObject.ach.subTypes.TEL.channelSubType}}</span>
+                          </div>
+                        </div>
+                        <div class="item">{{graphDetailsObject.ach.subTypes.TEL.transactionCount}} Transactions @ Avg
+                          ${{graphDetailsObject.ach.subTypes.TEL.average | number:'1.2-2'}}</div>
+                        <div class="ui fitted divider"></div>
+                      </div>
+                      <div class="trans-set" *ngIf="graphDetailsObject.ach.subTypes.CCD.transactionCount!=0">
+                        <div class="ui mini horizontal statistic">
+                          <div class="value"> ${{graphDetailsObject.ach.subTypes.CCD.salesAmount | number:'1.2-2'}}
+                          </div>
+                          <div class="label"> <span
+                              [ngStyle]="{'color': [color.green]}">{{graphDetailsObject.ach.subTypes.CCD.channelSubType}}</span>
+                          </div>
+                        </div>
+                        <div class="item">{{graphDetailsObject.ach.subTypes.CCD.transactionCount}} Transactions @ Avg
+                          ${{graphDetailsObject.ach.subTypes.CCD.average | number:'1.2-2'}}</div>
+                        <div class="ui fitted divider"></div>
+                      </div>
+                      <div class="trans-set" *ngIf="graphDetailsObject.ach.subTypes.PPD.transactionCount!=0">
+                        <div class="ui mini horizontal statistic">
+                          <div class="value"> ${{graphDetailsObject.ach.subTypes.PPD.salesAmount | number:'1.2-2'}}
+                          </div>
+                          <div class="label"> <span
+                              [ngStyle]="{'color': [color.yellow]}">{{graphDetailsObject.ach.subTypes.PPD.channelSubType}}</span>
+                          </div>
+                        </div>
+                        <div class="item">{{graphDetailsObject.ach.subTypes.PPD.transactionCount}} Transactions @ Avg
+                          ${{graphDetailsObject.ach.subTypes.PPD.average | number:'1.2-2'}}</div>
+                        <div class="ui fitted divider"></div>
+                      </div>
+                    </div>
+                    <br />
+                    <!-- ACH Transaction Graph Details End -->
+                    <!-- Cash Transaction Graph Details Start -->
+                    <div *ngIf="showGraphDetailsCash">
+                      <h4 class="ui header">Cash
+                        <div class="sub header" *ngIf="graphDetailsObject.cash.transactionCount == 0">
+                          ${{graphDetailsObject.cash.salesAmount | number:'1.2-2'}}
+                        </div>
+                      </h4>
+                      <div class="trans-set" *ngIf="graphDetailsObject.cash.transactionCount!=0">
+                        <div class="ui mini horizontal statistic">
+                          <div class="value"> ${{graphDetailsObject.cash.salesAmount | number:'1.2-2'}}</div>
+                        </div>
+                        <div class="item">{{graphDetailsObject.cash.transactionCount}} Transactions @ Avg
+                          ${{graphDetailsObject.cash.average | number:'1.2-2'}}</div>
+                        <div class="ui fitted divider"></div>
+                      </div>
+                    </div>
+                    <br />
+                    <!-- Cash Transaction Graph Details End -->
+                    <!-- Check Transaction Graph Details Start -->
+                    <div *ngIf="showGraphDetailsCheck">
+                      <h4 class="ui header">Check
+                        <div class="sub header" *ngIf="graphDetailsObject.check.transactionCount == 0">
+                          ${{graphDetailsObject.check.salesAmount | number:'1.2-2'}}
+                        </div>
+                      </h4>
+                      <div class="trans-set" *ngIf="graphDetailsObject.check.transactionCount!=0">
+                        <div class="ui mini horizontal statistic">
+                          <div class="value"> ${{graphDetailsObject.check.salesAmount | number:'1.2-2'}}</div>
+                        </div>
+                        <div class="item">{{graphDetailsObject.check.transactionCount}} Transactions @ Avg
+                          ${{graphDetailsObject.check.average | number:'1.2-2'}}</div>
+                        <div class="ui fitted divider"></div>
+                      </div>
+                    </div>
+                    <br />
+                    <!-- Check Transaction Graph Details End -->
+
+                  </div>
+                </div>
+                <!-- Transaction Graph Details End  -->
+              </div>
+            </div>
+            <div class="ui grid dashboard-block">
+              <div class="doubling two column row">
+
+                <!--Scheduled Payment started-->
+                <div class="column widget2">
+                  <div class="ui segment" style="min-height: 140px">
+                    <div class="ui" *ngIf="isLoader_TransactionVolume">
+                      <div class="ui active inverted dimmer">
+                        <div class="ui indeterminate text loader"></div>
+                      </div>
+                    </div>
+                    <div class="ui orange ribbon label">
+                      <i class="calendar check icon"></i>
+                      {{'report.provider.scheduledPayment' | translate}}
+                    </div>
+                    <sui-select style="float: right; font-size: 10px; margin-top: -5px;"
+                      class="ui mini floating labeled basic icon button" icon="download"
+                      (selectedOptionChange)="download($event, 'Scheduled_Payment_Report')" [isSearchable]="false"
+                      placeholder="Export" #filterSelect>
+                      <sui-select-option value="PDF"></sui-select-option>
+                      <sui-select-option value="CSV"></sui-select-option>
+                    </sui-select>
+                    <div class="ui divided selection list">
+                      <a class="item">
+                        {{'report.provider.scheduledPaymentAmount' | translate}}
+                        <div class="ui right floated  green horizontal label">
+                          ${{paymentCollectedTodayDetails.totalAmount==null?0: (paymentCollectedTodayDetails.totalAmount
+                          | number:'1.2-2')}}
+                        </div>
+                      </a>
+                    </div>
+                    <div class="ui divided selection list">
+                      <a class="item">
+                        {{'report.provider.scheduledPaymentTransCount' | translate}}
+                        <div class="ui right floated  green horizontal label">
+                          {{paymentCollectedTodayDetails.totalTransactionCount}}</div>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+                <!--Scheduled Payment ended-->
+
+                <!--outstanding Receivables started-->
+                <div class="column widget2">
+                  <div class="ui segment" style="min-height: 140px">
+                    <div class="ui" *ngIf="isLoader_TransactionVolume">
+                      <div class="ui active inverted dimmer">
+                        <div class="ui indeterminate text loader"></div>
+                      </div>
+                    </div>
+                    <div class="ui orange ribbon label">
+                      <i class="money bill alternate outline icon"></i>
+                      {{'report.provider.outstandingReceivables' | translate}}
+                    </div>
+                    <sui-select style="float: right; font-size: 10px; margin-top: -5px;"
+                      class="ui mini floating labeled basic icon button" icon="download"
+                      (selectedOptionChange)="download($event, 'Outstanding_Receivables_Report')" [isSearchable]="false"
+                      placeholder="Export" #filterSelect>
+                      <sui-select-option value="PDF"></sui-select-option>
+                      <sui-select-option value="CSV"></sui-select-option>
+                    </sui-select>
+                    <div class="ui divided selection list">
+                      <a class="item">
+                        {{'report.provider.totalOutstandingBalance' | translate}}
+                        <div class="ui right floated  green horizontal label">
+                          ${{outstandingReceivablesDetails.totalOutstandingBalance==null?0:
+                          (outstandingReceivablesDetails.totalOutstandingBalance | number:'1.2-2')}}
+                        </div>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+                <!--outstanding Receivables Ended-->
+
+              </div>
+              <div class="ui grid">
+                <div class="sixteen wide column">
+                  <!-- footer -->
+                </div>
+              </div>
+
+            </div>
+
+            <div class="ui grid dashboard-block">
+              <div class="doubling two column row">
+
+                <!--transaction Status started-->
+                <div class="column widget2">
+                  <div class="ui segment" style="min-height: 140px">
+                    <div class="ui" *ngIf="isLoader_TransactionVolume">
+                      <div class="ui active inverted dimmer">
+                        <div class="ui indeterminate text loader"></div>
+                      </div>
+                    </div>
+                    <div class="ui orange ribbon label">
+                      <i class="money bill alternate outline icon"></i>
+                      {{'report.provider.transactionStatusReport' | translate}}
+                    </div>
+                    <sui-select style="float: right; font-size: 10px; margin-top: -5px;"
+                      class="ui mini floating labeled basic icon button" icon="download"
+                      (selectedOptionChange)="download($event, 'Transaction_Status_Report')"
+                      *ngIf='transactionStatusDetails.length>0' [isSearchable]="false" placeholder="Export"
+                      #filterSelect>
+                      <sui-select-option value="PDF"></sui-select-option>
+                      <sui-select-option value="CSV"></sui-select-option>
+                    </sui-select>
+                    <div *ngIf='transactionStatusDetails.length>0'
+                      style="min-height: 140px; cursor: default; overflow-y: auto; overflow-x: hidden; max-height: 232px;">
+                      <div *ngFor="let details of transactionStatusDetails">
+                        <div class="ui divided selection list">
+                          <div class="item">
+                            <div class="content">
+                              <div class="header">
+                                {{details.channelType=='CC'?
+                                'Credit':
+                                details.channelType=='DC'?
+                                'Debit':
+                                details.channelType=='Cash'?
+                                'Cash':
+                                details.channelType=='Check'?
+                                'Check':
+                                'ACH'}}({{details.operationType}})
+                                <span class="separator">|</span>Status : {{details.transactionStatus}}
+                              </div>
+                              <div class="description">
+                                <div class="ui tiny form">
+                                  <div class="two fields mb0">
+                                    <div class="field">
+                                      {{'report.provider.totalTransactions' | translate}}
+                                      <div class="ui right floated  green horizontal label">
+                                        {{details.totalTransactions}}</div>
+                                    </div>
+                                    <div class="field">
+                                      {{'report.provider.totalSalesAmount' | translate}}
+                                      <div class="ui right floated  green horizontal label">
+                                        ${{details.totalSalesAmount | number:'1.2-2'}}</div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div *ngIf='transactionStatusDetails.length==0'>
+                      <br>
+                      <div class="item">
+                        <!-- <i class="star half icon"></i> -->
+                        <div class="content">
+                          <div class="header">No Transaction History</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!--transaction Status Ended-->
+              </div>
+            </div>
+
+          </div>
+        </ng-container>
+        <ng-container>
+          <div class="ui" suiTabContent="Appointment">
+            <br>
+            <div class="ui grid dashboard-block">
+              <div class="doubling two column row">
+                <!--Upcoming Appointment started-->
+                <div class="column widget2">
+                  <div class="ui segment" style="min-height: 140px">
+                    <div class="ui" *ngIf="isLoader_FindAppointment">
+                      <div class="ui active inverted dimmer">
+                        <div class="ui indeterminate text loader"></div>
+                      </div>
+                    </div>
+                    <div class="ui orange ribbon label">
+                      <i class="calendar plus outline icon"></i>
+                      {{'report.provider.todaysAppointment' | translate}}
+                    </div>
+
+                    <sui-select style="float: right; font-size: 10px; margin-top: -5px;"
+                      class="ui mini floating labeled basic icon button" icon="download"
+                      (selectedOptionChange)="download($event, 'Todays_Appointment_Report')" [isSearchable]="false"
+                      placeholder="Export" #filterSelect>
+                      <sui-select-option value="PDF"></sui-select-option>
+                      <sui-select-option value="CSV"></sui-select-option>
+                    </sui-select>
+
+                    <div *ngIf='appointmentList.length>0'
+                      style="min-height: 180px; cursor: default; overflow-y: auto; overflow-x: hidden; max-height: 180px;">
+                      <div *ngFor="let details of appointmentList">
+                        <div class="ui divided selection list">
+                          <a class="item"
+                            title="{{ (details.past == false) ? 'Upcoming Appointments' : 'Past Appointments'}}">
+                            {{details.fullName}}
+                            <div class="ui right floated horizontal label"
+                              [ngClass]="(details.past == false) ? 'green' : 'red'">
+                              {{details.fromDate | date:'h:mma'}} - {{details.toDate | date:'h:mma'}}
+                            </div>
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                    <div *ngIf='appointmentList.length==0'>
+                      <br>
+                      <div class="item">
+                        <div class="content">
+                          <div class="header">No Appointments for Today</div>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+                <!--Upcoming Appointment Ended-->
+              </div>
+            </div>
+          </div>
+        </ng-container>
+        <ng-container>
+          <div class="ui" suiTabContent="PatientReport">
+            <br>
+            <div class="ui grid dashboard-block">
+              <div class="doubling two column row">
+                <!--Patient Report started-->
+                <div class="column widget2">
+                  <div class="ui segment" style="min-height: 140px">
+                    <div class="ui" *ngIf="isLoader_TransactionVolume">
+                      <div class="ui active inverted dimmer">
+                        <div class="ui indeterminate text loader"></div>
+                      </div>
+                    </div>
+                    <div class="orange ui ribbon label">
+                      <i class="user plus icon"></i>
+                      {{'report.provider.patientReport' | translate}}
+                    </div>
+                    <sui-select style="float: right; font-size: 10px; margin-top: -5px;"
+                      class="ui mini floating labeled basic icon button" icon="download"
+                      (selectedOptionChange)="download($event, 'Patient_Report')" [isSearchable]="false"
+                      placeholder="Export" #filterSelect>
+                      <sui-select-option value="PDF"></sui-select-option>
+                      <sui-select-option value="CSV"></sui-select-option>
+                    </sui-select>
+                    <div class="ui divided selection list">
+                      <a class="item">
+                        {{'report.provider.customPatientCount' | translate}}
+                        <div class="ui right floated green horizontal label">{{patientReportDetails.customPatientCount}}
+                        </div>
+                      </a>
+                    </div>
+                    <div class="ui divided selection list">
+                      <a class="item">
+                        {{'report.provider.before24HrPatientCount' | translate}}
+                        <div class="ui right floated  green horizontal label">
+                          {{patientReportDetails.before24HrPatientCount}}
+                        </div>
+                      </a>
+                    </div>
+                    <div class="ui divided selection list">
+                      <a class="item">
+                        {{'report.provider.monthlyPatientRecord' | translate}}
+                        <div class="ui right floated  green horizontal label">
+                          {{patientReportDetails.monthlyPatientRecord}}</div>
+                      </a>
+                    </div>
+                    <div class="ui divided selection list">
+                      <a class="item">
+                        {{'report.provider.yearlyPatientRecord' | translate}}
+                        <div class="ui right floated  green horizontal label">
+                          {{patientReportDetails.yearlyPatientRecord}}</div>
+                      </a>
+                    </div>
+                    <div class="ui divided selection list">
+                      <a class="item">
+                        {{'report.provider.totalPatientRegistered' | translate}}
+                        <div class="ui right floated  green horizontal label">
+                          {{patientReportDetails.totalPatientRegistered}}
+                        </div>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+                <!--Patient report Ended-->
+              </div>
+            </div>
+          </div>
+        </ng-container>
+      </sui-tabset>
+
+    </div>
+  </form>
+</div>
+
+
+
+<!-- main-content -->

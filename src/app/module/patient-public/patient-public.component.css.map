@@ -1,0 +1,9 @@
+{
+    "version": 3,
+    "mappings": "",
+    "sources": [
+        "patient-public.component.scss"
+    ],
+    "names": [],
+    "file": "patient-public.component.css"
+}

@@ -1,0 +1,61 @@
+<div class="ui" *ngIf="isLoader_UploadProcessing">
+  <div class="ui active dimmer">
+    <div class="ui indeterminate text loader">{{'common.processing' | translate}}</div>
+  </div>
+</div>
+<form class="ui form" [formGroup]="form" #myform="ngForm">
+
+  <div class="toaster-static toaster-s" *ngIf="showSuccessMessage">
+    <span><a href="javascript:void(0)" (click)="showSuccessMessage=!showSuccessMessage"><i
+          class="close icon"></i></a></span>
+    <p>{{successMessage}}</p>
+  </div>
+  <div class="toaster-static toaster-e" *ngIf="showErrorMessage">
+    <span><a href="javascript:void(0)" (click)="showErrorMessage=!showErrorMessage"><i
+          class="close icon"></i></a></span>
+    <p>{{errorMessage}}</p>
+  </div>
+
+
+  <div class="fields">
+    <div class="required field sixteen wide column">
+      <ngx-dropzone style="font-size: 1rem; border: 1px dashed #ddd;" (change)="fileAdded($event)" #dropzone>
+        <ngx-dropzone-label>Browse or drop your file here. File type: *.csv, Max size: 5MB</ngx-dropzone-label>
+        <ngx-dropzone-preview *ngFor="let f of files" [removable]="true" (removed)="filesRejected(f)">
+          <ngx-dropzone-label>{{ f.name }} ({{ f.type }})</ngx-dropzone-label>
+        </ngx-dropzone-preview>
+      </ngx-dropzone>
+      <span *ngIf="form.get('File').hasError('required') && submitted" class="error-msg1">Please select a file</span>
+
+    </div>
+  </div>
+
+  <ng-container *ngIf="form.value.File?.name">
+    <div class="ui" style="margin-top:1rem">
+      <sui-message class="success" *ngIf="form.get('DatasetValid').value" [isDismissable]="false">
+        <div class="header"> CSV file is valid. </div>
+      </sui-message>
+      <sui-message *ngIf="form.get('DatasetValid').hasError('required') && form.get('File').value" class="error-msg1"
+        class="warning" [isDismissable]="false">
+        <div class="header"> CSV file is invalid </div>
+        <p *ngIf="missingHeaders.length">Missing column {{missingHeaders | json}}</p>
+      </sui-message>
+    </div>
+
+    <div style="display: flex; align-items: center; justify-content: space-between;" class="ui segment">
+      <div><i class="file outline blue icon"></i> {{ form.value?.File?.name }}</div>
+      <button class="normal ui button" (click)="clearFile()">Delete</button>
+    </div>
+  </ng-container>
+
+  <div class="ui">
+    <div class="ui field">
+      <label for="Description" id="Description">Description<span style="color: red;">*</span></label>
+      <textarea name="Description" formControlName="Description" rows="3" maxlength="255" cols="40"></textarea>
+      <span *ngIf="form.get('Description').hasError('required') && submitted" class="error-msg1">Please enter
+        description</span>
+      <span *ngIf="form.get('Description').hasError('maxlength') && submitted" class="error-msg1">Character limit is
+        255</span>
+    </div>
+  </div>
+</form>

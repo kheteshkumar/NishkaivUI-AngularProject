@@ -1,0 +1,94 @@
+<sui-tabset>
+  <div class="ui top attached tabular menu">
+    <a class="item" suiTabHeader="1">Passed Records</a>
+    <a class="item" suiTabHeader="2"><i class="attention brown icon"></i> Failed Records</a>
+  </div>
+  <div class="ui bottom attached segment" style="max-height: 35vh; overflow: scroll;" suiTabContent="1">
+    <table class="ui single line small table">
+      <thead>
+        <tr>
+          <th>{{ recordEnum.FirstName }}</th>
+          <th>{{ recordEnum.LastName }}</th>
+          <th>{{ recordEnum.Mrn }}</th>
+          <th>{{ recordEnum.Dob }}</th>
+          <th>{{ recordEnum.Phone }}</th>
+          <th>{{ recordEnum.Email }}</th>
+          <th>{{ recordEnum.OptIn }}</th>
+          <th>{{ recordEnum.City }}</th>
+          <th>{{ recordEnum.State }}</th>
+          <th>{{ recordEnum.Country }}</th>
+          <th>{{ recordEnum.PostalCode }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <ng-container *ngIf="uploadLogDetailSuccessfullItems.length; else noRecordsSuccessfull">
+          <tr *ngFor="let i of uploadLogDetailSuccessfullItems" [ngClass]="{ warning: i.record[recordEnum.Comment] }">
+            <td>{{ i.record[recordEnum.FirstName] }}</td>
+            <td>{{ i.record[recordEnum.LastName] }}</td>
+            <td>{{ i.record[recordEnum.Mrn] }}</td>
+            <td>{{ i.record[recordEnum.Dob] }}</td>
+            <td>{{ i.record[recordEnum.Phone] }}</td>
+            <td>{{ i.record[recordEnum.Email] }}</td>
+            <td>{{ i.record[recordEnum.OptIn] }}</td>
+            <td>{{ i.record[recordEnum.City] }}</td>
+            <td>{{ i.record[recordEnum.State] }}</td>
+            <td>{{ i.record[recordEnum.Country] }}</td>
+            <td>{{ i.record[recordEnum.PostalCode] }}</td>
+          </tr>
+        </ng-container>
+        <ng-template #noRecordsSuccessfull>
+          <tr class="warning">
+            <td colspan="99">
+              {{ 'product.upload.noRecordsFound' | translate }}
+            </td>
+          </tr>
+        </ng-template>
+      </tbody>
+    </table>
+  </div>
+  <div class="ui bottom attached segment" style="max-height: 35vh; overflow: scroll;" suiTabContent="2">
+    <table class="ui single line small table">
+      <thead>
+        <tr>
+          <th>{{ recordEnum.Error }}</th>
+          <th>{{ recordEnum.FirstName }}</th>
+          <th>{{ recordEnum.LastName }}</th>
+          <th>{{ recordEnum.Mrn }}</th>
+          <th>{{ recordEnum.Dob }}</th>
+          <th>{{ recordEnum.Phone }}</th>
+          <th>{{ recordEnum.Email }}</th>
+          <th>{{ recordEnum.OptIn }}</th>
+          <th>{{ recordEnum.City }}</th>
+          <th>{{ recordEnum.State }}</th>
+          <th>{{ recordEnum.Country }}</th>
+          <th>{{ recordEnum.PostalCode }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <ng-container *ngIf="uploadLogDetailFailedItems.length; else noRecordsFailed">
+          <tr class="warning" *ngFor="let i of uploadLogDetailFailedItems">
+            <td>{{ i.error }}</td>
+            <td>{{ i.record[recordEnum.FirstName] }}</td>
+            <td>{{ i.record[recordEnum.LastName] }}</td>
+            <td>{{ i.record[recordEnum.Mrn] }}</td>
+            <td>{{ i.record[recordEnum.Dob] }}</td>
+            <td>{{ i.record[recordEnum.Phone] }}</td>
+            <td>{{ i.record[recordEnum.Email] }}</td>
+            <td>{{ i.record[recordEnum.OptIn] }}</td>
+            <td>{{ i.record[recordEnum.City] }}</td>
+            <td>{{ i.record[recordEnum.State] }}</td>
+            <td>{{ i.record[recordEnum.Country] }}</td>
+            <td>{{ i.record[recordEnum.PostalCode] }}</td>
+          </tr>
+        </ng-container>
+        <ng-template #noRecordsFailed>
+          <tr class="warning">
+            <td colspan="99">
+              {{ 'product.upload.noRecordsFound' | translate }}
+            </td>
+          </tr>
+        </ng-template>
+      </tbody>
+    </table>
+  </div>
+</sui-tabset>

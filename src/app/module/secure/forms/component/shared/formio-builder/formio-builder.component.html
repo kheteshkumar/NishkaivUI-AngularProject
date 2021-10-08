@@ -1,0 +1,7 @@
+<!-- {{ form | json }} -->
+<form-builder
+   #builder
+  [form]="form || { components: [] }"
+  [options]="builderConfig"
+  (change)="onFormChange($event)"
+></form-builder>

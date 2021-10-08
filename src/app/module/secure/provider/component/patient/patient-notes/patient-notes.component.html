@@ -1,0 +1,77 @@
+<app-toaster [toaster]="toastData"></app-toaster>
+
+<div *ngIf="noteList.length == 0 && !isLoader_FindNote">
+  <div class="ui cards cards-overflow">
+    <div class="ui card add-insurance">
+      <sui-message class="attached warning" [isDismissable]="false">
+        <p>{{'transaction.add.noRecordsFound' | translate}}</p>
+      </sui-message>
+    </div>
+    <div class="card add-insurance" *ngIf="permissions.addNotes"
+      (click)="onOperationClick({ 'key': 'addNote', 'value': 'Add Note' }, InputData)">
+      <div class="content">
+        <i class="plus circle orange link icon huge" suiPopup popupText="Add Note" popupInverted
+          [popupPlacement]="'top'"></i>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="ui segment modal-loader" *ngIf="isLoader_FindNote">
+  <div class="ui active dimmer">
+    <div class="ui medium text loader">Loading</div>
+  </div>
+</div>
+
+
+<div class="ui cards cards-overflow" style="margin: 0px; margin-bottom: 0.5em;"
+  *ngIf="noteList.length>0 && !isLoader_FindNote">
+  <div class="card" *ngFor="let note of noteList">
+
+    <div class="content">
+      <div class="header">
+        <span class="ui sub header" style="font-size: 18px;">{{note.title!=null ? note.title : '--'}}</span>
+      </div>
+      <div style="border-bottom: 1px solid #34a653; margin: 5px 0px;"></div>
+      <div>
+        <div class="meta">
+          <div><strong> {{'note.find.createdOn' | translate}}: </strong>{{note.createdOn}}</div>
+        </div>
+        <br>
+        <div class="description">
+          <div class="item">
+            <span>
+              <strong>{{'note.find.description' | translate}}: </strong>
+              {{note.description!='' ? note.description : '--'}}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card add-insurance" (click)="onOperationClick({ 'key': 'addNote', 'value': 'Add Note' }, InputData)">
+    <div class="content">
+      <i class="plus circle orange link icon huge" suiPopup popupText="Add Note" popupInverted
+        [popupPlacement]="'top'"></i>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal Add Note Starts from here -->
+<ng-template let-context let-modal="modal" #modalAddPatientNote>
+  <div class="header">
+    <span>{{'patient.note.heading' | translate}}</span>
+    <i #closeAddNote (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-add-note [InputData]="inputDataForNote" (OutputData)="outputDataFromNote($event)"></app-add-note>
+  </div>
+  <div class="actions">
+    <div class="ui tiny">
+      <button class="ui tiny button" (click)="modal.deny()">{{'note.add.cancel' | translate}}</button>
+    </div>
+  </div>
+</ng-template>
+<!-- Modal Add Note Ends from here -->

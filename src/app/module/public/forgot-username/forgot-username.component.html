@@ -1,0 +1,31 @@
+<app-toaster [toaster]="toastData"></app-toaster>
+<div class="limiter">
+  <div class="container-login100 img-bg">
+    <div class="wrap-password100">
+      <img class="logo-center" src="../../../../assets/images/logo_login.png" />
+      <br/>
+      <form [formGroup]="forgotUsernameForm">
+        <div class="ui segment">
+          <h2>{{ 'forgotUsername.forgotUsernameHeading' | translate}}</h2>
+          <p>Please enter your email id, your Username will be sent to your registered email id</p>
+          <div class="ui form">
+            <div class="required inline field">
+              <label>{{ 'forgotUsername.email' | translate}}</label>
+              <div class="ui left icon input">
+                <i class="user icon"></i>
+                <input type="text" placeholder="Email" formControlName="email" [ngClass]="{'is-invalid': (forgotUsernameForm.get('email').touched || forgotUsernameForm.get('email').dirty) && !forgotUsernameForm.get('email').valid }" />                
+              </div>
+              <span class="invalid-feedback">
+                <span class="error-msg">
+                    {{formErrors.email}}
+                </span>
+              </span>
+            </div>
+            <button [ngClass]= "isLoader ? 'tiny ui orange button loading' : 'tiny ui orange button'" (click)="forgotUsername()">{{ 'forgotUsername.sendTheUserName' | translate}}</button>
+            <button class="tiny ui button" (click)="cancel()">{{ 'forgotUsername.cancel' | translate}}</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,154 @@
+<!-- Loader -->
+<div class="ui" *ngIf="isLoader">
+  <div class="ui active dimmer">
+    <div class="ui indeterminate text loader">{{'common.processing' | translate}}</div>
+  </div>
+  <p></p>
+</div>
+
+<!-- Success Message -->
+<div class="toaster-static toaster-s" *ngIf="showSuccessMessage">
+  <span><a href="javascript:void(0)" (click)="showSuccessMessage=!showSuccessMessage"><i
+        class="close icon"></i></a></span>
+  <p>{{successMessage}}</p>
+</div>
+
+<!-- Error Message -->
+<div class="toaster-static toaster-e" *ngIf="showErrorMessage">
+  <span><a href="javascript:void(0)" (click)="showErrorMessage=!showErrorMessage"><i class="close icon"></i></a></span>
+  <p>{{errorMessage}}</p>
+</div>
+
+<div class="toaster-static toaster-e" *ngIf="!showErrorMessage && duplicateInvoiceProdErrFlag">
+  <span><a href="javascript:void(0)" (click)="duplicateInvoiceProdErrFlag=!duplicateInvoiceProdErrFlag">
+      <i class="close icon"></i></a>
+  </span>
+  <p>Product Name Already Exists</p>
+</div>
+
+<div content>
+  <form [formGroup]="addProductForm" class="ui tiny form ng-untouched ng-pristine ng-valid">
+    <div class="two fields">
+      <div class="required field">
+        <label>{{'product.add.productType' | translate}}</label>
+        <sui-select class="selection" [options]="serviceType" formControlName="ProductType" labelField="label"
+          [isDisabled]="isEdit" valueField="id" #ProductType>
+          <sui-select-option *ngFor="let option of serviceType" [value]="option">
+          </sui-select-option>
+        </sui-select>
+        <span>{{addProductFormErrors.ProductType}}</span>
+      </div>
+      <div class="required field" *ngIf="!isProductSelected">
+        <label>{{'product.add.codeType' | translate}}</label>
+        <sui-select class="selection" [options]="codeType" formControlName="ServiceType" [isDisabled]="isEdit"
+          labelField="label" valueField="id" #ServiceType>
+          <sui-select-option *ngFor="let option of codeType" [value]="option">
+          </sui-select-option>
+        </sui-select>
+        <span>{{addProductFormErrors.ServiceType}}</span>
+      </div>
+
+    </div>
+
+    <div class="two fields" *ngIf="!isProductSelected">
+
+      <div class="required field" *ngIf="isCptCodeSelected">
+        <label *ngIf="isCptCodeSelected"> {{'product.add.shortName' | translate}}</label>
+        <sui-select class="selection" icon="search" [options]="proceduralCodesList" [isDisabled]="isEdit"
+          (selectedOptionChange)="selectCptCodeName(searchInput)" formControlName="CodeName" labelField="name"
+          valueField="id" [isSearchable]="true" placeholder="Search Name.." #searchInput>
+          <sui-select-option *ngFor="let o of searchInput.filteredOptions" [value]="o"></sui-select-option>
+        </sui-select>
+        <span>{{addProductFormErrors.CodeName}}</span>
+      </div>
+      <div class="required field" *ngIf="!isCptCodeSelected">
+        <label *ngIf="!isCptCodeSelected"> {{'product.add.name' | translate}}</label>
+        <sui-select class="selection" icon="search" [options]="diagnosisCodesList" [isDisabled]="isEdit"
+          (selectedOptionChange)="selectCptCodeName(searchInput)" formControlName="CodeName" labelField="name"
+          valueField="id" [isSearchable]="true" placeholder="Search Name.." #searchInput>
+          <sui-select-option *ngFor="let o of searchInput.filteredOptions" [value]="o"></sui-select-option>
+        </sui-select>
+        <span>{{addProductFormErrors.CodeName}}</span>
+      </div>
+
+      <div class="field" *ngIf="isCptCodeSelected">
+        <label>{{'product.add.CptCode' | translate}}</label>
+        <sui-select class="selection" icon="search" [options]="proceduralCodesList" [isDisabled]="isEdit"
+          (selectedOptionChange)="selectCptCode(cptCodeSearch)" formControlName="CptCode" labelField="code"
+          valueField="id" [isSearchable]="true" placeholder="Search Name.." #cptCodeSearch>
+          <sui-select-option *ngFor="let c of cptCodeSearch.filteredOptions" [value]="c"></sui-select-option>
+        </sui-select>
+        <span>{{addProductFormErrors.CptCode}}</span>
+      </div>
+      <div class="field" *ngIf="!isCptCodeSelected">
+        <label>{{'product.add.Icd10Code' | translate}}</label>
+        <sui-select class="selection" icon="search" [options]="diagnosisCodesList" [isDisabled]="isEdit"
+          (selectedOptionChange)="selectCptCode(cptCodeSearch)" labelField="code" formControlName="Icd10Code"
+          valueField="id" [isSearchable]="true" placeholder="Search Name.." #cptCodeSearch>
+          <sui-select-option *ngFor="let c of cptCodeSearch.filteredOptions" [value]="c"></sui-select-option>
+        </sui-select>
+        <span>{{addProductFormErrors.Icd10Code}}</span>
+      </div>
+    </div>
+
+    <div class="two fields" *ngIf="isProductSelected">
+      <div class="required field">
+        <label>{{'product.add.productName' | translate}}</label>
+        <input placeholder="{{'product.add.productName' | translate}}" type="text" formControlName="ProductName">
+        <span>{{addProductFormErrors.ProductName}}</span>
+      </div>
+      <div class="field">
+        <label>
+          {{'product.add.quantity' | translate}}
+          <span suiPopup popupText="If blank, quantity will be recorded as 0" popupInverted [popupPlacement]="'top'">
+            <i class="icon info circle"></i>
+          </span>
+        </label>
+        <input placeholder="{{'product.add.quantity' | translate}}" type="number" min="0" formControlName="Quantity">
+        <span>{{addProductFormErrors.Quantity}}</span>
+      </div>
+    </div>
+    <div class="two fields" *ngIf="!isProductSelected">
+      <div class="field">
+        <label>{{'product.add.productAlias' | translate}}</label>
+        <input placeholder="{{'product.add.productAlias' | translate}}" type="text" formControlName="ProductAlias" [attr.disabled]="isDisabledAlias?true:null">
+        <span>{{addProductFormErrors.ProductAlias}}</span>
+      </div>
+    </div>
+    <span *ngIf="!isProductSelected">If you do not see a code that you need, please email
+      <a href="mailto:helpdesk@hellopatients.com">helpdesk@hellopatients.com</a>
+      with the Name & Code and we will add it for you.</span>
+    <div style="padding: 5px;"></div>
+    <div class="two fields">
+      <div class="field">
+        <label>
+          {{'product.add.unitPrice' | translate}}
+          <span suiPopup popupText="If blank, price will be recorded as $0" popupInverted [popupPlacement]="'top'">
+            <i class="icon info circle"></i>
+          </span>
+        </label>
+        <input placeholder="0.00" type="text" formControlName="UnitPrice" currencyMask>
+        <span>{{addProductFormErrors.UnitPrice}}</span>
+      </div>
+      <div class="field">
+        <label>{{'product.add.taxPercent' | translate}}</label>
+        <div class="ui right icon input">
+          <i class="icon" style="line-height:2.8"><b>&#37;</b></i>
+          <input type="text" placeholder="0.00" formControlName="TaxPercent"
+            (blur)="formatCurrency('addProductForm', 'TaxPercent', $event)">
+        </div>
+        <span>{{addProductFormErrors.TaxPercent}}</span>
+      </div>
+
+    </div>
+
+
+    <div class="field">
+      <label>{{'product.add.description' | translate}}</label>
+      <textarea rows="3" placeholder="{{'product.add.description' | translate}}" type="text"
+        formControlName="Description"></textarea>
+      <span>{{addProductFormErrors.Description}}</span>
+    </div>
+
+  </form>
+</div>

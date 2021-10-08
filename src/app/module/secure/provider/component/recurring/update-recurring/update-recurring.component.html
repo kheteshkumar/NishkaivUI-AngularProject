@@ -1,0 +1,321 @@
+<div class="ui" *ngIf="isLoader">
+  <div class="ui active dimmer">
+    <div class="ui indeterminate text loader">{{'common.processing' | translate}}</div>
+  </div>
+</div>
+<form [formGroup]="updateRecurringForm" class="ui form">
+  <sui-accordion [closeOthers]="true">
+    <div class="toaster-static toaster-s" *ngIf="showSuccessMessage">
+      <span><a href="javascript:void(0)" (click)="showSuccessMessage=!showSuccessMessage"><i
+            class="close icon"></i></a></span>
+      <p>{{successMessage}}</p>
+    </div>
+    <div class="toaster-static toaster-e" *ngIf="showErrorMessage">
+      <span><a href="javascript:void(0)" (click)="showErrorMessage=!showErrorMessage"><i
+            class="close icon"></i></a></span>
+      <p>{{errorMessage}}</p>
+    </div>
+    <sui-accordion-panel [(isOpen)]="accordian.accountDetails">
+      <div title>
+        <i class="dropdown icon"></i>
+        {{'recurringPayments.update.accountHeading' | translate}}
+      </div>
+      <div content (click)="$event.stopPropagation()">
+        <div class="ui tiny form">
+          <div class="ui segment results">
+            <div *ngIf="!isLoader_WalletPatient">
+              <br>
+              <div class="results-crsr">
+                <div class="ui divided list" style="cursor: default">
+
+                  <!-- Account List -->
+                  <div class="ui cards cards-overflow">
+                    <div *ngFor="let custAcc of custAccList">
+                      <div class="ui active dimmer" *ngIf="custAcc.isLoader_patientAccountOperation">
+                        <div class="ui small text loader"></div>
+                      </div>
+                      <div class="content" (click)="$event.stopPropagation(); changeAccount(custAcc.id)">
+
+                        <div style="margin: 5px" class="ui card card-selectX" *ngIf="custAcc.accountType=='1'">
+                          <div class="content">
+                            <div class="ui mini green left corner label" *ngIf="custAcc.isSelectedAccount==true"><i
+                                class="check icon"></i></div>
+                            <div class="header">&nbsp;&nbsp;{{custAcc.accountHolderName}}</div>
+                            <div class="meta">
+                            </div>
+                          </div>
+                          <div class="content">
+                            <span class="left floated like">
+                              <b>****{{custAcc.maskedCardNumber}}</b><br>
+                              Valid through: {{custAcc.cardExpiry| mask:'00/00'}}
+                            </span>
+                            <span class="right floated star">
+                              <img class="ui image" *ngIf="custAcc.cardType==''||custAcc.cardType==null"
+                                src="../../../../../../../assets/images/cards/BlankCard.png" />
+                              <img class="ui image" *ngIf="custAcc.cardType=='AMEX'"
+                                src="../../../../../../../assets/images/cards/Amex.png" />
+                              <img class="ui image" *ngIf="custAcc.cardType=='DINERS'"
+                                src="../../../../../../../assets/images/cards/Diners.png" />
+                              <img class="ui image" *ngIf="custAcc.cardType=='DISCOVER'"
+                                src="../../../../../../../assets/images/cards/Discover.png" />
+                              <img class="ui image" *ngIf="custAcc.cardType=='JCB'"
+                                src="../../../../../../../assets/images/cards/JCB.png" />
+                              <img class="ui image" *ngIf="custAcc.cardType=='MASTERCARD'"
+                                src="../../../../../../../assets/images/cards/MasterCard.png" />
+                              <img class="ui image" *ngIf="custAcc.cardType=='VISA'"
+                                src="../../../../../../../assets/images/cards/Visa.png" />
+                            </span>
+                          </div>
+                        </div>
+                        <div style="margin: 5px" class="ui card card-selectX" *ngIf="custAcc.accountType == 2">
+                          <div class="content">
+                            <div class="ui mini green left corner label" *ngIf="custAcc.isSelectedAccount==true"><i
+                                class="check icon"></i></div>
+                            <div class="header">&nbsp;&nbsp;{{custAcc.accountHolderName}}</div>
+                            <div class="meta">
+                            </div>
+                          </div>
+                          <div class="content">
+                            <span class="left floated like">
+                              <b>{{custAcc.maskedAccountNumber}}</b><br>
+                              Bank Name: {{custAcc.bankName}}
+                            </span>
+                            <span class="right floated star">
+                              <img src="../../../../../../../assets/images/cards/ach.png" class="ui image">
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="card add-insurance" (click)="openAddAccount()">
+                      <div class="content">
+                        <i class="plus circle orange link icon huge" suiPopup
+                          popupText="{{'recurringPayments.update.addNew' | translate}}" popupInverted
+                          [popupPlacement]="'top'"></i>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+                <!-- No Records Found patient Payment Account List -->
+                <div *ngIf="noRecordsFound_CustCreditAccList && !isLoader_WalletPatient">
+                  <sui-message class="attached warning" [isDismissable]="false">
+                    <p>{{'transaction.add.noRecordsFound' | translate}}</p>
+                  </sui-message>
+                  <br>
+                </div>
+              </div>
+
+            </div>
+            <!--<div class="ui active text loader" *ngIf="isLoader_WalletPatient">Uploading</div>-->
+            <div class="ui segment modal-loader" *ngIf="isLoader_WalletPatient">
+              <div class="ui active dimmer">
+                <div class="ui medium text loader">Loading</div>
+              </div>
+            </div>
+          </div>
+
+
+        </div>
+
+      </div>
+    </sui-accordion-panel>
+    <div class="ui fitted divider"></div>
+    <sui-accordion-panel [(isOpen)]="accordian.planDetails" *ngIf="!(InputData.hideSchedulePlan)">
+      <div title>
+        <i class="dropdown icon"></i>
+        {{'recurringPayments.update.paymentPlanHeading' | translate}}
+      </div>
+      <div content (click)="$event.stopPropagation()">
+        <form [formGroup]="updateRecurringForm" class="tiny ui form">
+          <div class="ui two column stackable padded grid">
+            <div class="four wide column pymnt-sumry">
+              <div class="ui" *ngIf="isLoader_FindCutomPlan">
+                <div class="ui active inverted dimmer">
+                  <div class="ui indeterminate text loader"></div>
+                </div>
+              </div>
+              <h3 class="ui icon header w100">
+                <br>
+                <img src="../../../../../../assets/images/crte_pmnt.png" />
+                <div class="content">
+                  <span *ngIf="dataForPlanDescription.noOfPayments != ''"> {{dataForPlanDescription.noOfPayments}}
+                    {{dataForPlanDescription.frquency}} payments</span>
+                  <span
+                    *ngIf="dataForPlanDescription.installmentAmountToShow != 0 && dataForPlanDescription.noOfPayments != ''">
+                    <br> of $ {{dataForPlanDescription.installmentAmountToShow.toFixed(2)}} each</span>
+                </div>
+              </h3>
+            </div>
+            <div class="twelve wide column pymnt-ctrl">
+              <div class="item">
+                <div class="content">
+                  <!-- <div class="ui sub header"> 
+                            {{InputData.recurringData.firstName}}
+                            {{InputData.recurringData.lastName}}
+                            <span>&nbsp;&nbsp;{{InputData.recurringData.paymentAmount | CustomFormatCurrency}}</span>
+                          </div> -->
+                  <!-- <i class="calendar alternate icon"></i> -->
+                  {{'recurringPayments.find.firstTransaction' | translate}}:
+                  {{InputData.recurringData.startDate != null ? getFormattedDate(InputData.recurringData.startDate) :
+                  '--'}} <span class="separator">|</span>
+
+                  <span>
+                    {{'recurringPayments.find.paymentsCompleted' | translate}}:
+                    {{InputData.recurringData.totalPaymentsMade != null ? InputData.recurringData.totalPaymentsMade :
+                    '--'}}
+                  </span>
+                  <!-- <span
+                              class="separator">|</span> -->
+                  <!--<span class="separator">|</span>
+                          {{'recurringPayments.find.type' | translate}}:
+                          {{InputData.recurringData.recurringTransactionType != null ? InputData.recurringData.recurringTransactionType : '--'}}-->
+                </div>
+              </div>
+              <br>
+              <div class="item">
+                <div class="content">
+                  <span>
+                    {{'recurringPayments.find.noOfPayments' | translate}}:
+                    {{InputData.recurringData.noOfPayments != null ? InputData.recurringData.noOfPayments : '--'}}
+                  </span>
+                  <span class="separator">|</span>
+                  <span>
+                    {{'recurringPayments.find.remainingPaymentCount' | translate}}:
+                    {{InputData.recurringData.totalPaymentLeft!= null ? InputData.recurringData.totalPaymentLeft :
+                    '--'}}
+                  </span>
+                  <!-- <span class="separator">|</span>
+                          {{'recurringPayments.find.paymentCycle' | translate}}:
+                          {{InputData.recurringData.frequency== undefined ? 'NA':InputData.recurringData.frequency}} -->
+                </div>
+              </div>
+              <br>
+              <div class="item">
+                <!-- <i class="info circle icon"></i> -->
+                <div class="content">
+                  {{'recurringPayments.find.amount' | translate}}:
+                  {{InputData.recurringData.amount | CustomFormatCurrency}}<span class="separator">|</span>
+                  <span *ngIf="InputData.recurringData.discountType=='1'">
+                    {{'customPlans.find.discount' | translate}}:
+                    {{InputData.recurringData.discountAmount | CustomFormatCurrency}}</span>
+                  <span *ngIf="InputData.recurringData.discountType=='2'">
+                    {{'customPlans.find.discount' | translate}}:
+                    {{InputData.recurringData.discountRate}}%</span><span class="separator">|</span>
+                  {{'recurringPayments.find.taxAmount' | translate}}:
+                  {{InputData.recurringData.taxAmount | CustomFormatCurrency}}
+                </div>
+              </div>
+              <br>
+              <div class="item">
+                <div class="content">
+                  {{'recurringPayments.find.remainingBalance' | translate}}:
+                  {{InputData.recurringData.totalDueAmount | CustomFormatCurrency}}<span class="separator">|</span>
+                  {{'recurringPayments.find.totalAmountPaid' | translate}}:
+                  {{InputData.recurringData.totalAmountPaid | CustomFormatCurrency}}
+                </div>
+              </div>
+              <br>
+              <!-- <div class="item">
+        
+                          <div class="content">
+                            <span *ngIf="InputData.recurringData.accountType != 2">
+                                {{'recurringPayments.find.nextBillingDate' | translate}}:
+                                {{(InputData.recurringData.nextTransactionDate != null && InputData.recurringData.nextTransactionDate !='0000-00-00 00:00:00') ? InputData.recurringData.nextTransactionDate : 'NA'}}<span
+                                  class="separator">|</span>
+                              {{'recurringPayments.find.cardNo' | translate}}:
+                              {{InputData.recurringData.maskedCardNumber != null ? InputData.recurringData.maskedCardNumber : '--'}}<span
+                                class="separator">|</span>
+                            </span>
+                            <span *ngIf="InputData.recurringData.accountType == 2">
+                              {{'recurringPayments.find.accountNo' | translate}}:
+                              {{InputData.recurringData.maskedAccountNumber != null ? InputData.recurringData.maskedAccountNumber : '--'}}<span
+                                class="separator">|</span>
+                            </span>
+                            {{'recurringPayments.find.recurringId' | translate}}:
+                            {{InputData.recurringData.id}}
+                          </div>
+                        </div> -->
+              <div class="inline field required">
+                <!-- <div class="ten wide field"> -->
+                <label class="update-label">Payment Cycle </label>
+                <sui-select style="width:210px" class="selection" [options]="frequencyList" formControlName="Frequency"
+                  labelField="title" valueField="value" [isDisabled]="true">
+                  <sui-select-option *ngFor="let option of frequencyList" [value]="option" #Frequency>
+                  </sui-select-option>
+                </sui-select>
+                <!-- </div> -->
+              </div>
+              <div class="inline field required">
+                <!-- <div class="five wide field required"> -->
+                <label class="update-label">{{'recurringPayments.add.noOfPayments' | translate}}</label>
+                <input style="width:210px" type="text" placeholder="" formControlName="NoOfPayments"
+                  #NoOfPaymentsForInstallment readonly>
+                <span>{{updateRecurringFormErrors.NoOfPayments}}</span>
+                <!-- </div> -->
+              </div>
+              <div class="inline field">
+                <label class="update-label">Send receipt to</label>
+                <input style="width:210px" type="text" name="" placeholder="abc@xyz.com"
+                  formControlName="TransactionEmail">
+                <span>{{updateRecurringFormErrors.TransactionEmail}}</span>
+              </div>
+
+
+              <div class="inline field required">
+                <label class="update-label"><b>Schedule transaction on</b></label>
+                <div class="ui left icon input">
+                  <i class="calendar icon"></i>
+                  <input style="width:210px" suiDatepicker [pickerMode]="dateMode"
+                    [pickerFirstDayOfWeek]="firstDayOfWeek" [pickerUseNativeOnMobile]="false"
+                    [pickerMinDate]="minStartDate" [pickerMaxDate]="maxStartDate" formControlName="StartDate"
+                    #StartDate>
+                  <!-- <input style="width:210px" suiDatepicker [pickerMode]="dateMode" [pickerFirstDayOfWeek]="firstDayOfWeek"
+                  [pickerUseNativeOnMobile]="false" [pickerMinDate]="minStartDate"
+                  formControlName="StartDate" #StartDate > -->
+                  <span>{{updateRecurringFormErrors.StartDate}}</span>
+                </div>
+              </div>
+              <!-- <div class="inline field"
+              *ngIf="dataForPlanDescription.frequency != 'Daily' && dataForPlanDescription.frequency != 'Quarterly'   && dataForPlanDescription.frequency != 'HalfYearly' && dataForPlanDescription.frequency != 'Annually' && dataForPlanDescription.noOfPayments != '1'">
+              <label class="update-label">Subsequent transactions on</label>
+              <sui-select style="width:210px" class="selection" [options]="frequencyParamList"
+                formControlName="FrequencyParam" labelField="title" valueField="value" [isDisabled]="true">
+                <sui-select-option *ngFor="let option of frequencyParamList" [value]="option" #FrequencyParam>
+                </sui-select-option>
+              </sui-select><label> of every {{dataForPlanDescription.frequencyToShow}}</label>
+            </div> -->
+            </div>
+          </div>
+        </form>
+      </div>
+    </sui-accordion-panel>
+  </sui-accordion>
+</form>
+<div class="ui fitted divider" *ngIf="!(InputData.hideSchedulePlan)"></div>
+<br>
+<button class="tiny ui orange button" autofocus (click)='onUpdateClick()'
+  [disabled]="!(isUpdateAccount) && !(isUpdateSchedule) ">{{'recurringPayments.update.update' | translate}}</button>
+
+
+
+<ng-template let-context let-modal="modal" #modalAddPatientAccount>
+  <div class="header">
+    <span *ngIf="!inputDataForAccountOperation.isEdit">{{'patientAccount.add.heading' | translate}}</span>
+    <span *ngIf="inputDataForAccountOperation.isEdit">{{'patientAccount.edit.heading' | translate}}</span>
+    <i #closeAccountModal (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <!-- <div id="hellopaygateway"></div> -->
+  <div class="content">
+
+    <app-add-patient-account [InputData]="inputDataForAccountOperation" (OutputData)="outputDataFromAccount($event)">
+    </app-add-patient-account>
+  </div>
+  <div class="actions">
+    <div class="ui tiny">
+      <button class="tiny ui orange button" autofocus (click)='onAddPatientAccountClick()'>{{'patient.add.save' |
+        translate}}</button>
+      <button class="tiny ui button" (click)="modal.deny()">{{'transaction.find.cancel' | translate}}</button>
+    </div>
+  </div>
+</ng-template>

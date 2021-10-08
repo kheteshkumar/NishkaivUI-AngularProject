@@ -1,0 +1,35 @@
+<app-toaster [toaster]="toastData"></app-toaster>
+<div id="initialLoad">
+  <form novalidate [formGroup]="">
+
+
+    <div class="main-content">
+      <h1 class="ui header">{{'sideNav.training' | translate}}</h1>
+
+      <div *ngIf="isLoader_VideosLookup" class="ui bottom attached loading tab segment"></div>
+
+      <div class="ui grid training-block">
+        <div class="doubling two column row">
+
+          <div class="column" *ngFor="let video of videosList">
+            <div class="ui segment">
+              <h3 class="ui header">
+                <button class="fluid ui huge basic button" type="button" style=" border: none; box-shadow: none;">
+                  {{video.title | translate}}
+                </button>
+              </h3>
+              <div id="canvas" style="min-height: 300px;">
+                <iframe style="min-height: 300px;width:100%;height:100%;" [src]='sanitizeUrl(video.url)' frameborder="0"
+                  allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                  allowfullscreen></iframe>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </form>
+</div>

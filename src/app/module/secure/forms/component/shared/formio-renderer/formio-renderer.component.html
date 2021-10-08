@@ -1,0 +1,4 @@
+<h2 *ngIf="viewTitle">{{ form.formTitle }}</h2>
+<p (click)="readOnly=!readOnly" *ngIf="form.formDescription && viewDescription">{{ form.formDescription }}</p>
+<formio [submission]="submission" [viewOnly]="viewOnly" [readOnly]="readOnly" [form]="form.fields"
+  (submit)="onSubmit($event)"></formio>

@@ -1,0 +1,250 @@
+<app-toaster [toaster]="toastData"></app-toaster>
+
+<div class="ui segment modal-loader" *ngIf="isLoader">
+  <div class="ui active dimmer">
+    <div class="ui medium text loader">Loading</div>
+  </div>
+</div>
+
+<ng-container *ngIf="!isLoader">
+
+  <div class="ui segment results">
+
+    <div class="six wide column">
+      <div class="ui right floated header">
+        <button class="ui mini right floated button status green"
+          *ngIf="recurringData.status==2">{{'recurringPayments.find.active' | translate}}</button>
+        <button class="ui mini right floated button status blue"
+          *ngIf="recurringData.status==3">{{'recurringPayments.find.paid' | translate}}</button>
+        <button class="ui mini right floated button status red"
+          *ngIf="recurringData.status==8">{{'recurringPayments.find.cancelled' | translate}}</button>
+        <button class="ui mini right floated button status red"
+          *ngIf="recurringData.status==30">{{'recurringPayments.find.closed' | translate}}</button>
+        <button class="ui mini right floated button status orange"
+          *ngIf="recurringData.status==1">{{'recurringPayments.find.pendingForActivation' |
+          translate}}</button>
+        <button class="ui mini right floated button status red"
+          *ngIf="recurringData.status==5">{{'recurringPayments.find.failed' | translate}}</button>
+        <!-- <div class="ui right pointing dropdown" suiDropdown (click)="$event.stopPropagation()">
+        <i class="ellipsis horizontal icon"></i>
+        <div class="menu" suiDropdownMenu>
+          <div class="item" *ngFor="let operation of recurringData.operations"
+            (click)="onRecurringOperationClick(operation, recurringData)">
+            <div class="w100">{{operation.value}}</div>
+          </div>
+        </div>
+      </div> -->
+      </div>
+      <button class="orange circular ui right floated icon button" type="button"
+        *ngIf="(recurringData.allowedOperations.indexOf('receipt') > -1)"
+        (click)="$event.stopPropagation();onRecurringOperationClick({ 'key': 'receipt', 'value': 'Receipt/Schedule' }, recurringData)"
+        suiPopup popupText="Receipt/Schedule" popupInverted [popupPlacement]="'top'">
+        <i class="eye icon"></i>
+      </button>
+      <button class="orange circular ui right floated icon button" type="button"
+        *ngIf="(recurringData.allowedOperations.indexOf('updatePlan') > -1)"
+        (click)="$event.stopPropagation();onRecurringOperationClick({ 'key': 'updatePlan', 'value': 'Update Plan' }, recurringData)"
+        suiPopup popupText="Update Plan" popupInverted [popupPlacement]="'top'">
+        <i class="pencil icon"></i>
+      </button>
+    </div>
+
+    <div class="ten wide column">
+      <div class="ui horizontal list">
+        <div class="item">
+          <div class="content">
+            <div class="ui sub header">{{dataToShow}}</div>
+            <i class="calendar alternate icon"></i>
+            <strong>{{'recurringPayments.find.firstTransaction' | translate}}:</strong>
+            {{recurringData.startDate != null ? getFormattedDate(recurringData.startDate) : '--'}} <span
+              class="separator">|</span>
+            <span>
+              <strong>{{'recurringPayments.find.noOfPayments' | translate}}:</strong>
+              {{recurringData.noOfPayments != null ? recurringData.noOfPayments : '--'}}
+            </span>
+            <span class="separator">|</span>
+            <span>
+              <strong>{{'recurringPayments.find.paymentsCompleted' | translate}}: </strong>
+              {{recurringData.totalPaymentsMade != null ? recurringData.totalPaymentsMade : '--'}}
+            </span>
+
+            <ng-container *ngIf="recurringData.transactionType!=3">
+              <span class="separator">|</span>
+              <span>
+                <strong>{{'recurringPayments.find.remainingPaymentCount' | translate}}: </strong>
+                {{recurringData.totalPaymentLeft!= null ? recurringData.totalPaymentLeft : '--'}}
+              </span>
+            </ng-container>
+            <span class="separator">|</span>
+            <strong>{{'recurringPayments.find.paymentCycle' | translate}}:</strong>
+            {{recurringData.frequency== undefined ? 'NA':recurringData.frequency}}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ui divided list">
+    <div class="item" *ngFor="let transaction of paymentScheduleList">
+      <div class="ui active  dimmer"
+        *ngIf="transaction.isLoader_transactionOperation || transaction.isLoader_TransactionDetails">
+        <div class="ui small text loader"></div>
+      </div>
+      <div class="ui right floated header">
+
+        <div class="ui orange tiny right pointing dropdown invoice" suiDropdown (click)="$event.stopPropagation()"
+          *ngIf="transaction.operations.length > 0">
+          <i class="ellipsis horizontal icon"></i>
+          <div class="menu" suiDropdownMenu>
+            <div class="item" *ngFor="let operation of transaction.operations"
+              (click)="onTransactionOperationClick(operation, transaction)">
+              <div class="w100">{{operation.value}}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+
+        <i class="circle icon positive" *ngIf="transaction.displayTransactionStatus!=null && 
+      (transaction.displayTransactionStatus=='Success' || transaction.displayTransactionStatus=='Refund Success')"
+          style="padding-top: 4px;"></i>
+
+        <i class="circle icon negative" *ngIf="transaction.displayTransactionStatus!=null && 
+      (transaction.displayTransactionStatus=='Failed' || 
+        transaction.displayTransactionStatus=='Denied' || 
+        transaction.displayTransactionStatus=='Hold' || 
+        transaction.displayTransactionStatus=='Void'|| 
+        transaction.displayTransactionStatus=='Closed')" style="padding-top: 4px;"></i>
+
+        <i class="circle icon blue" *ngIf="transaction.displayTransactionStatus!=null && 
+        transaction.displayTransactionStatus!='Success' && 
+        transaction.displayTransactionStatus!='Denied' && 
+        transaction.displayTransactionStatus!='Failed' && 
+        transaction.displayTransactionStatus!='Refund Success' && 
+        transaction.displayTransactionStatus!='Void' &&
+        transaction.displayTransactionStatus!='Closed'" style="padding-top: 4px;"></i>
+
+        <i class="circle icon" *ngIf="transaction.displayTransactionStatus==null" style="padding-top: 4px;"></i>
+
+        <span *ngIf="transaction.displayTransactionStatus!=null">
+          <strong>{{transaction.installationType==1?'Down Payment:':'Scheduled:'}}</strong>
+          {{getFormattedDate(transaction.executionDate)}}
+          <span class="separator">|</span>
+          <span><strong>{{transaction.amountDue | CustomFormatCurrency}}</strong></span>
+          <span class="separator">|</span>
+          <span><strong>Status:</strong> {{transaction.displayTransactionStatus}}</span>
+          <span class="separator" *ngIf="transaction.transactionId!=null">|</span>
+          <span *ngIf="transaction.transactionId!=null"><strong>Paid On:</strong>
+            {{getFormattedDate(transaction.executionDate)}}</span>
+          <br>
+          <span><strong>Payment Plan Id:</strong> {{transaction.recurringPaymentId}}</span>
+          <span class="separator">|</span>
+          <span *ngIf="transaction.transactionId!=null">
+            <strong>Transaction Id:</strong>
+            {{transaction.transactionId}}
+          </span>
+
+          <br>
+          <span><strong>Payment Mode:</strong> {{(transaction.accountType == '2')? 'ACH':'CC'}}</span>
+          <span class="separator">|</span>
+          <span><strong>Name on Account:</strong> {{(transaction.accountHolderName != '' &&
+            transaction.accountHolderName != null)? transaction.accountHolderName:'--'}}</span>
+          <span class="separator">|</span>
+          <span><strong>Account Number:</strong> {{transaction.maskAccountNumber | psstring }}</span>
+          <span class="separator" *ngIf="transaction.accountType != '2'">|</span>
+          <span *ngIf="transaction.accountType != '2'"><strong>Card Type:</strong>
+            {{(transaction.cardType != '' && transaction.cardType != null)?
+            transaction.cardType:'--'}}</span>
+        </span>
+        <span *ngIf="transaction.displayTransactionStatus==null">
+          <strong>{{transaction.installationType==1?'Down Payment:':'Scheduled:'}}</strong>
+          {{getFormattedDate(transaction.executionDate)}}
+          <span class="separator">|</span>
+          <span>{{transaction.amountDue | CustomFormatCurrency}}</span>
+
+          <br>
+          <span><strong>Payment Mode:</strong> {{(transaction.accountType == '2')? 'ACH':'CC'}}</span>
+          <span class="separator">|</span>
+          <span><strong>Name on Account:</strong> {{(transaction.accountHolderName != '' &&
+            transaction.accountHolderName != null)? transaction.accountHolderName:'--'}}</span>
+          <span class="separator">|</span>
+          <span><strong>Account Number:</strong> {{transaction.maskAccountNumber | psstring }}</span>
+          <span class="separator" *ngIf="transaction.accountType != '2'">|</span>
+          <span *ngIf="transaction.accountType != '2'"><strong>Card Type:</strong>
+            {{(transaction.cardType != '' && transaction.cardType != null)?
+            transaction.cardType:'--'}}</span>
+        </span>
+      </div>
+    </div>
+  </div>
+</ng-container>
+
+<!-- Refund transaction Template Starts -->
+<ng-template let-context let-modal="modal" #modalScheduleTransactionOperation>
+  <div class="header">
+    <span *ngIf="inputDataForScheduleOperation.operationName=='refund'">{{'recurringPayments.schedule.refundHeading' |
+      translate}}</span>
+    <span *ngIf="inputDataForScheduleOperation.operationName=='adjust'">{{'recurringPayments.schedule.adjustHeading' |
+      translate}}</span>
+    <i #closeModal (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-schedule-transaction-operations [InputData]="inputDataForScheduleOperation"
+      (OutputData)="outputDataFromScheduleTransactionOperation($event)"></app-schedule-transaction-operations>
+  </div>
+</ng-template>
+<!-- Refund transaction Template Ends -->
+
+<!-- Cancel Recurring Plan Model Starts -->
+<ng-template let-context let-modal="modal" #modalCancelPlan>
+  <div class="header">
+    <span>{{'recurringPayments.cancel.heading' | translate}}</span>
+    <i #closeWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-cancel-payment-plan [InputData]="inputDataForRecurrringOperation"
+      (OutputData)="outputDataFromCancelRecurringOperation($event)">
+    </app-cancel-payment-plan>
+  </div>
+  <div class="actions">
+    <div class="ui tiny">
+      <button class="tiny ui orange button" (click)="cancelPaymentClick()"
+        [disabled]="false">{{'recurringPayments.cancel.yes' | translate}}</button>
+      <button class="ui tiny button" (click)="modal.deny()">{{'recurringPayments.cancel.no' | translate}}</button>
+    </div>
+  </div>
+</ng-template>
+<!-- Cancel Recurring Plan Model Ends -->
+
+<!-- Update Recurring Plan Model Starts -->
+<ng-template let-context let-modal="modal" #modalUpdatePlan>
+  <div class="header">
+    <span>{{(inputDataForUpdatePlan.hideSchedulePlan)!=true?('recurringPayments.update.heading' | translate):'Update
+      Account'}}</span>
+    <i #closePlanWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-update-recurring (OutputData)="outputDataFromUpdatePlan($event)" [InputData]="inputDataForUpdatePlan">
+    </app-update-recurring>
+    <button class="tiny ui button" (click)="modal.deny()">{{'facility.add.cancel' | translate}}</button>
+  </div>
+</ng-template>
+<!-- Update Recurring Plan Model Ends -->
+
+<!-- Recurring Transaction Operations Starts -->
+<ng-template let-context let-modal="modal" #modalRecurringOperations>
+  <div class="header">{{typeOfOperationHeading}}
+    <i #closeOperation (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-recurring-operations [InputData]="inputDataForOperation" (OutputData)="outputDataFromRecurrOperation($event)">
+    </app-recurring-operations>
+  </div>
+  <div class="actions">
+    <div class="ui tiny">
+      <button class="ui tiny button" (click)="modal.deny()">{{'recurringPayments.find.close' | translate}}</button>
+    </div>
+  </div>
+</ng-template>
+<!-- Recurring Transaction Operations Ends -->

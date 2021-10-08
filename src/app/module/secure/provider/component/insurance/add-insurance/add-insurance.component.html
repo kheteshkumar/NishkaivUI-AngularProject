@@ -1,0 +1,123 @@
+<ng-template let-result let-query="query" #template>
+  {{ result.displayName}}
+</ng-template>
+<div class="ui" *ngIf="isLoader_AddInsurance">
+  <div class="ui active dimmer">
+    <div class="ui indeterminate text loader">{{'common.processing' | translate}}</div>
+  </div>
+</div>
+<div class="ui" *ngIf="isLoader_EditInsurance">
+  <div class="ui active dimmer">
+    <div class="ui indeterminate text loader">{{'common.loading' | translate}}</div>
+  </div>
+</div>
+
+<div class="ui segment modal-loader" *ngIf="isLoader_Insurance">
+  <div class="ui active dimmer">
+    <div class="ui medium text loader">Loading</div>
+  </div>
+</div>
+
+<ng-container *ngIf="!isLoader_Insurance">
+  <form [formGroup]="addInsuranceForm" class="ui form">
+
+    <div class="toaster-static toaster-s" *ngIf="showSuccessMessage">
+      <span><a href="javascript:void(0)" (click)="showSuccessMessage=!showSuccessMessage"><i
+            class="close icon"></i></a></span>
+      <p>{{successMessage}}</p>
+    </div>
+    <div class="toaster-static toaster-e" *ngIf="showErrorMessage">
+      <span><a href="javascript:void(0)" (click)="showErrorMessage=!showErrorMessage"><i
+            class="close icon"></i></a></span>
+      <p>{{errorMessage}}</p>
+    </div>
+
+    <div class="ui tiny form">
+      <div class="two fields">
+        <div class="required field">
+          <label> {{'insurance.add.insuranceName' | translate}}</label>
+          <input placeholder="Insurance Name" type="text" *ngIf="isEditInsurance" formControlName="insuranceName"
+            #insuranceName>
+          <sui-search *ngIf="!isEditInsurance" class="insuranceList==null?ui loading search:ui fluid icon input"
+            #searchBox (keyup)="keyupHandler()" [options]="insuranceList"
+            [optionsFilter]="updateInsuranceName(searchBox)" optionsField="name" [searchDelay]="0"
+            placeholder="Search Insurance..." (resultSelected)="selectInsurance($event.id)"></sui-search>
+          <span>{{addInsuranceFormErrors.insuranceName}}</span>
+        </div>
+      </div>
+
+      <div class="two fields">
+        <div class="field">
+          <label> {{'insurance.add.phone' | translate}}</label>
+          <input placeholder="Phone" [attr.disabled]="(is_InsuranceSelected === true)?true:null" type="text"
+            formControlName="Phone" mask="000-000-0000" unmask=true [validation]="false" #phone>
+          <span>{{addInsuranceFormErrors.Phone}}</span>
+        </div>
+        <div class="field">
+          <label> {{'insurance.add.email' | translate}}</label>
+          <input placeholder="Email" [attr.disabled]="(is_InsuranceSelected === true)?true:null" type="text"
+            formControlName="Email" #email>
+          <span>{{addInsuranceFormErrors.Email}}</span>
+        </div>
+      </div>
+
+      <div class="required field">
+        <label>{{'insurance.add.addressLine1' | translate}}</label>
+        <input placeholder="Address Line 1" [attr.disabled]="(is_InsuranceSelected === true)?true:null" type="text"
+          formControlName="AddressLine1" #A1>
+        <span>{{addInsuranceFormErrors.AddressLine1}}</span>
+      </div>
+      <div class="field">
+        <label>{{'insurance.add.addressLine2' | translate}}</label>
+        <input placeholder="Address Line 2" [attr.disabled]="(is_InsuranceSelected === true)?true:null" type="text"
+          formControlName="AddressLine2" #A2>
+        <span>{{addInsuranceFormErrors.AddressLine2}}</span>
+      </div>
+      <div class="two fields">
+        <div class="required field">
+          <label>{{'insurance.add.city' | translate}}</label>
+          <input placeholder="City" [attr.disabled]="(is_InsuranceSelected === true)?true:null" type="text"
+            formControlName="City" #city>
+          <span>{{addInsuranceFormErrors.City}}</span>
+        </div>
+        <div class="required field">
+          <label>{{'insurance.add.country' | translate}}</label>
+          <sui-select class="selection" [isDisabled]="is_InsuranceSelected" [options]="countryList"
+            formControlName="Country" (selectedOptionChange)="populateState($event)" labelField="name"
+            valueField="countryId" #country>
+            <div class="ui icon search input">
+              <i class="search icon"></i>
+              <input suiSelectSearch type="text" placeholder="Search options...">
+            </div>
+            <div class="divider"></div>
+            <sui-select-option *ngFor="let o of country.filteredOptions" [value]="o"></sui-select-option>
+          </sui-select>
+          <span>{{addInsuranceFormErrors.Country}}</span>
+        </div>
+      </div>
+      <div class="two fields">
+        <div class="required field">
+          <label>{{'insurance.add.state' | translate}}</label>
+          <sui-select class="selection" [isDisabled]="is_InsuranceSelected" [options]="stateList"
+            formControlName="State" labelField="name" valueField="abbreviation" #state>
+            <div class="ui icon search input">
+              <i class="search icon"></i>
+              <input suiSelectSearch type="text" placeholder="Search options...">
+            </div>
+            <div class="divider"></div>
+            <sui-select-option *ngFor="let o of state.filteredOptions" [value]="o"></sui-select-option>
+          </sui-select>
+          <span>{{addInsuranceFormErrors.State}}</span>
+        </div>
+        <div class="required field">
+          <label>{{'insurance.add.postalCode' | translate}}</label>
+          <input placeholder="Postal (Zip) Code" [attr.disabled]="(is_InsuranceSelected === true)?true:null" type="text"
+            mask="00000-0000" unmask=true [validation]="false" formControlName="PostalCode" #postalCode>
+          <span>{{addInsuranceFormErrors.PostalCode}}</span>
+        </div>
+      </div>
+    </div>
+
+  </form>
+
+</ng-container>

@@ -1,0 +1,53 @@
+<div class="ui" *ngIf="isLoader">
+    <div class="ui active dimmer">
+      <div class="ui indeterminate text loader">{{'common.processing' | translate}}</div>
+    </div>
+  </div>
+  <form [formGroup]="cancelPaymentPlanForm" class="ui form">
+      <div class="toaster-static toaster-s" *ngIf="showSuccessMessage">
+        <span><a href="javascript:void(0)" (click)="showSuccessMessage=!showSuccessMessage"><i class="close icon"></i></a></span>
+        <p>{{successMessage}}</p>
+      </div>
+      <div class="toaster-static toaster-e" *ngIf="showErrorMessage">
+        <span><a href="javascript:void(0)" (click)="showErrorMessage=!showErrorMessage"><i class="close icon"></i></a></span>
+        <p>{{errorMessage}}</p>
+      </div>
+        
+          <div class="ui tiny form">
+          
+          <div class="content">
+            <div class="ui large icon message">
+              <div class="content">
+                <p>{{ 'recurringPayments.cancel.confirmation' | translate}}</p>
+              </div>
+            </div>
+            <div class="required field">
+                <label>{{'recurringPayments.cancel.reason' | translate}}</label>
+                <textarea placeholder="{{'recurringPayments.cancel.reason' | translate}}" formControlName="Description" rows="3" style="height: 52px;"></textarea>
+                <span>{{cancelPaymentPlanFormErrors.Description}}</span>
+              </div>
+            </div>
+            
+          <!-- <div class="required field">
+            <label>{{'recurringPayments.cancel.confirmation' | translate}}</label>
+          </div> -->
+          </div>
+          <!-- <br>
+          <div class="content">
+            <div class="ui large icon message">
+              <div class="content">
+                <p>{{ 'recurringPayments.cancel.confirmation' | translate}}</p>
+              </div>
+            </div>
+            </div> -->
+            <!-- <div class="actions">
+            <div class="ui tiny">
+              <button class="tiny ui orange button" (click)="cancelPaymentClick()" [disabled]="!cancelPaymentPlanForm.dirty">{{'recurringPayments.cancel.yes' | translate}}</button><button class="ui tiny button" (click)="modal.deny()">{{'recurringPayments.cancel.no' | translate}}</button>
+            </div>
+            </div> -->
+     
+  </form>
+  <div class="ui fitted divider"></div>
+  <br>
+  
+  

@@ -1,0 +1,125 @@
+<app-toaster [toaster]="toastData"></app-toaster>
+<div class="ui segment modal-loader" style="max-height: 165px; min-height: 165px" *ngIf="isLoading; else content">
+  <div class="ui active inverted dimmer">
+    <div class="ui medium text loader"></div>
+  </div>
+</div>
+<ng-template #content>
+  <div class="ui cards" style="margin: 0px; margin-bottom: 0.5em" *ngIf="!isLoading && formsMappingList && formsMappingList.length; else noRecords">
+    <div class="card segment ui" *ngFor="let form of formsMappingList">
+      <div *ngIf="formsData.get(form.formId) as data" class="content">
+        <div class="ui mini bottom right attached label" [ngClass]="data.meta.color">
+          <!-- //status -->
+          {{ data.meta.text }}
+        </div>
+        <div class="header">
+          {{ data.meta.formTitle }}
+        </div>
+        <div>
+          <div class="meta">
+            <div>
+              <strong>{{ 'Submitted By' | translate }}</strong
+              >: {{ data.submissionData ? data.submissionData.submittedBy : '--' }}
+            </div>
+            <div>
+              <strong>{{ 'Created On' | translate }}</strong
+              >: {{ data.submissionData ? data.submissionData.createdDate : '--' }}
+            </div>
+          </div>
+          <br />
+          <!-- <div class="description"> -->
+          <!--   <div class="item"> -->
+          <!--     <!-1- <span>{{ data.formData.formDescription }}</span> -1-> -->
+          <!--   </div> -->
+          <!-- </div> -->
+        </div>
+
+        <button
+          class="orange circular ui left floated icon button"
+          type="button"
+          (click)="$event.stopPropagation(); viewForm(data)"
+          [ngClass]="{ 'loading ': !data.formData }"
+          suiPopup
+          popupText="View"
+          popupInverted
+          [disabled]="!data.formData"
+          [popupPlacement]="'top'"
+        >
+          <i class="eye alternate outline sign icon" style="color: #ffffff"></i>
+        </button>
+        <button
+          *ngIf="form.status === 1; else addBtn"
+          class="orange circular ui left floated icon button"
+          [ngClass]="{ 'loading ': !data.formData }"
+          type="button"
+          (click)="$event.stopPropagation(); editForm(data)"
+          suiPopup
+          [popupText]="'plforms.view.update' | translate"
+          popupInverted
+          [disabled]="!(data.formData && data.submissionData) || data.formData.isActivated === activationEnum.Deactivated"
+          [popupPlacement]="'top'"
+        >
+          <i class="pencil sign icon"></i>
+        </button>
+        <ng-template #addBtn>
+          <button
+            class="orange circular ui left floated icon button"
+            type="button"
+            [ngClass]="{ 'loading ': !data.formData }"
+            (click)="$event.stopPropagation(); editForm(data)"
+            suiPopup
+            [popupText]="'plforms.view.add' | translate"
+            popupInverted
+            [disabled]="!(data.formData) || data.formData.isActivated === activationEnum.Deactivated"
+            [popupPlacement]="'top'"
+          >
+            <i class="plus icon"></i>
+          </button>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+  <ng-template #noRecords>
+    <sui-message class="attached warning" [isDismissable]="false">
+      <p>{{ 'plforms.attach.noFormsFound' | translate }}</p>
+    </sui-message>
+  </ng-template>
+</ng-template>
+
+<!-- Add forms data / update -->
+<ng-template let-context let-modal="modal" #modalFormRenderer>
+  <div class="header">
+    <!-- <span *ngIf="!currentForm.isEdit">{{ 'plforms.view.heading' | translate }}</span> -->
+    <!-- <span *ngIf="currentForm.isEdit">{{ 'plforms.submit.heading' | translate }}</span> -->
+    <span>{{ this.currentForm.form.formTitle }}</span>
+    <i #closeWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <div class="toaster-static toaster-e" *ngIf="showErrorMessage">
+      <span
+        ><a href="javascript:void(0)" (click)="showErrorMessage = !showErrorMessage"><i class="close icon"></i></a
+      ></span>
+      <p>{{ errorMessage }}</p>
+    </div>
+    <br />
+    <app-formio-renderer
+      [submission]="currentForm.submission"
+      [form]="currentForm.form"
+      [viewOnly]="currentForm.viewOnly"
+      [readOnly]="currentForm.readOnly"
+      [viewTitle]="false"
+      (submit)="addUpdateSubmission($event)"
+    >
+    </app-formio-renderer>
+  </div>
+  <div *ngIf="!currentForm.isEdit" class="actions">
+    <div class="ui tiny">
+      <button class="ui tiny orange button" [disabled]="currentForm.form.isActivated === activationEnum.Deactivated" (click)="editForm(formsData.get(currentForm.form.id), true)">
+        {{ currentForm.submission ? ('plforms.view.update' | translate) : ('plforms.view.edit' | translate) }}
+      </button>
+      <button class="ui tiny button" (click)="modal.deny()">
+        {{ 'plforms.view.close' | translate }}
+      </button>
+    </div>
+  </div>
+</ng-template>

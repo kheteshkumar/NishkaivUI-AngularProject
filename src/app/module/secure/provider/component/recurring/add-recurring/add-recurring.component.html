@@ -1,0 +1,1358 @@
+<!-- Loader -->
+<div class="ui" *ngIf="isLoader_ProcessRecurring">
+  <div class="ui active dimmer">
+    <div class="ui indeterminate text loader">{{'common.processing' | translate}}</div>
+  </div>
+  <p></p>
+</div>
+
+<!-- Succes Message -->
+<div class="toaster-static toaster-s" *ngIf="showSuccessMessage">
+  <span><a href="javascript:void(0)" (click)="showSuccessMessage=!showSuccessMessage"><i
+        class="close icon"></i></a></span>
+  <p>{{successMessage}}</p>
+</div>
+
+<!-- Error Message -->
+<div class="toaster-static toaster-e" *ngIf="showErrorMessage">
+  <span><a href="javascript:void(0)" (click)="showErrorMessage=!showErrorMessage"><i class="close icon"></i></a></span>
+  <p>{{errorMessage}}</p>
+</div>
+<!-- <div class="header">
+  <span>{{'recurringPayments.add.heading' | translate}}</span>
+  <i #cancel (click)="closeModal()" class="close link icon item-right"></i>
+</div> -->
+<!-- <aw-wizard #wizard [navBarLayout]="'large-filled-symbols'"> -->
+<!-- [disableNavigationBar]="isEditRecurring" -->
+<!-- <aw-wizard-step [stepTitle]="'Plan Information'" [navigationSymbol]="{ symbol: '1' }" [stepId]="planInformation"
+    *ngIf="!isEditRecurring">
+
+    <div class="ui fitted divider"></div> -->
+<div content class="wizard-min-ht">
+  <br />
+  <sui-tabset *ngIf="!isRecurringCreated">
+    <div class="ui top attached tabular menu">
+      <a class="item" suiTabHeader="1"><i class="calendar times outline icon"></i> Create New</a>
+      <!--<a class="item" suiTabHeader="2"><i class="calendar check outline icon"></i> Templates</a>-->
+    </div>
+
+    <div class="ui bottom attached segment" suiTabContent="1">
+      <sui-tabset>
+        <div class="ui pointing secondary menu">
+          <a class="item" suiTabHeader="1" [(isActive)]="installmentPlanActive" [attr.disabled]="!installmentTabDisable"
+            *ngIf="!installmentTabDisable"
+            (click)="subscriptionPlanActive=false; installmentPlanActive = true; checkValidation()">Installment
+            Payment</a>
+          <a class="item" suiTabHeader="2" [(isActive)]="subscriptionPlanActive" *ngIf="!subscriptionTabDisable"
+            (click)="subscriptionPlanActive=true; installmentPlanActive = false; checkValidation()">Subscription
+            Payment</a>
+        </div>
+        <div class="ui" suiTabContent="1">
+          <form [formGroup]="recurringPaymentForm" class="tiny ui form">
+            <div class="ui two column stackable padded grid">
+              <div class="four wide column pymnt-sumry">
+                <div class="ui" *ngIf="isLoader_FindCutomPlan">
+                  <div class="ui active inverted dimmer">
+                    <div class="ui indeterminate text loader"></div>
+                  </div>
+                </div>
+                <!-- <h3 class="ui icon header w100" *ngIf="isRecurringCreated">
+                  <br>
+                  <img src="../../../../../../assets/images/crte_pmnt.png" />
+                  <div *ngIf="saveForFutureUseChecked == true">
+                    {{dataForPlanDescription.planName}}
+                  </div>
+                  <div class="content">
+                    <span *ngIf="dataForPlanDescription.noOfPayments != ''"> {{dataForPlanDescription.noOfPayments}}
+                      {{dataForPlanDescription.frquency}} payments</span>
+                    <span
+                      *ngIf="dataForPlanDescription.installmentAmountToShow != 0 && dataForPlanDescription.noOfPayments != ''">
+                      <br> of ${{dataForPlanDescription.installmentAmountToShow.toFixed(2)}} each</span>
+                    <span *ngIf="dataForPlanDescription.downPayment != 0 && dataForPlanDescription.noOfPayments != ''">
+                      <br> +
+                      <br>Down Payment ${{dataForPlanDescription.downPayment.toFixed(2)}}</span>
+                  </div>
+                </h3> -->
+                <div *ngIf="!isRecurringCreated">
+                  <ng-container *ngTemplateOutlet="leftSideTemplate"></ng-container>
+                </div>
+
+              </div>
+              <div class="twelve wide column pymnt-ctrl">
+                <div class="tiny ui form" *ngIf="!isRecurringCreated">
+
+                  <div class="ui icon header w100">
+                    <img src="../../../../../../assets/images/crte_pmnt.png" />
+                    <div class="content">
+                      <span *ngIf="NoOfPaymentsForInstallment.value == ''"> Create new installment payment</span>
+                      <span *ngIf="NoOfPaymentsForInstallment.value != ''"> {{NoOfPaymentsForInstallment.value}}
+                        {{dataForPlanDescription.frquency}} payments</span>
+                      <span
+                        *ngIf="dataForPlanDescription.installmentAmountToShow != 0 && NoOfPaymentsForInstallment.value != ''">
+                        of ${{dataForPlanDescription.installmentAmountToShow.toFixed(2)}} each</span>
+                    </div>
+                  </div>
+                  <div class="inline field">
+                    <label><b>Total Amount:
+                        {{dataForPlanDescription.totalAmountForInstallments | CustomFormatCurrency}}<span
+                          class="separator">|</span>Remaining Balance:
+                        {{dataForPlanDescription.remainingBalance | CustomFormatCurrency}}</b></label>
+                  </div>
+                  <div class="field" *ngIf="loggedInUserData.userType!=0">
+                    <div class="popover-wrapper">
+                      <h4>Select Patient..</h4>
+                      <input type="text" name="" placeholder="Search Patient" formControlName="PatientName"
+                        (input)="patientLookUp($event.target.value)" (focus)="patientListVisibility=true">
+                      <span>{{recurringPaymentFormErrors.PatientName}}</span>
+                      <div
+                        [ngClass]="patientListVisibility ? 'popover-content popover-content-open' : 'popover-content'">
+                        <ng-container *ngTemplateOutlet="FindPatientTemplate"></ng-container>
+                      </div>
+                    </div>
+                  </div>
+
+
+                  <div class="required field" *ngIf="loggedInUserData.userType==0">
+                    <label>{{'transaction.add.cardSelect' | translate}}</label>
+                    <sui-select class="selection" [options]="cardList" labelField="maskedCardNumber" valueField="id"
+                      (selectedOptionChange)="isLoader_ProcessRecurring = true; onAccountSelectionClick(loggedInUserData.parentId, $event)">
+                      <sui-select-option *ngFor="let option of cardList" [value]="option">
+                      </sui-select-option>
+                    </sui-select>
+
+                  </div>
+
+
+
+                  <sui-tabset>
+                    <div class="ui" *ngIf="isLoader_TransactionDetails">
+                      <div class="ui active inverted dimmer">
+                        <div class="ui indeterminate text loader"></div>
+                      </div>
+                    </div>
+                    <div class="ui top attached tabular menu">
+                      <a class="item" suiTabHeader="1" [isActive]="selectedTab == 'card'" href="javascript:void(0);"
+                        (click)="selectedTab = 'card'; this.patientLookUp('')"><i class="credit card outline icon"></i>
+                        Card</a>
+                      <a class="item" suiTabHeader="2" [isActive]="selectedTab == 'ach'" *ngIf="permissions.achPayments"
+                        href="javascript:void(0);" (click)="selectedTab = 'ach'; this.patientLookUp('')"><i
+                          class="money bill alternate outline icon"></i> ACH</a>
+                    </div>
+                    <div class="ui bottom attached segment" suiTabContent="1">
+                      <ng-container *ngTemplateOutlet="cardTransactionDetailsTemplate"></ng-container>
+                    </div>
+                    <div class="ui bottom attached segment" suiTabContent="2">
+                      <ng-container *ngTemplateOutlet="achTransactionDetailsTemplate"></ng-container>
+                    </div>
+                  </sui-tabset>
+                  <div class="ui fitted divider wizard-footer"></div>
+
+                  <!-- <div class="fields">
+                    <div class="five wide field required">
+                      <label>Name On Card</label>
+                      <input type="text" name="" placeholder="Name On Card" formControlName="CardHolderName"
+                        [readonly]="isPatientAccountSelected ? true : true">
+                      <span>{{recurringPaymentFormErrors.CardHolderName}}</span>
+                    </div>
+                    <div class="three wide field required">
+                      <label>Card Number</label>
+                      <input type="text" name="" placeholder="Card No." formControlName="cardNumber"
+                        autocomplete="new-password" [readonly]="isPatientAccountSelected ? true : true">
+                      <span>{{recurringPaymentFormErrors.cardNumber}}</span>
+                    </div>
+                    <div class="two wide field" style="width: 10%!important;">
+                      <label>{{cardDetails.cardType}}&nbsp;</label>
+                      <img *ngIf="recurringPaymentForm.value.CardType==''||recurringPaymentForm.value.CardType==null"
+                        src="../../../../../../../assets/images/cards/BlankCard.png" />
+                      <img *ngIf="recurringPaymentForm.value.CardType=='AMEX'"
+                        src="../../../../../../../assets/images/cards/Amex.png" />
+                      <img *ngIf="recurringPaymentForm.value.CardType=='DINERS'"
+                        src="../../../../../../../assets/images/cards/Diners.png" />
+                      <img *ngIf="recurringPaymentForm.value.CardType=='DISCOVER'"
+                        src="../../../../../../../assets/images/cards/Discover.png" />
+                      <img *ngIf="recurringPaymentForm.value.CardType=='JCB'"
+                        src="../../../../../../../assets/images/cards/JCB.png" />
+                      <img *ngIf="recurringPaymentForm.value.CardType=='MASTERCARD'"
+                        src="../../../../../../../assets/images/cards/MasterCard.png" />
+                      <img *ngIf="recurringPaymentForm.value.CardType=='VISA'"
+                        src="../../../../../../../assets/images/cards/Visa.png" />
+                    </div>
+                    <div class="four wide field required">
+                      <label>Expiration (MM/YY)</label>
+                      <input type="text" name="" placeholder="MM/YY" [validation]="false" mask="00/00" unmask=true
+                        formControlName="cardExpiry" [readonly]="isPatientAccountSelected ? true : true">
+                      <span>{{recurringPaymentFormErrors.cardExpiry}}</span>
+                    </div>
+                    <div class="two wide field required">
+                      <label>CVV</label>
+                      <input type="text" name="" class="pw" placeholder="" [validation]="false" mask="0009" unmask=true
+                        formControlName="CVV">
+                      <span>{{recurringPaymentFormErrors.CVV}}</span>
+                    </div>
+                  </div> -->
+
+                  <div class="fields">
+                    <div class="field required">
+                      <!-- <div class="ten wide field"> -->
+                      <label class="update-label">Payment Cycle </label>
+                      <sui-select class="selection" [options]="frequencyList" formControlName="Frequency"
+                        labelField="title" valueField="value">
+                        <sui-select-option *ngFor="let option of frequencyList" [value]="option" #Frequency>
+                        </sui-select-option>
+                      </sui-select>
+                      <!-- </div> -->
+                    </div>
+                    <div class="field required">
+                      <!-- <div class="five wide field required"> -->
+                      <label class="update-label">{{'recurringPayments.add.noOfPayments' | translate}}</label>
+                      <input type="text" placeholder="" formControlName="NoOfPayments" #NoOfPaymentsForInstallment>
+                      <span>{{recurringPaymentFormErrors.NoOfPayments}}</span>
+                      <!-- </div> -->
+                    </div>
+
+
+                  </div>
+                  <div class="fields">
+                    <!-- <div class="four wide field required">
+                              <label>Expiration (MM/YY)</label>
+                              <input type="text" name="" placeholder="MM/YY" [validation]="false" mask="00/00" unmask=true formControlName="cardExpiry"
+                                [readonly]="isPatientAccountSelected ? true : true">
+                              <span>{{recurringPaymentFormErrors.cardExpiry}}</span>
+                            </div> -->
+                    <div class=" field required">
+                      <label class="update-label">Schedule Transactions On</label>
+                      <div class="ui left icon input">
+                        <i class="calendar icon"></i>
+                        <input suiDatepicker [pickerMode]="dateMode" [pickerFirstDayOfWeek]="firstDayOfWeek"
+                          style="width: 115px;" [pickerUseNativeOnMobile]="false" [pickerMinDate]="minStartDate"
+                          [pickerMaxDate]="maxStartDate" formControlName="StartDate" #StartDate readonly>
+                        <!-- <input suiDatepicker [pickerMode]="dateMode" [pickerFirstDayOfWeek]="firstDayOfWeek" style="width: 115px;"
+                                  [pickerUseNativeOnMobile]="false" [pickerMinDate]="minStartDate"
+                                  formControlName="StartDate" #StartDate readonly> -->
+                      </div>
+                      <span>{{recurringPaymentFormErrors.StartDate}}</span>
+                    </div>
+                    <!--<div class="three wide field required">
+                              <label>Zip code</label>
+                              <input type="text" name="" placeholder="Zip code" formControlName="PostalCode">
+                              <span>{{recurringPaymentFormErrors.PostalCode}}</span>
+                            </div>-->
+                    <div class="seven wide field">
+                      <label>Send receipt to</label>
+                      <input type="text" name="" placeholder="abc@xyz.com" formControlName="TransactionEmail">
+                      <span>{{recurringPaymentFormErrors.TransactionEmail}}</span>
+                    </div>
+                  </div>
+                  <!-- <div class="fields">
+                      <div class="field">
+                        <label class="update-label">{{'customPlans.add.discount' | translate}}</label>
+                        <div class="inline field">
+                            <input type="text" placeholder="0.00" formControlName="Discount"
+                            (blur)="formatCurrency('recurringPaymentForm', 'Discount', $event)"> -->
+                  <!-- </div> -->
+                  <!-- <div class="field" style="margin-left: -0.2rem"> -->
+                  <!-- <sui-select class="selection" [options]="discountList" formControlName="DiscountList"
+                            labelField="label" valueField="id">
+                            <sui-select-option *ngFor="let option of discountList" [value]="option">
+                            </sui-select-option>
+                          </sui-select>
+                          <span>{{recurringPaymentFormErrors.Discount}}</span>
+                        </div>
+                        
+                      </div>
+                      <div class=" field" *ngIf="isPercentageSelected">
+                          <label class="update-label">{{'customPlans.add.discountAmount' | translate}}</label>
+                          <input type="text" placeholder="Discount Amount" formControlName="DiscountAmount" readonly
+                          style="width:115px" (blur)="formatCurrency('recurringPaymentForm', 'DiscountAmount', $event)">
+                          <span>{{recurringPaymentFormErrors.DiscountAmount}}</span>
+                      </div>
+                    </div> -->
+
+
+
+
+                  <!-- <div class="inline fields">
+                      <div class="inline field">
+                        <label class="inst-label">Tax</label>
+                        <div class="ui right icon input">
+                          <i class="icon" style="line-height:2.8"><b>&#37;</b></i>
+                          <input style="width: 115px" type="text" placeholder="0.00" formControlName="TaxAmount"
+                            (blur)="formatCurrency('recurringPaymentForm', 'TaxAmount', $event)">
+                        </div>
+                      </div>&nbsp;&nbsp;&nbsp;&nbsp;
+                      <div class="seven wide field" *ngIf="isTaxMoreThanZero">
+                        <label class="inst-label">{{'customPlans.add.taxCalculated' | translate}}</label>
+                        <input type="text" placeholder="0.00" formControlName="TaxCalculated" readonly
+                        style="width:115px" (blur)="formatCurrency('recurringPaymentForm', 'TaxCalculated', $event)">
+                      </div>
+                    </div>
+                    <p class="error-msg1">{{recurringPaymentFormErrors.TaxCalculated}}</p>
+                    <p class="error-msg1">{{recurringPaymentFormErrors.TaxAmount}}</p> -->
+
+                  <!-- <div class="inline field"
+                      *ngIf="dataForPlanDescription.frquency != 'Daily' && dataForPlanDescription.frquency != 'Quarterly'   && dataForPlanDescription.frquency != 'HalfYearly' && dataForPlanDescription.frquency != 'Annually' && dataForPlanDescription.noOfPayments != '1'">
+                      <label class="update-label">Subsequent transactions on</label>
+                      <sui-select style="width: 115px;" class="selection" [options]="frequencyParamList"
+                        formControlName="FrequencyParam" labelField="title" valueField="value">
+                        <sui-select-option *ngFor="let option of frequencyParamList" [value]="option" #FrequencyParam>
+                        </sui-select-option>
+                      </sui-select>
+                       of every {{dataForPlanDescription.frequencyToShow}}
+                    </div> -->
+                  <div class="field">
+                    <label>Payment Plan Description </label>
+                    <textarea rows="2" maxlength="500"
+                      placeholder="This payment description will appear in the receipt..."
+                      formControlName="PlanDescription"></textarea>
+                    <span>{{recurringPaymentFormErrors.PlanDescription}}</span>
+                  </div>
+                  <!-- <div class="tiny ui form" *ngIf="!isRecurringCreated"> -->
+
+                </div>
+                <!-- <div class="tiny ui form" *ngIf="isRecurringCreated">
+                  <div class="ui two column stackableX Xpadded grid">
+                    <div class="six wide column">
+                      <div class="ui card">
+                        <div class="content">
+                          <div class="ui mini green left corner label">
+                          </div>
+                          <div class="header">&nbsp;&nbsp; {{dataForPlanDescription.firstName}}
+                            {{dataForPlanDescription.lastName}}</div>
+                          <div class="meta">
+                          </div>
+                        </div>
+                        <div class="content">
+                          <span class="left floated like">
+                            <b>{{dataForPlanDescription.cardNo}}</b><br>
+                            Valid through: {{dataForPlanDescription.cardExpiry}}
+                          </span>
+                          <span class="right floated star">
+                            <img
+                              *ngIf="recurringPaymentForm.value.CardType==''||recurringPaymentForm.value.CardType==null"
+                              src="../../../../../../../assets/images/cards/BlankCard.png" />
+                            <img *ngIf="recurringPaymentForm.value.CardType=='AMEX'"
+                              src="../../../../../../../assets/images/cards/Amex.png" />
+                            <img *ngIf="recurringPaymentForm.value.CardType=='DINERS'"
+                              src="../../../../../../../assets/images/cards/Diners.png" />
+                            <img *ngIf="recurringPaymentForm.value.CardType=='DISCOVER'"
+                              src="../../../../../../../assets/images/cards/Discover.png" />
+                            <img *ngIf="recurringPaymentForm.value.CardType=='JCB'"
+                              src="../../../../../../../assets/images/cards/JCB.png" />
+                            <img *ngIf="recurringPaymentForm.value.CardType=='MASTERCARD'"
+                              src="../../../../../../../assets/images/cards/MasterCard.png" />
+                            <img *ngIf="recurringPaymentForm.value.CardType=='VISA'"
+                              src="../../../../../../../assets/images/cards/Visa.png" />
+
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="ten wide column">
+                      <div class="ui" *ngIf="isLoader_FindCutomPlan">
+                        <div class="ui active inverted dimmer">
+                          <div class="ui indeterminate text loader"></div>
+                        </div>
+                      </div>
+                      <h4>Payment Schedule</h4>
+                      <div
+                        style="overflow: auto; overflow-x: hidden; max-height: 4.5em; padding-top: 5px; padding-left: 2px;">
+                        <div class="ui list">
+                          <div *ngFor="let paymentSchedule of paymentScheduleList">
+                            <div class="item"><i class="calendar alternate icon"></i>
+                              <span>{{paymentSchedule.installationType==1?'Down':paymentSchedule.transactionNo}}
+                                Payment</span> -
+                              <span>{{paymentSchedule.transactionDate}}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="ui clearing divider"></div>
+                  <div class="ui large positive message custom-msg">
+                    <p>Your payment plan schedule has been created successfully.</p>
+                    <img src="../../../../../../../assets/images/smiley.png" class="ui image">
+                    <p>We would love to hear your feedback!</p>
+                  </div>
+                </div> -->
+              </div>
+            </div>
+          </form>
+        </div>
+
+
+        <div class="ui" suiTabContent="2">
+          <form [formGroup]="subscriptionPlanForm" class="ui normal form ng-untouched ng-pristine ng-valid">
+            <div class="ui two column stackable padded grid">
+              <div class="four wide column pymnt-sumry">
+                <div *ngIf="!isRecurringCreated">
+                  <ng-container *ngTemplateOutlet="subscriptionAmountTemplate"></ng-container>
+                </div>
+              </div>
+              <div class="twelve wide column pymnt-ctrl">
+                <div class="tiny ui form" *ngIf="!isRecurringCreated">
+                  <div class="ui icon header w100">
+                    <img src="../../../../../../assets/images/crte_pmnt.png" />
+                    <div class="content">
+                      <span *ngIf="NoOfPaymentsForInstallment.value == ''"> Create new Subscription</span>
+                      <span *ngIf="dataForPlanDescription.noOfPayments != ''"> {{dataForPlanDescription.noOfPayments}}
+                        {{dataForPlanDescription.frquency}} payments</span>
+                      <span
+                        *ngIf="dataForPlanDescription.subscriptionAmountToShow != 0 && dataForPlanDescription.noOfPayments != ''">
+                        <br> of {{dataForPlanDescription.subscriptionAmountToShow | CustomFormatCurrency}} each</span>
+                    </div>
+                  </div>
+                  <!-- <div class="inline field">
+                  <label><b>Total Amount:
+                      {{dataForPlanDescription.totalAmountForInstallments | CustomFormatCurrency}}<span
+                        class="separator">|</span>Remaining Balance:
+                      {{dataForPlanDescription.remainingBalance | CustomFormatCurrency}}</b></label>
+                </div> -->
+                  <div class="field" *ngIf="loggedInUserData.userType!=0">
+                    <div class="popover-wrapper">
+                      <h4>Select Patient..</h4>
+                      <input type="text" name="" placeholder="Search Patient" formControlName="PatientName"
+                        (input)="patientLookUp($event.target.value)" (focus)="patientSubscriptionListVisibility=true">
+                      <span>{{subscriptionPlanFormErrors.PatientName}}</span>
+                      <div
+                        [ngClass]="patientSubscriptionListVisibility ? 'popover-content popover-content-open' : 'popover-content'">
+                        <ng-container *ngTemplateOutlet="FindSubscriptionPatientTemplate"></ng-container>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="required field" *ngIf="loggedInUserData.userType==0">
+                    <label>{{'transaction.add.cardSelect' | translate}}</label>
+                    <sui-select class="selection" [options]="cardList" labelField="maskedCardNumber" valueField="id"
+                      (selectedOptionChange)="isLoader_ProcessRecurring = true; onAccountSelectionClick(loggedInUserData.parentId, $event)">
+                      <sui-select-option *ngFor="let option of cardList" [value]="option">
+                      </sui-select-option>
+                    </sui-select>
+
+                  </div>
+
+                  <!-- <div class="fields">
+                          <div class="four wide field required">
+                            <label>First Name</label>
+                            <input type="text" name="" placeholder="First Name" formControlName="FirstName"
+                              [readonly]="isPatientSelected ? true : true">
+                            <span>{{subscriptionPlanFormErrors.FirstName}}</span>
+                          </div>
+                          <div class="four wide field required">
+                            <label>Last Name</label>
+                            <input type="text" name="" placeholder="Last Name" formControlName="LastName"
+                              [readonly]="isPatientSelected ? true : true">
+                            <span>{{subscriptionPlanFormErrors.LastName}}</span>
+                          </div>
+                        </div> -->
+
+
+
+                  <sui-tabset>
+                    <div class="ui" *ngIf="isLoader_TransactionDetails">
+                      <div class="ui active inverted dimmer">
+                        <div class="ui indeterminate text loader"></div>
+                      </div>
+                    </div>
+                    <div class="ui top attached tabular menu">
+                      <a class="item" suiTabHeader="1" [isActive]="selectedTab == 'card'" href="javascript:void(0);"
+                        (click)="selectedTab = 'card'; this.patientLookUp('')"><i class="credit card outline icon"></i>
+                        Card</a>
+                      <a class="item" suiTabHeader="2" [isActive]="selectedTab == 'ach'" *ngIf="permissions.achPayments"
+                        href="javascript:void(0);" (click)="selectedTab = 'ach'; this.patientLookUp('')"><i
+                          class="money bill alternate outline icon"></i> ACH</a>
+                    </div>
+                    <div class="ui bottom attached segment" suiTabContent="1">
+                      <ng-container *ngTemplateOutlet="cardTransactionDetailsTemplate"></ng-container>
+                    </div>
+                    <div class="ui bottom attached segment" suiTabContent="2">
+                      <ng-container *ngTemplateOutlet="achTransactionDetailsTemplate"></ng-container>
+                    </div>
+                  </sui-tabset>
+                  <div class="ui fitted divider wizard-footer"></div>
+
+
+                  <!-- <div class="fields">
+                    <div class="five wide field required">
+                      <label>Name On Card</label>
+                      <input type="text" name="" placeholder="Name On Card" formControlName="CardHolderName"
+                        [readonly]="isPatientAccountSelected ? true : true">
+                      <span>{{subscriptionPlanFormErrors.CardHolderName}}</span>
+                    </div>
+                    <div class="three wide field required">
+                      <label>Card Number</label>
+                      <input type="text" name="" placeholder="Card No." formControlName="cardNumber"
+                        autocomplete="new-password" [readonly]="isPatientAccountSelected ? true : true">
+                      <span>{{subscriptionPlanFormErrors.cardNumber}}</span>
+                    </div>
+                    <div class="two wide field" style="width: 10%!important;">
+                      <label>{{cardDetails.cardType}}&nbsp;</label>
+                      <img *ngIf="subscriptionPlanForm.value.CardType==''||subscriptionPlanForm.value.CardType==null"
+                        src="../../../../../../../assets/images/cards/BlankCard.png" />
+                      <img *ngIf="subscriptionPlanForm.value.CardType=='AMEX'"
+                        src="../../../../../../../assets/images/cards/Amex.png" />
+                      <img *ngIf="subscriptionPlanForm.value.CardType=='DINERS'"
+                        src="../../../../../../../assets/images/cards/Diners.png" />
+                      <img *ngIf="subscriptionPlanForm.value.CardType=='DISCOVER'"
+                        src="../../../../../../../assets/images/cards/Discover.png" />
+                      <img *ngIf="subscriptionPlanForm.value.CardType=='JCB'"
+                        src="../../../../../../../assets/images/cards/JCB.png" />
+                      <img *ngIf="subscriptionPlanForm.value.CardType=='MASTERCARD'"
+                        src="../../../../../../../assets/images/cards/MasterCard.png" />
+                      <img *ngIf="subscriptionPlanForm.value.CardType=='VISA'"
+                        src="../../../../../../../assets/images/cards/Visa.png" />
+                    </div>
+                    <div class="four wide field required">
+                      <label>Expiration (MM/YY)</label>
+                      <input type="text" name="" placeholder="MM/YY" [validation]="false" mask="00/00" unmask=true
+                        formControlName="cardExpiry" [readonly]="isPatientAccountSelected ? true : true">
+                      <span>{{subscriptionPlanFormErrors.cardExpiry}}</span>
+                    </div>
+                    <div class="two wide field required">
+                      <label>CVV</label>
+                      <input type="text" name="" class="pw" placeholder="" [validation]="false" mask="0009" unmask=true
+                        formControlName="CVV">
+                      <span>{{subscriptionPlanFormErrors.CVV}}</span>
+                    </div>
+                  </div> -->
+
+                  <div class="fields">
+                    <div class="field required">
+                      <!-- <div class="ten wide field"> -->
+                      <label class="update-label">Payment Cycle </label>
+                      <sui-select class="selection" [options]="frequencyList" formControlName="Frequency"
+                        labelField="title" valueField="value">
+                        <sui-select-option *ngFor="let option of frequencyList" [value]="option" #Frequency>
+                        </sui-select-option>
+                      </sui-select>
+                      <!-- </div> -->
+                    </div>
+                    <div class="field required">
+                      <!-- <div class="five wide field required"> -->
+                      <label class="update-label">{{'recurringPayments.add.noOfPayments' | translate}}</label>
+                      <input type="text" placeholder="" formControlName="NoOfPayments" #NoOfPaymentsForInstallment>
+                      <span>{{subscriptionPlanFormErrors.NoOfPayments}}</span>
+                      <!-- </div> -->
+                    </div>
+
+
+                  </div>
+                  <div class="fields">
+                    <!-- <div class="four wide field required">
+                            <label>Expiration (MM/YY)</label>
+                            <input type="text" name="" placeholder="MM/YY" [validation]="false" mask="00/00" unmask=true formControlName="cardExpiry"
+                              [readonly]="isPatientAccountSelected ? true : true">
+                            <span>{{subscriptionPlanFormErrors.cardExpiry}}</span>
+                          </div> -->
+                    <div class=" field required">
+                      <label class="update-label">Schedule Transactions On</label>
+                      <div class="ui left icon input">
+                        <i class="calendar icon"></i>
+                        <input suiDatepicker [pickerMode]="dateMode" [pickerFirstDayOfWeek]="firstDayOfWeek"
+                          style="width: 115px;" [pickerUseNativeOnMobile]="false"
+                          [pickerMinDate]="minSubscriptionStartDate" [pickerMaxDate]="maxStartDate"
+                          formControlName="StartDate" #StartDate readonly>
+                        <!-- <input suiDatepicker [pickerMode]="dateMode" [pickerFirstDayOfWeek]="firstDayOfWeek" style="width: 115px;"
+                                [pickerUseNativeOnMobile]="false" [pickerMinDate]="minSubscriptionStartDate"
+                                formControlName="StartDate" #StartDate readonly> -->
+                      </div>
+                      <span>{{subscriptionPlanFormErrors.StartDate}}</span>
+                    </div>
+                    <!--<div class="three wide field required">
+                            <label>Zip code</label>
+                            <input type="text" name="" placeholder="Zip code" formControlName="PostalCode">
+                            <span>{{subscriptionPlanFormErrors.PostalCode}}</span>
+                          </div>-->
+                    <div class="seven wide field">
+                      <label>Send receipt to</label>
+                      <input type="text" name="" placeholder="abc@xyz.com" formControlName="TransactionEmail">
+                      <span>{{subscriptionPlanFormErrors.TransactionEmail}}</span>
+                    </div>
+                  </div>
+                  <!-- <div class="fields">
+                    <div class="field">
+                      <label class="update-label">{{'customPlans.add.discount' | translate}}</label>
+                      <div class="inline field">
+                          <input type="text" placeholder="0.00" formControlName="Discount"
+                          (blur)="formatCurrency('subscriptionPlanForm', 'Discount', $event)"> -->
+                  <!-- </div> -->
+                  <!-- <div class="field" style="margin-left: -0.2rem"> -->
+                  <!-- <sui-select class="selection" [options]="discountList" formControlName="DiscountList"
+                          labelField="label" valueField="id">
+                          <sui-select-option *ngFor="let option of discountList" [value]="option">
+                          </sui-select-option>
+                        </sui-select>
+                        <span>{{subscriptionPlanFormErrors.Discount}}</span>
+                      </div>
+                      
+                    </div>
+                    <div class=" field" *ngIf="isPercentageSelected">
+                        <label class="update-label">{{'customPlans.add.discountAmount' | translate}}</label>
+                        <input type="text" placeholder="Discount Amount" formControlName="DiscountAmount" readonly
+                        style="width:115px" (blur)="formatCurrency('subscriptionPlanForm', 'DiscountAmount', $event)">
+                        <span>{{subscriptionPlanFormErrors.DiscountAmount}}</span>
+                    </div>
+                  </div> -->
+
+
+
+
+                  <!-- <div class="inline fields">
+                    <div class="inline field">
+                      <label class="inst-label">Tax</label>
+                      <div class="ui right icon input">
+                        <i class="icon" style="line-height:2.8"><b>&#37;</b></i>
+                        <input style="width: 115px" type="text" placeholder="0.00" formControlName="TaxAmount"
+                          (blur)="formatCurrency('subscriptionPlanForm', 'TaxAmount', $event)">
+                      </div>
+                    </div>&nbsp;&nbsp;&nbsp;&nbsp;
+                    <div class="seven wide field" *ngIf="isTaxMoreThanZero">
+                      <label class="inst-label">{{'customPlans.add.taxCalculated' | translate}}</label>
+                      <input type="text" placeholder="0.00" formControlName="TaxCalculated" readonly
+                      style="width:115px" (blur)="formatCurrency('subscriptionPlanForm', 'TaxCalculated', $event)">
+                    </div>
+                  </div>
+                  <p class="error-msg1">{{subscriptionPlanFormErrors.TaxCalculated}}</p>
+                  <p class="error-msg1">{{subscriptionPlanFormErrors.TaxAmount}}</p> -->
+
+                  <!-- <div class="inline field"
+                    *ngIf="dataForPlanDescription.frquency != 'Daily' && dataForPlanDescription.frquency != 'Quarterly'   && dataForPlanDescription.frquency != 'HalfYearly' && dataForPlanDescription.frquency != 'Annually' && dataForPlanDescription.noOfPayments != '1'">
+                    <label class="update-label">Subsequent transactions on</label>
+                    <sui-select style="width: 115px;" class="selection" [options]="frequencyParamList"
+                      formControlName="FrequencyParam" labelField="title" valueField="value">
+                      <sui-select-option *ngFor="let option of frequencyParamList" [value]="option" #FrequencyParam>
+                      </sui-select-option>
+                    </sui-select>
+                     of every {{dataForPlanDescription.frequencyToShow}}
+                  </div> -->
+                  <div class="field">
+                    <label>Subscription Payment Description </label>
+                    <textarea rows="2" maxlength="500"
+                      placeholder="This payment description will appear in the receipt..."
+                      formControlName="PlanDescription"></textarea>
+                    <span>{{subscriptionPlanFormErrors.PlanDescription}}</span>
+                  </div>
+                  <!-- <div class="tiny ui form" *ngIf="!isRecurringCreated"> -->
+                  <!-- <div class="ui segment" style="padding: 0.5em 1em !important;">
+                  <div class="field">
+                    <sui-checkbox class="toggle" (checkChange)="saveForFutureUse()" formControlName="SavePlan">Save
+                      this plan for future use
+                    </sui-checkbox>
+                  </div>
+                </div>
+                <div class="inline fields" *ngIf="saveForFutureUseChecked">
+                  <div class="nine wide field required">
+                    <label class="subs-label">Template Plan Name</label>
+                    <input type="text" placeholder="" formControlName="PlanName">
+                  </div>
+                </div>
+                <p *ngIf="saveForFutureUseChecked" class="error-msg1">{{subscriptionPlanFormErrors.PlanName}}</p> -->
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+
+      </sui-tabset>
+    </div>
+  </sui-tabset>
+
+
+
+  <div class="ui two column stackable padded grid" *ngIf="isRecurringCreated">
+    <div class="four wide column pymnt-sumry">
+      <h3 class="ui icon header w100">
+        <br>
+        <img src="../../../../../../assets/images/crte_pmnt.png" />
+        <div *ngIf="saveForFutureUseChecked == true">
+          {{dataForPlanDescription.planName}}
+        </div>
+        <div class="content" *ngIf="dataForPlanDescription.installmentPlanActive">
+          <span *ngIf="dataForPlanDescription.noOfPayments != ''"> {{dataForPlanDescription.noOfPayments}}
+            {{dataForPlanDescription.frquency}} payments</span>
+          <span
+            *ngIf="dataForPlanDescription.installmentAmountToShow != 0 && dataForPlanDescription.noOfPayments != ''">
+            <br> of ${{dataForPlanDescription.installmentAmountToShow.toFixed(2)}} each</span>
+          <span *ngIf="dataForPlanDescription.downPayment != 0 && dataForPlanDescription.noOfPayments != ''">
+            <br> +
+            <br>Down Payment ${{dataForPlanDescription.downPayment.toFixed(2)}}</span>
+        </div>
+        <div class="content" *ngIf="dataForPlanDescription.subscriptionPlanActive">
+          <span *ngIf="dataForPlanDescription.noOfPayments != ''"> {{dataForPlanDescription.noOfPayments}}
+            {{dataForPlanDescription.frquency}} payments</span>
+          <span
+            *ngIf="dataForPlanDescription.subscriptionAmountToShow != 0 && dataForPlanDescription.noOfPayments != ''">
+            <br> of ${{dataForPlanDescription.subscriptionAmountToShow.toFixed(2)}} each</span>
+          <span *ngIf="dataForPlanDescription.downPayment != 0 && dataForPlanDescription.noOfPayments != ''">
+            <br> +
+            <br>Down Payment ${{dataForPlanDescription.downPayment.toFixed(2)}}</span>
+        </div>
+      </h3>
+    </div>
+    <div class="twelve wide column pymnt-ctrl">
+
+      <div class="tiny ui form">
+        <div class="ui two column stackableX Xpadded grid">
+          <div class="six wide column">
+            <div class="ui card" *ngIf="selectedTab === 'card'">
+              <div class="content">
+                <div class="ui mini green left corner label"></div>
+                <div class="header">&nbsp;&nbsp; {{ dataForPlanDescription.cardHolderName }}</div>
+                <div class="meta"></div>
+              </div>
+              <div class="content">
+                <span class="left floated like">
+                  <b>{{ dataForPlanDescription.cardNo }}</b><br />
+                  Valid through: {{ dataForPlanDescription.cardExpiry }}
+                </span>
+                <div class="right floated star">
+                  <div class="two wide">
+                    <label>{{ cardDetails.cardType }}&nbsp;</label>
+                  </div>
+                  <img *ngIf="recurringPaymentForm.value.CardType == '' || recurringPaymentForm.value.CardType == null"
+                    src="../../../../../../../assets/images/cards/BlankCard.png" />
+                  <img *ngIf="recurringPaymentForm.value.CardType == 'AMEX'"
+                    src="../../../../../../../assets/images/cards/Amex.png" />
+                  <img *ngIf="recurringPaymentForm.value.CardType == 'DINERS'"
+                    src="../../../../../../../assets/images/cards/Diners.png" />
+                  <img *ngIf="recurringPaymentForm.value.CardType == 'DISCOVER'"
+                    src="../../../../../../../assets/images/cards/Discover.png" />
+                  <img *ngIf="recurringPaymentForm.value.CardType == 'JCB'"
+                    src="../../../../../../../assets/images/cards/JCB.png" />
+                  <img *ngIf="recurringPaymentForm.value.CardType == 'MASTERCARD'"
+                    src="../../../../../../../assets/images/cards/MasterCard.png" />
+                  <img *ngIf="recurringPaymentForm.value.CardType == 'VISA'"
+                    src="../../../../../../../assets/images/cards/Visa.png" />
+                </div>
+              </div>
+            </div>
+            <div class="ui card" *ngIf="selectedTab === 'ach'">
+              <div class="content">
+                <div class="ui mini green left corner label"></div>
+                <div class="header">&nbsp;&nbsp; {{ dataForPlanDescription.accountHolderName }}</div>
+                <div class="meta"></div>
+              </div>
+              <div class="content">
+                <span class="left floated like">
+                  <b>{{ dataForPlanDescription.maskedAccountNumber }}</b><br />
+                  <b>Bank Name:{{ dataForPlanDescription.bankName }}</b><br />
+                </span>
+                <span class="right floated star">
+                  <img src="../../../../../../../assets/images/cards/ach.png" class="ui image" />
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="ten wide column">
+            <div class="ui" *ngIf="isLoader_FindCutomPlan">
+              <div class="ui active inverted dimmer">
+                <div class="ui indeterminate text loader"></div>
+              </div>
+            </div>
+            <h4>Payment Schedule</h4>
+            <div style="overflow: auto; overflow-x: hidden; max-height: 4.5em; padding-top: 5px; padding-left: 2px;">
+              <div class="ui list">
+                <div *ngFor="let paymentSchedule of paymentScheduleList">
+                  <div class="item"><i class="calendar alternate icon"></i>
+                    <span>{{paymentSchedule.installationType==1?'Down':paymentSchedule.transactionNo}}
+                      Payment</span> -
+                    <span>{{paymentSchedule.transactionDate}}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ui clearing divider"></div>
+        <div class="ui large positive message custom-msg">
+          <p>Your payment plan schedule has been created successfully.</p>
+          <img src="../../../../../../../assets/images/smiley.png" class="ui image">
+          <p>We would love to hear your feedback!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+  <div class="ui fitted divider wizard-footer"></div>
+  <div class="actions">
+    <div class="ui tiny">
+      <!-- <button class="tiny ui orange button" (click)="validateForm($event)" autofocus
+          #skip>{{'recurringPayments.find.next' | translate}}</button>
+        <button class="tiny ui button" #cancel
+          (click)="closeModal()">{{'recurringPayments.find.cancel' | translate}}</button> -->
+      <!-- <button class="tiny ui orange button" autofocus *ngIf="!isRecurringCreated"
+          awPreviousStep>{{'recurringPayments.find.previous' | translate}}</button> -->
+      <button class="tiny ui orange button" (click)="addPatient()" autofocus *ngIf="!isRecurringCreated"
+        #skip>{{'recurringPayments.find.finalize' | translate}}</button>
+      <button class="tiny ui button" #cancel (click)="closeModal()"
+        *ngIf="!isRecurringCreated">{{'recurringPayments.find.cancel' | translate}}</button>
+      <button class="tiny ui button" #cancel (click)="closeModal()"
+        *ngIf="isRecurringCreated">{{'recurringPayments.find.close' | translate}}</button>
+    </div>
+  </div>
+</div>
+
+
+
+<ng-template let-popup #popupTemplate>
+  <div style="overflow: auto; overflow-x: hidden; max-height: 12.5em; padding-top: 5px; padding-left: 2px">
+    <div *ngFor="let patient of patientList">
+      <!-- <div class="header" (click)="popup.close()">{{patient.displayName}}</div> -->
+      <div class="ui comments cust-result">
+        <div class="comment">
+          <a class="avatar">
+            <img src="../../../../assets/images/elliot.png">
+          </a>
+          <div class="content">
+            <a class="author" (click)="onPatientSelection(patient)">{{patient.name}}</a>
+            <div class="metadata">
+              <div class="date">{{patient.email}}</div>
+            </div>
+            <div class="text">
+              {{patient.email}}
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- <div class="content">
+            <div class="ui cards cards-overflow">
+              <div class="ui card">
+                <div class="content">
+                  <div class="ui mini green left corner label">
+                  </div>
+                  <div class="header">&nbsp;&nbsp; John Smith</div>
+                  <div class="meta">
+                  </div>
+                </div>
+                <div class="content">
+                  <span class="left floated like">
+                    <b>****4444</b><br>
+                    Valid through: 2020
+                  </span>
+                  <span class="right floated star">
+                    <img src="../../../../../../../assets/images/cards/MasterCard.png" class="ui image">
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div> -->
+    </div>
+  </div>
+</ng-template>
+
+<!-- Find Patient Template Start -->
+<ng-template let-popup #FindPatientTemplate>
+  <button style="margin: 0.5rem" class="circular ui mini icon button right floated"
+    (click)="patientListVisibility=false">
+    <i class="close link icon"></i>
+  </button>
+  <br><br>
+  <div class="ui divider"></div>
+  <div style="overflow: auto; overflow-x: hidden; max-height: 13em;padding-left: 2px">
+    <div *ngFor="let patient of patientList">
+      <div class="ui comments cust-result">
+        <div class="comment">
+          <a class="avatar">
+            <img src="../../../../assets/images/elliot.png">
+          </a>
+          <div class="content">
+            <a class="author" (click)="onPatientSelection(patient)">{{patient.name}}</a>
+            <div class="text">
+              {{patient.email}}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="patient.showAccounts">
+        <div class="ui segment modal-loader" *ngIf="isLoader_FindCustAcc">
+          <div class="ui active dimmer">
+            <div class="ui medium text loader">Loading</div>
+          </div>
+        </div>
+        <div class="ui segment" *ngIf="!isLoader_FindCustAcc">
+
+          <div class="ui cards">
+            <div *ngFor="let account of custAccList">
+              <div style="margin: 5px" class="ui card card-selectX" *ngIf="account.accountType != 2"
+                (click)="isLoader_ProcessRecurring = true; onAccountSelectionClick(patient, account); patientListVisibility=false;">
+                <div class="content">
+                  <!-- <div class="ui mini green left corner label"></div> -->
+                  <div class="header">{{account.accountHolderName}}</div>
+                  <!-- <div class="meta"></div> -->
+                </div>
+                <div class="content">
+                  <span class="left floated like">
+                    <b>{{account.maskedCardNumber}}</b><br>
+                    Valid through: {{account.cardExpiry | mask:'00/00'}}
+                  </span>
+                  <span class="right floated star">
+                    <img class="ui image" *ngIf="account.cardType==''||account.cardType==null"
+                      src="../../../../../../../assets/images/cards/BlankCard.png" />
+                    <img class="ui image" *ngIf="account.cardType=='AMEX'"
+                      src="../../../../../../../assets/images/cards/Amex.png" />
+                    <img class="ui image" *ngIf="account.cardType=='DINERS'"
+                      src="../../../../../../../assets/images/cards/Diners.png" />
+                    <img class="ui image" *ngIf="account.cardType=='DISCOVER'"
+                      src="../../../../../../../assets/images/cards/Discover.png" />
+                    <img class="ui image" *ngIf="account.cardType=='JCB'"
+                      src="../../../../../../../assets/images/cards/JCB.png" />
+                    <img class="ui image" *ngIf="account.cardType=='MASTERCARD'"
+                      src="../../../../../../../assets/images/cards/MasterCard.png" />
+                    <img class="ui image" *ngIf="account.cardType=='VISA'"
+                      src="../../../../../../../assets/images/cards/Visa.png" />
+                  </span>
+                </div>
+              </div>
+              <div style="margin: 5px" class="ui card" *ngIf="account.accountType == 2"
+                (click)="isLoader_ProcessRecurring = true; onAccountSelectionClick(patient, account); patientListVisibility=false;">
+                <div class="content">
+                  <!-- <div class="ui mini green left corner label"></div> -->
+                  <div class="header">{{account.accountHolderName}}</div>
+                  <div class="meta"></div>
+                </div>
+                <div class="content">
+                  <span class="left floated like">
+                    <b>{{account.maskedAccountNo}}</b><br>
+                    Bank Name: {{account.bankName}}
+                  </span>
+                  <span class="right floated star">
+                    <img src="../../../../../../../assets/images/cards/ach.png" class="ui image">
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div class="ui info message" *ngIf="custAccList.length == 0">
+              <p>
+                <i class="exclamation triangle icon"></i> There is no payment account found for this patient, <a
+                  href="javascript:void(0)" style="color:darkblue !important;"
+                  (click)="openPaymentAccount(patient)">please add
+                  new</a>.
+              </p>
+            </div>
+            <button class="fluid ui orange button" *ngIf="custAccList.length > 0"
+              (click)="openPaymentAccount(patient)">Add Payment Account</button>
+            <button class="fluid ui button" *ngIf="custAccList.length > 0" (click)="patientListVisibility=false">None of
+              the above</button>
+          </div>
+        </div>
+      </div>
+      <div style="margin: 0.5rem 0;" class="ui divider"></div>
+    </div>
+  </div>
+</ng-template>
+<!-- Find Patient Template End -->
+<!-- side Template Start -->
+<ng-template #leftSideTemplate>
+  <form [formGroup]="recurringPaymentForm" class="ui normal form">
+    <div class="ps-content">
+      <h4>{{'transaction.add.paymentSummary' | translate}}</h4>
+      <!-- <h3 class="ui icon header w100">
+          <br>
+          <img src="../../../../../../assets/images/crte_pmnt.png" />
+          <div class="content">
+            <span *ngIf="NoOfPaymentsForInstallment.value == ''"> Create new installment payment</span>
+            <span *ngIf="NoOfPaymentsForInstallment.value != ''"> {{NoOfPaymentsForInstallment.value}}
+              {{dataForPlanDescription.frquency}} payments</span>
+            <span
+              *ngIf="dataForPlanDescription.installmentAmountToShow != 0 && NoOfPaymentsForInstallment.value != ''">
+              <br> of $ {{dataForPlanDescription.installmentAmountToShow.toFixed(2)}} each</span>
+          </div>
+        </h3> -->
+      <div class="field required">
+        <div class="field" *ngIf="InputData.invoicePayment">
+          <label>{{'transaction.add.invoiceNo' | translate}}</label>
+          <input type="text" name="" placeholder="{{'transaction.add.invoiceNo' | translate}}"
+            formControlName="InvoiceNo">
+        </div>
+        <label>Payment Plan Amt.</label>
+        <div class="ui left icon input">
+          <i class="dollar sign icon"></i>
+          <input type="text" placeholder="0.00" formControlName="SubTotal" currencyMask>
+        </div>
+        <span>{{recurringPaymentFormErrors.SubTotal}}</span>
+      </div>
+      <!-- <p class="error-msg1">{{recurringPaymentFormErrors.SubTotal}}</p> -->
+      <div class="field">
+        <label>{{'customPlans.add.taxCalculated' | translate}}</label>
+        <div class="ui left icon input">
+          <i class="dollar sign icon"></i>
+          <input type="text" placeholder="0.00" formControlName="TaxCalculated" readonly currencyMask>
+        </div>
+        <span>{{recurringPaymentFormErrors.TaxCalculated}}</span>
+      </div>
+      <div class="field">
+        <label>Pay Today</label>
+        <div class="ui left icon input">
+          <i class="dollar sign icon"></i>
+          <input type="text" placeholder="0.00" formControlName="DownPayment" currencyMask>
+        </div>
+        <span>{{recurringPaymentFormErrors.DownPayment}}</span>
+      </div>
+      <!-- <p class="error-msg1">{{recurringPaymentFormErrors.DownPayment}}</p> -->
+      <!-- <div class="fields"> -->
+      <!-- <div class="field">
+        <label>{{'customPlans.add.discount' | translate}}</label>
+        <div class="ui right labeled input">
+          <input type="text" placeholder="0.00" formControlName="Discount"
+            (blur)="formatCurrency('recurringPaymentForm', 'Discount', $event)" style="width: 70%">
+          <sui-select class="selection" [options]="discountList" formControlName="DiscountList"
+            [isDisabled]="InputData.invoicePayment" labelField="label" valueField="id"
+            style="border-bottom-left-radius: 0rem;border-top-left-radius: 0rem;">
+            <sui-select-option *ngFor="let option of discountList" [value]="option">
+            </sui-select-option>
+          </sui-select>
+        </div>
+        <span>{{recurringPaymentFormErrors.Discount}}</span>
+      </div>
+      <div class="field" *ngIf="isPercentageSelected">
+        <label>{{'customPlans.add.discountAmount' | translate}}</label>
+        <input type="text" placeholder="Discount Amount" formControlName="DiscountAmount" readonly
+          (blur)="formatCurrency('recurringPaymentForm', 'DiscountAmount', $event)">
+        <span>{{recurringPaymentFormErrors.DiscountAmount}}</span>
+      </div> -->
+      <!-- </div> -->
+      <!-- <div class="field">
+        <label>Tax</label>
+        <div class="ui right icon input">
+          <i class="icon" style="line-height:2.8"><b>&#37;</b></i>
+          <input type="text" placeholder="0.00" formControlName="TaxAmount"
+            (blur)="formatCurrency('recurringPaymentForm', 'TaxAmount', $event)">
+        </div>
+        <span>{{recurringPaymentFormErrors.TaxAmount}}</span>
+      </div> -->
+      <!-- <p class="error-msg1">{{recurringPaymentFormErrors.TaxAmount}}</p>      -->
+      <!-- <p class="error-msg1">{{recurringPaymentFormErrors.TaxCalculated}}</p> -->
+      <!-- <h3>Remaining Balance: {{dataForPlanDescription.remainingBalance | CustomFormatCurrency}}</h3> -->
+
+    </div>
+    <div class="pymnt-amount2" style="text-align: left !important">
+      <div class="ui list pymnt-total">
+        <div class="item">
+          <span class="pymnt-total" style="font-weight: 400 !important; font-size: 1rem !important;">Remaining Balance:
+            {{dataForPlanDescription.remainingBalance | CustomFormatCurrency}}</span>
+        </div>
+      </div>
+    </div>
+  </form>
+</ng-template>
+<!-- side Template End -->
+
+
+
+
+<!-- Find Patient Template Start -->
+<ng-template let-popup #FindSubscriptionPatientTemplate>
+  <button style="margin: 0.5rem" class="circular ui mini icon button right floated"
+    (click)="patientSubscriptionListVisibility=false">
+    <i class="close link icon"></i>
+  </button>
+  <br><br>
+  <div class="ui divider"></div>
+  <div style="overflow: auto; overflow-x: hidden; max-height: 13em;padding-left: 2px">
+    <div *ngFor="let patient of patientList">
+      <div class="ui comments cust-result">
+        <div class="comment">
+          <a class="avatar">
+            <img src="../../../../assets/images/elliot.png">
+          </a>
+          <div class="content">
+            <a class="author" (click)="onPatientSelection(patient)">{{patient.name}}</a>
+            <div class="text">
+              {{patient.email}}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="patient.showAccounts">
+        <div class="ui segment modal-loader" *ngIf="isLoader_FindCustAcc">
+          <div class="ui active dimmer">
+            <div class="ui medium text loader">Loading</div>
+          </div>
+        </div>
+        <div class="ui segment" *ngIf="!isLoader_FindCustAcc">
+
+          <div class="ui cards">
+            <div *ngFor="let account of custAccList">
+              <div style="margin: 5px" class="ui card card-selectX" *ngIf="account.accountType != 2"
+                (click)="isLoader_ProcessRecurring = true; onAccountSelectionClick(patient, account); patientSubscriptionListVisibility=false;">
+                <div class="content">
+                  <div class="ui mini green left corner label">
+                  </div>
+                  <div class="header">&nbsp;&nbsp;{{account.accountHolderName}}</div>
+                  <div class="meta">
+                  </div>
+                </div>
+                <div class="content">
+                  <span class="left floated like">
+                    <b>{{account.maskedCardNumber}}</b><br>
+                    Valid through: {{account.cardExpiry | mask:'00/00'}}
+                  </span>
+                  <span class="right floated star">
+                    <img class="ui image" *ngIf="account.cardType==''||account.cardType==null"
+                      src="../../../../../../../assets/images/cards/BlankCard.png" />
+                    <img class="ui image" *ngIf="account.cardType=='AMEX'"
+                      src="../../../../../../../assets/images/cards/Amex.png" />
+                    <img class="ui image" *ngIf="account.cardType=='DINERS'"
+                      src="../../../../../../../assets/images/cards/Diners.png" />
+                    <img class="ui image" *ngIf="account.cardType=='DISCOVER'"
+                      src="../../../../../../../assets/images/cards/Discover.png" />
+                    <img class="ui image" *ngIf="account.cardType=='JCB'"
+                      src="../../../../../../../assets/images/cards/JCB.png" />
+                    <img class="ui image" *ngIf="account.cardType=='MASTERCARD'"
+                      src="../../../../../../../assets/images/cards/MasterCard.png" />
+                    <img class="ui image" *ngIf="account.cardType=='VISA'"
+                      src="../../../../../../../assets/images/cards/Visa.png" />
+                  </span>
+                </div>
+              </div>
+              <div style="margin: 5px" class="ui card" *ngIf="account.accountType == 2"
+                (click)="isLoader_ProcessRecurring = true; onAccountSelectionClick(patient, account); patientSubscriptionListVisibility=false;">
+                <div class="content">
+                  <div class="ui mini green left corner label">
+                  </div>
+                  <div class="header">&nbsp;&nbsp;{{account.accountHolderName}}</div>
+                  <div class="meta">
+                  </div>
+                </div>
+                <div class="content">
+                  <span class="left floated like">
+                    <b>{{account.maskedAccountNumber}}</b><br>
+                    Bank Name: {{account.bankName}}
+                  </span>
+                  <span class="right floated star">
+                    <img src="../../../../../../../assets/images/cards/ach.png" class="ui image">
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div class="ui info message" *ngIf="custAccList.length == 0">
+              <p>
+                <i class="exclamation triangle icon"></i> There is no payment account found for this patient, <a
+                  href="javascript:void(0)" style="color:darkblue !important;"
+                  (click)="openPaymentAccount(patient)">please add
+                  new</a>.
+              </p>
+            </div>
+            <button class="fluid ui orange button" *ngIf="custAccList.length > 0"
+              (click)="openPaymentAccount(patient)">Add Payment Account</button>
+            <button class="fluid ui button" *ngIf="custAccList.length > 0"
+              (click)="patientSubscriptionListVisibility=false">None of
+              the above</button>
+          </div>
+        </div>
+      </div>
+      <div style="margin: 0.5rem 0;" class="ui divider"></div>
+    </div>
+  </div>
+</ng-template>
+<!-- Find Patient Template End -->
+<!-- Subscription Amount Template Starts -->
+<ng-template #subscriptionAmountTemplate>
+  <form [formGroup]="subscriptionPlanForm" class="ui normal form">
+    <div class="ps-content">
+      <h4>{{'transaction.add.paymentSummary' | translate}}</h4>
+      <div class="field" *ngIf="InputData.invoicePayment">
+        <label>{{'transaction.add.invoiceNo' | translate}}</label>
+        <input type="text" name="" placeholder="{{'transaction.add.invoiceNo' | translate}}"
+          formControlName="InvoiceNo">
+      </div>
+      <div class="field required">
+        <label>Subscription Amt.</label>
+        <div class="ui left icon input">
+          <i class="dollar sign icon"></i>
+          <input type="text" placeholder="0.00" formControlName="SubTotal" currencyMask>
+        </div>
+        <span>{{subscriptionPlanFormErrors.SubTotal}}</span>
+      </div>
+      <!-- <div class="field">
+        <label>Pay Today</label>
+        <div class="ui left icon input">
+          <i class="dollar sign icon"></i>
+          <input type="text" placeholder="0.00" formControlName="DownPayment"
+            (blur)="formatCurrency('subscriptionPlanForm', 'DownPayment', $event)">
+        </div>
+        <span>{{subscriptionPlanFormErrors.DownPayment}}</span>
+      </div> -->
+      <!-- <div class="field">
+        <label>{{'customPlans.add.discount' | translate}}</label>
+        <div class="ui right labeled input">
+          <input type="text" placeholder="0.00" formControlName="Discount"
+            (blur)="formatCurrency('subscriptionPlanForm', 'Discount', $event)" style="width: 70%">
+          <sui-select class="selection" [options]="discountList" formControlName="DiscountList"
+            [isDisabled]="InputData.invoicePayment" labelField="label" valueField="id"
+            style="border-bottom-left-radius: 0rem;border-top-left-radius: 0rem;">
+            <sui-select-option *ngFor="let option of discountList" [value]="option">
+            </sui-select-option>
+          </sui-select>
+        </div>
+        <span>{{subscriptionPlanFormErrors.Discount}}</span>
+      </div>
+      <div class="field" *ngIf="isPercentageSelected">
+        <label>{{'customPlans.add.discountAmount' | translate}}</label>
+        <input type="text" placeholder="Discount Amount" formControlName="DiscountAmount" readonly
+          (blur)="formatCurrency('subscriptionPlanForm', 'DiscountAmount', $event)">
+        <span>{{subscriptionPlanFormErrors.DiscountAmount}}</span>
+      </div>
+      <div class="field">
+        <label>Tax</label>
+        <div class="ui right icon input">
+          <i class="icon" style="line-height:2.8"><b>&#37;</b></i>
+          <input type="text" placeholder="0.00" formControlName="TaxAmount"
+            (blur)="formatCurrency('subscriptionPlanForm', 'TaxAmount', $event)">
+        </div>
+        <span>{{subscriptionPlanFormErrors.TaxAmount}}</span>
+      </div> -->
+      <div class="field">
+        <label>{{'customPlans.add.taxCalculated' | translate}}</label>
+        <div class="ui left icon input">
+          <i class="dollar sign icon"></i>
+          <input type="text" placeholder="0.00" formControlName="TaxCalculated" readonly currencyMask>
+        </div>
+        <span>{{subscriptionPlanFormErrors.TaxCalculated}}</span>
+      </div>
+    </div>
+    <div class="pymnt-amount2" style="text-align: left !important">
+      <div class="ui list pymnt-total">
+        <div class="item">
+          <span class="pymnt-total" style="font-weight: 400 !important; font-size: 1rem !important;">Remaining Balance:
+            {{dataForPlanDescription.remainingBalance | CustomFormatCurrency}}</span>
+        </div>
+      </div>
+    </div>
+  </form>
+</ng-template>
+<!-- Subscription Amount Template Ends -->
+
+<!-- card transaction started -->
+<ng-template #cardTransactionDetailsTemplate>
+  <form [formGroup]="cardForm">
+    <div class="fields">
+      <div class="seven wide field required">
+        <label>Name On Card</label>
+        <input type="text" name="" placeholder="Name On Card" formControlName="CardHolderName"
+          [readonly]="isCustomerAccountSelected ? true : null" />
+        <span>{{ cardFormErrors.CardHolderName }}</span>
+      </div>
+      <div class="five wide field required">
+        <label>Card Number</label>
+        <input type="text" name="" placeholder="Card Number" formControlName="cardNumber" autocomplete="new-password"
+          [readonly]="isCustomerAccountSelected ? true : null" />
+        <span>{{ cardFormErrors.cardNumber }}</span>
+      </div>
+      <div class="two wide field">
+        <label>{{ cardDetails.cardType }}&nbsp;</label>
+        <img *ngIf="cardForm.value.CardType == '' || cardForm.value.CardType == null"
+          src="../../../../../../../assets/images/cards/BlankCard.png" />
+        <img *ngIf="cardForm.value.CardType == 'AMEX'" src="../../../../../../../assets/images/cards/Amex.png" />
+        <img *ngIf="cardForm.value.CardType == 'DINERS'" src="../../../../../../../assets/images/cards/Diners.png" />
+        <img *ngIf="cardForm.value.CardType == 'DISCOVER'"
+          src="../../../../../../../assets/images/cards/Discover.png" />
+        <img *ngIf="cardForm.value.CardType == 'JCB'" src="../../../../../../../assets/images/cards/JCB.png" />
+        <img *ngIf="cardForm.value.CardType == 'MASTERCARD'"
+          src="../../../../../../../assets/images/cards/MasterCard.png" />
+        <img *ngIf="cardForm.value.CardType == 'VISA'" src="../../../../../../../assets/images/cards/Visa.png" />
+      </div>
+      <div class="two wide field">
+        <label>CVV</label>
+        <input type="password" name="" placeholder="" formControlName="CVV" autocomplete="new-password" />
+        <span>{{ cardFormErrors.CVV }}</span>
+      </div>
+    </div>
+    <div class="fields">
+      <div class="four wide field required">
+        <label>Expiration (MMYY)</label>
+        <input type="text" name="" placeholder="MMYY" formControlName="cardExpiry"
+          [readonly]="isCustomerAccountSelected ? true : null" />
+        <span>{{ cardFormErrors.cardExpiry }}</span>
+      </div>
+    </div>
+  </form>
+</ng-template>
+<!-- card transaction ended -->
+
+<!-- ACH Trasaction Details Start -->
+<ng-template #achTransactionDetailsTemplate>
+  <form [formGroup]="achForm">
+    <div class="fields" *ngIf="showAddCustomerFields">
+      <div class="four wide field required">
+        <label>First Name</label>
+        <input type="text" name="" placeholder="First Name" formControlName="FirstName"
+          [readonly]="isCustomerSelected ? true : null" />
+        <span>{{ achFormErrors.FirstName }}</span>
+      </div>
+      <div class="four wide field required">
+        <label>Last Name</label>
+        <input type="text" name="" placeholder="Last Name" formControlName="LastName"
+          [readonly]="isCustomerSelected ? true : null" />
+        <span>{{ achFormErrors.LastName }}</span>
+      </div>
+      <div class="five wide field">
+        <label>Company Name</label>
+        <input type="text" name="" placeholder="Company Name" formControlName="Company"
+          [readonly]="isCustomerSelected ? true : null" />
+        <span>{{ achFormErrors.Company }}</span>
+      </div>
+    </div>
+    <!-- <div class="fields">
+      <div class="four wide field required">
+        <label>{{ 'transaction.add.checkType' | translate }}</label>
+        <sui-select class="selection" [options]="checkTypeList" formControlName="CheckType" labelField="title"
+          valueField="value">
+          <sui-select-option *ngFor="let option of checkTypeList" [value]="option"> </sui-select-option>
+        </sui-select>
+        <span>{{ achFormErrors.CheckType }}</span>
+      </div>
+      <div class="ten wide field required">
+        <label>
+          {{ 'transaction.add.SecCode' | translate }}
+          <i class="info circle icon" data-html="true" suiPopup [popupTemplate]="popupTemplate" popupInverted
+            [popupPlacement]="'right'"></i>
+        </label>
+        <sui-select class="selection" [options]="secCodeList" formControlName="SecCode" labelField="value"
+          valueField="title" #SecCode>
+          <sui-select-option *ngFor="let option of secCodeList" [value]="option"> </sui-select-option>
+        </sui-select>
+        <span>{{ achFormErrors.SecCode }}</span>
+      </div>
+    </div> -->
+    <div class="fields">
+      <div class="eight wide field required">
+        <label>{{ 'transaction.add.routingOrTransitNo' | translate }}</label>
+        <input placeholder="Routing/Transit No" type="text" formControlName="RoutingNo"
+          [maxlength]="inputValidation.transaction.add.addTransaction.routingNumber.maxLength"
+          [attr.disabled]="selectedCustAcc != undefined ? true : true" />
+        <span>{{ achFormErrors.RoutingNo }}</span>
+      </div>
+      <div class="eight wide field required">
+        <label>{{ 'transaction.add.accountNo' | translate }}</label>
+        <input placeholder="Account No" type="text" formControlName="AccountNo"
+          [maxlength]="inputValidation.transaction.add.addTransaction.accountNumber.maxLength"
+          [attr.disabled]="selectedCustAcc != undefined ? true : true" />
+        <span>{{ achFormErrors.AccountNo }}</span>
+      </div>
+    </div>
+    <div class="fields">
+      <div class="eight wide field required">
+        <label>{{ 'transaction.add.nameOnAccount' | translate }}</label>
+        <input type="text" name="" placeholder="{{ 'transaction.add.nameOnAccount' | translate }}"
+          formControlName="NameOnAccount" [attr.disabled]="selectedCustAcc != undefined ? true : true" />
+        <span>{{ achFormErrors.NameOnAccount }}</span>
+      </div>
+      <div class="eight wide field">
+        <label>{{ 'transaction.add.accountType' | translate }}</label>
+        <sui-select class="selection" [options]="accountTypeList" formControlName="AccountType" labelField="value"
+          valueField="title" [isDisabled]="selectedCustAcc != undefined ? true : true">
+          <sui-select-option *ngFor="let option of accountTypeList" [value]="option"> </sui-select-option>
+        </sui-select>
+        <span>{{ achFormErrors.AccountType }}</span>
+      </div>
+    </div>
+  </form>
+</ng-template>
+<!-- ACH Trasaction Details End -->

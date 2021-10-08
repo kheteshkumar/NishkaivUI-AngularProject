@@ -1,0 +1,29 @@
+<!-- <app-toaster [toaster]="toastData"></app-toaster> -->
+<!-- <sui-accordion class="styled fluid">
+  <sui-accordion-panel [isOpen]="true"> -->
+<!-- <div title> -->
+<!-- <i class="dropdown icon"></i> -->
+<!-- {{'settings.provider.uploadLogo' | translate}} -->
+<!-- {{InputData.initiator}} -->
+<!-- </div> -->
+<!-- <div content> -->
+<div class="upload-logo" *ngIf="!isLoader">
+  <img src="{{logoUrl}}" />
+</div>
+<div class="ui segment" style="padding: 0; border: transparent; margin: 0; box-shadow:0 1px 2px 0 rgba(255,255,255,0)">
+  <div class="ui active inverted dimmer" *ngIf="isLoader"></div>
+  <div class="ui active text loader" *ngIf="isLoader">Uploading</div>
+  <ngx-dropzone
+    style="margin:0 auto;max-width:450px;height:84px;border:1px dashed #717386;font-size:12px; text-align: center; align-items: flex-end;"
+    class="dropzone" (change)="onFilesAdded($event)" #dropzone>
+    <ngx-dropzone-label>Max 5MB size | JPG, PNG or GIF format. Recomended size 200 x 40 Pixels</ngx-dropzone-label>
+    <ngx-dropzone-preview *ngFor="let f of files" [removable]="true" (removed)="onFilesRejected(f)">
+      <ngx-dropzone-label>{{ f.name }} ({{ f.type }})</ngx-dropzone-label>
+    </ngx-dropzone-preview>
+  </ngx-dropzone>
+
+  <button (click)="dropzone.reset()" #dropzonereset hidden="true">Reset</button>
+</div>
+<!-- </div> -->
+<!-- </sui-accordion-panel>
+</sui-accordion> -->

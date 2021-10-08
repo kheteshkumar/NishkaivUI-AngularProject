@@ -1,0 +1,26 @@
+<div class="header" *ngIf="modal.context.title">{{ modal.context.title }}
+    <i (click)="modal.deny()" class="close link icon item-right"></i>
+</div>
+<div class="content">
+    <div class="ui large icon message">
+        <div class="content">
+            <p>{{ modal.context.question }}</p>
+        </div>
+    </div>
+    <form [formGroup]="reasonModalForm" class="ui form">
+        <div class="fields">
+            <div class="required field sixteen wide column">
+                <label>{{'recurringPayments.cancel.reason' | translate}}</label>
+                <textarea placeholder="{{'recurringPayments.cancel.reason' | translate}}" formControlName="Description"
+                    rows="3" style="height: 52px;"></textarea>
+                <span>{{reasonModalFormErrors.Description}}</span>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="actions">
+    <div class="ui tiny">
+        <button class="tiny ui orange button" (click)="approve()" autofocus>Yes</button>
+        <button class="ui tiny button" (click)="modal.deny(undefined)">No</button>
+    </div>
+</div>

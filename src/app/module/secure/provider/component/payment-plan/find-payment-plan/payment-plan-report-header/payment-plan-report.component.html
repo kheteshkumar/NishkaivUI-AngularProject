@@ -1,0 +1,169 @@
+<form novalidate [formGroup]="findProviderForm">
+  <!-- Transaction Graph Start  -->
+  <div class="chart-col2" *ngIf="displayChart" style="padding: 1rem 1rem 1rem 1rem; margin: 0 0 0 0 !important;">
+    <div class="ui" *ngIf="isLoader_TransactionVolume">
+      <div class="ui active inverted dimmer">
+        <div class="ui indeterminate text loader"></div>
+      </div>
+    </div>
+    <div class="row" style="text-align: center;">
+      <span class="chart-title" *ngIf="selectedTransactionVolumeType=='totalSale'">{{'report.provider.totalSale' |
+        translate}}</span>
+      <span class="chart-title" *ngIf="selectedTransactionVolumeType=='inProcess'">{{'report.provider.inProcess' |
+        translate}}</span>
+      <span class="chart-title" *ngIf="selectedTransactionVolumeType=='refund'">{{'report.provider.refunds' |
+        translate}}</span>
+      <span class="chart-title" *ngIf="selectedTransactionVolumeType=='decline'">{{'report.provider.declines' |
+        translate}}</span>
+    </div>
+    <div class="ui container">
+      <div content>
+        <div class="ui tiny form">
+          <div class="inline fields" style="margin: 1em 0 0;">
+            <div class="field">
+              Choose :
+            </div>
+            <div class="field">
+              <sui-radio-button name="selectReportType" value="past" formControlName="eRadioReportType"
+                (currentValueChange)="OnRadioReportTypeChange($event)">Completed</sui-radio-button>
+            </div>
+            <div class="field">
+              <sui-radio-button name="selectReportType" value="future" formControlName="eRadioReportType"
+                (currentValueChange)="OnRadioReportTypeChange($event)">Scheduled</sui-radio-button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div content>
+        <div class="ui tiny form">
+          <div class="inline fields" style="margin: 1em 0 0;">
+            <div class="field">
+              Select :
+            </div>
+            <div class="field">
+              <sui-radio-button name="selectReport" value="year" formControlName="eRadio"
+                (currentValueChange)="OnRadioChange($event)">Year</sui-radio-button>
+            </div>
+            <div class="field">
+              <sui-radio-button name="selectReport" value="month" formControlName="eRadio"
+                (currentValueChange)="OnRadioChange($event)">Month</sui-radio-button>
+            </div>
+            <div class="field">
+              <sui-radio-button name="selectReport" value="week" formControlName="eRadio"
+                (currentValueChange)="OnRadioChange($event)">Week</sui-radio-button>
+            </div>
+            <div class="field">
+              <sui-radio-button name="selectReport" value="day" formControlName="eRadio"
+                (currentValueChange)="OnRadioChange($event)">Day</sui-radio-button>
+            </div>
+            <div class="field">
+              <sui-radio-button name="selectReport" value="custom" formControlName="eRadio"
+                (currentValueChange)="OnRadioChange($event)">Custom</sui-radio-button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="ui mini compact segment sort left floated">
+        <div class="inline field">
+          <sui-select [options]="transactionVolumeTypeList"
+            formControlName="TransactionVolumeType" #TransactionVolumeType style="margin-right:12px" labelField="title"
+            valueField="value"
+            (selectedOptionChange)="onChangeTransactionVolume($event)" *ngIf="selectedReportType=='past'">
+            <sui-select-option *ngFor="let option of transactionVolumeTypeList" [value]="option">
+            </sui-select-option>
+          </sui-select>
+          <sui-select [options]="paymentTypeList"
+            formControlName="PaymentType" #PaymentType style="margin-right:12px" labelField="title"
+            valueField="value"
+            (selectedOptionChange)="onChangepaymentType($event)" *ngIf="selectedReportType=='past'">
+            <sui-select-option *ngFor="let option of paymentTypeList" [value]="option">
+            </sui-select-option>
+          </sui-select>
+          <sui-select [options]="channelTypeList" formControlName="ChannelType"
+            #ChannelType style="margin-right:12px" labelField="title" valueField="value"
+            (selectedOptionChange)="prepareGraphObject(selectedDateRangeForGraph,newInitialReqObject)"
+            *ngIf="selectedReportType=='past'">
+            <sui-select-option *ngFor="let option of channelTypeList" [value]="option">
+            </sui-select-option>
+          </sui-select>
+          <div class="ui left icon input" *ngIf="findProviderForm.value.eRadio=='year'">
+            <i class="calendar icon"></i>
+            <input suiDatepicker formControlName="selectedYear" [pickerMode]="yearMode"
+              [pickerUseNativeOnMobile]="false" [pickerMaxDate]="maxGraph"
+              (pickerSelectedDateChange)="onGraphRangeChange($event,'year')">
+          </div>
+          <div class="ui left icon input" *ngIf="findProviderForm.value.eRadio=='month'">
+            <i class="calendar icon"></i>
+            <input suiDatepicker formControlName="selectedMonth" [pickerMode]="monthMode"
+              [pickerUseNativeOnMobile]="false" [pickerMaxDate]="maxGraph"
+              (pickerSelectedDateChange)="onGraphRangeChange($event,'newmonth')">
+          </div>
+          <div class="ui left icon input" *ngIf="findProviderForm.value.eRadio=='week'">
+            <i class="calendar icon"></i>
+            <input suiDatepicker formControlName="selectedWeek" [pickerMode]="dateMode"
+              [pickerUseNativeOnMobile]="false" [pickerMaxDate]="maxGraph"
+              (pickerSelectedDateChange)="onGraphRangeChange($event,'week')">
+          </div>
+          <div class="ui left icon input" *ngIf="findProviderForm.value.eRadio=='day'">
+            <i class="calendar icon"></i>
+            <input suiDatepicker formControlName="selectedDate" [pickerMode]="dateMode"
+              [pickerUseNativeOnMobile]="false" [pickerMaxDate]="maxGraph"
+              (pickerSelectedDateChange)="onGraphRangeChange($event,'day')">
+          </div>
+          <div class="ui left icon input" *ngIf="findProviderForm.value.eRadio=='custom'">
+            <i class="calendar icon"></i>
+            <input type="text" ngxDaterangepickerMd formControlName="selectedCustom" autoApply="true"
+              closeOnAutoApply="true" placeholder="Choose Date Range" [singleDatePicker]="false"
+              [showRangeLabelOnInput]="true" [showCustomRangeLabel]="true" [alwaysShowCalendars]="true"
+              [ranges]="ranges" [linkedCalendars]="true" (rangeClicked)="onCustomRangeChange($event)"
+              (datesUpdated)="onGraphRangeChange($event,'custom')" />
+          </div>
+        </div>
+      </div>
+      <canvas class="canvas" id="canvasHeader"></canvas>
+
+      <div class="canvas-legend" *ngIf="findProviderForm.value.ChannelType != 0 && showGraphDetailsCredit"
+      style="text-align: center;">
+        <span style="color:blue; font-size: 20px">&#x25A0;</span> MASTERCARD &nbsp; &nbsp;
+        <span style="color:orangered; font-size: 20px">&#x25A0;</span> VISA &nbsp; &nbsp;
+        <span style="color:purple; font-size: 20px">&#x25A0;</span> JCB &nbsp; &nbsp;
+        <span style="color:#ffff00; font-size: 20px">&#x25A0;</span> DISCOVER &nbsp; &nbsp;
+        <span style="color:pink; font-size: 20px">&#x25A0;</span> DINERS &nbsp; &nbsp;
+        <span style="color: green; font-size: 20px">&#x25A0;</span> AMEX &nbsp; &nbsp;
+      </div>
+      <div class="canvas-legend" *ngIf="findProviderForm.value.ChannelType != 0 && showGraphDetailsAch"
+      style="text-align: center;">
+        <span style="color:orangered; font-size: 20px">&#x25A0;</span> WEB &nbsp; &nbsp;
+        <span style="color:blue; font-size: 20px">&#x25A0;</span> TEL &nbsp; &nbsp;
+        <span style="color: green; font-size: 20px">&#x25A0;</span> CCD &nbsp; &nbsp;
+        <span style="color:#ffff00; font-size: 20px">&#x25A0;</span> PPD &nbsp; &nbsp;
+      </div>
+      <!-- <div class="canvas-legend" *ngIf="findProviderForm.value.ChannelType != 0 && showGraphDetailsCash">
+        <span style="color: #800080; font-size: 20px">&#x25A0;</span> Cash &nbsp; &nbsp;
+      </div>
+      <div class="canvas-legend" *ngIf="findProviderForm.value.ChannelType != 0 && showGraphDetailsCheck">
+        <span style="color:#ffff00; font-size: 20px">&#x25A0;</span> Check &nbsp; &nbsp;
+      </div> -->
+      <div class="canvas-legend" *ngIf="findProviderForm.value.ChannelType == 0"
+      style="text-align: center;">
+        <span style="color:green; font-size: 20px">&#x25A0;</span> Credit Card &nbsp; &nbsp;
+        <!-- <span style="color:#2271A2; font-size: 20px">&#x25A0;</span> Debit Card &nbsp; &nbsp;-->
+        <span style="color:orangered; font-size: 20px">&#x25A0;</span> ACH &nbsp; &nbsp;
+        <!-- <span style="color: #800080; font-size: 20px">&#x25A0;</span> Cash &nbsp; &nbsp;
+        <span style="color:#ffff00; font-size: 20px">&#x25A0;</span> Check &nbsp; &nbsp; -->
+      </div>
+      <div class="canvas-legend" *ngIf="canvasLable" style="text-align: center;">
+        <span>{{canvasLable}}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Transaction Graph End  -->
+</form>
+
+
+
+
+<!-- main-content -->

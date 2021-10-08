@@ -1,0 +1,206 @@
+<app-toaster [toaster]="toastData"></app-toaster>
+<form novalidate [formGroup]="recurringResultsForm">
+  <div *ngIf="isLoader" class="ui bottom attached loading tab segment"></div>
+  <div *ngIf="!isLoader">
+    <sui-message class="attached warning" [isDismissable]="false" *ngIf="!searchResultFlag && !isLoader">
+      <p>{{ noResultsMessage }}</p>
+    </sui-message>
+
+    <div *ngIf="searchResultFlag">
+      <!-- <form novalidate [formGroup]="recurringResultsForm"> -->
+
+      <div class="ui three column stackable grid">
+        <div class="three column row">
+          <div class="column">
+            <div class="ui mini compact segment sort">
+              <div class="inline field sort-dd">
+                <label>Sort by: </label>
+                <sui-select class="selection" [options]="sortingItemsList" formControlName="Sorting" labelField="label"
+                  valueField="label" (selectedOptionChange)="sortTransactions(Sorting)" #Sorting>
+                  <sui-select-option *ngFor="let option of sortingItemsList" [value]="option"></sui-select-option>
+                </sui-select>
+              </div>
+            </div>
+          </div>
+          <div class="column" *ngIf="displayCardNumberFilter">
+            <div class="ui mini compact segment sort">
+              <div class="inline field sort-dd">
+                <!-- <button class="ui mini right floated button status" (click)="clearFilter()"
+                  *ngIf="filters">{{'recurringPayments.find.allPlans' | translate}}</button> -->
+                <a class="ui label">
+                  {{'transaction.find.account' | translate}}: {{displayCardNumberFilter}}
+                  <i class="delete icon" (click)="clearFilter()"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- </form> -->
+
+      <div>
+        <!-- div for forst record -->
+        <!-- Find Recurring Payments Results -->
+        <div *ngFor="let recurringPayment of recurringPaymentsList" class="ui segment results">
+          <div class="ui active dimmer" *ngIf="recurringPayment.isLoader_recurringOperation">
+            <div class="ui small text loader"></div>
+          </div>
+          <div class="results-crsr" (click)="getRecurringTransactionById(recurringPayment)">
+            <!---->
+            <div class="ui right floated header">
+              <button class="ui mini right floated button status green"
+                *ngIf="recurringPayment.status==2">{{'recurringPayments.find.active' | translate}}</button>
+              <button class="ui mini right floated button status blue"
+                *ngIf="recurringPayment.status==3">{{'recurringPayments.find.paid' | translate}}</button>
+              <button class="ui mini right floated button status red"
+                *ngIf="recurringPayment.status==8">{{'recurringPayments.find.cancelled' | translate}}</button>
+                <button class="ui mini right floated button status red"
+                *ngIf="recurringPayment.status==30">{{'recurringPayments.find.closed' | translate}}</button>
+              <button class="ui mini right floated button status orange"
+                *ngIf="recurringPayment.status==1">{{'recurringPayments.find.pendingForActivation' |
+                translate}}</button>
+              <button class="ui mini right floated button status red"
+                *ngIf="recurringPayment.status==5">{{'recurringPayments.find.failed' | translate}}</button>
+              <div class="ui right pointing dropdown" suiDropdown (click)="$event.stopPropagation()">
+                <i class="ellipsis horizontal icon"></i>
+                <div class="menu" suiDropdownMenu>
+                  <div class="item" *ngFor="let operation of recurringPayment.operations"
+                    (click)="onRecurringOperationClick(operation, recurringPayment)">
+                    <div class="w100">{{operation.value}}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="ui horizontal list">
+              <div class="item">
+                <div class="content">
+                  <div class="ui sub header">
+                    {{recurringPayment.firstName}}
+                    {{recurringPayment.lastName}}
+                    <span>&nbsp;&nbsp;{{recurringPayment.paymentAmount | CustomFormatCurrency}}</span>
+                  </div>
+                  <i class="calendar alternate icon"></i>
+                  <strong>{{'recurringPayments.find.firstTransaction' | translate}}:</strong>
+                  {{recurringPayment.startDate != null ? getFormattedDate(recurringPayment.startDate) : '--'}} <span
+                    class="separator">|</span>
+                  <span>
+                    <strong>{{'recurringPayments.find.noOfPayments' | translate}}:</strong>
+                    {{recurringPayment.noOfPayments != null ? recurringPayment.noOfPayments : '--'}}
+                  </span>
+                  <span class="separator">|</span>
+                  <span>
+                    <strong>{{'recurringPayments.find.paymentsCompleted' | translate}}: </strong>
+                    {{recurringPayment.totalPaymentsMade != null ? recurringPayment.totalPaymentsMade : '--'}}
+                  </span>
+                  <span class="separator">|</span>
+                  <span>
+                    <strong>{{'recurringPayments.find.remainingPaymentCount' | translate}}: </strong>
+                    {{recurringPayment.totalPaymentLeft!= null ? recurringPayment.totalPaymentLeft : '--'}}
+                  </span>
+                  <span class="separator">|</span>
+                  <strong>{{'recurringPayments.find.paymentCycle' | translate}}:</strong>
+                  {{recurringPayment.frequency== undefined ? 'NA':recurringPayment.frequency}}
+                  <!--<span class="separator">|</span>
+                    <strong>{{'recurringPayments.find.type' | translate}}:</strong>
+                    {{recurringPayment.recurringTransactionType != null ? recurringPayment.recurringTransactionType : '--'}}-->
+                </div>
+              </div>
+            </div>
+
+          </div>
+          <div class="ui divided list" [suiTransition]="transitionController" *ngIf="recurringPayment.showDetails">
+            <div class="item">
+              <i class="info circle icon"></i>
+              <div class="content">
+                <strong>{{'recurringPayments.find.createdOn' | translate}}: </strong>
+                {{ getFormattedDate(recurringPayment.createdOn)}}<span class="separator">|</span>
+                <strong>{{'recurringPayments.find.amount' | translate}}: </strong>
+                {{recurringPayment.amount | CustomFormatCurrency}}<span class="separator">|</span>
+                <span *ngIf="recurringPayment.discountType=='1'"> <strong>
+                    {{'customPlans.find.discount' | translate}}</strong>:
+                  {{recurringPayment.discountAmount | CustomFormatCurrency}}</span>
+                <span *ngIf="recurringPayment.discountType=='2'"> <strong>
+                    {{'customPlans.find.discount' | translate}}</strong>:
+                  {{recurringPayment.discountRate}}%</span><span class="separator">|</span>
+                <strong>{{'recurringPayments.find.taxAmount' | translate}}:
+                </strong>
+                {{recurringPayment.taxAmount | CustomFormatCurrency}}
+                <span class="separator">|</span>
+                <strong>{{'recurringPayments.find.downPayment' | translate}}: </strong>
+                {{recurringPayment.downPayment | CustomFormatCurrency}}
+                <!-- <span *ngIf="recurringPayment.downPayment>0 && recurringPayment.status==1"> - Processing</span> -->
+                <span class="separator">|</span>
+                <strong>{{'recurringPayments.find.totalAmount' | translate}}: </strong>
+                {{recurringPayment.totalAmount | CustomFormatCurrency}}
+              </div>
+            </div>
+            <div class="item">
+              <div class="content">
+                <strong>{{'recurringPayments.find.remainingBalance' | translate}}: </strong>
+                {{recurringPayment.totalDueAmount | CustomFormatCurrency}}<span class="separator">|</span>
+                <strong>{{'recurringPayments.find.totalAmountPaid' | translate}}: </strong>
+                {{recurringPayment.totalAmountPaid | CustomFormatCurrency}}
+              </div>
+            </div>
+            <div class="item">
+
+              <div class="content">
+                <span *ngIf="recurringPayment.accountType != 2">
+                  <strong>{{'recurringPayments.find.nextBillingDate' | translate}}:</strong>
+                  {{(recurringPayment.nextTransactionDate != null && (recurringPayment.status!=3 &&
+                  recurringPayment.status!=8)) ? getFormattedDate(recurringPayment.nextTransactionDate) : 'NA'}}<span
+                    class="separator">|</span>
+                  <strong>{{'recurringPayments.find.cardNo' | translate}}:</strong>
+                  {{recurringPayment.maskedCardNumber != null ? recurringPayment.maskedCardNumber : '--'}}<span
+                    class="separator">|</span>
+                </span>
+                <span *ngIf="recurringPayment.accountType == 2">
+                  <strong>{{'recurringPayments.find.accountNo' | translate}}:</strong>
+                  {{recurringPayment.maskedAccountNumber != null ? recurringPayment.maskedAccountNumber : '--'}}<span
+                    class="separator">|</span>
+                </span>
+                <strong>{{'recurringPayments.find.recurringId' | translate}}:</strong>
+                {{recurringPayment.id}}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <app-pagination [pager]="pager" (OutputData)="findRecurring($event)"></app-pagination>
+    </div>
+  </div>
+  <!-- </div>
+
+</div> -->
+</form>
+
+<ng-template let-context let-modal="modal" #modalRecurringOperations>
+  <div class="header">{{typeOfOperationHeading}}
+    <i #closeOperation (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-recurring-operations [InputData]="inputDataForOperation" (OutputData)="outputDataFromRecurrOperation($event)">
+    </app-recurring-operations>
+  </div>
+  <div class="actions">
+    <div class="ui tiny">
+      <button class="ui tiny button" (click)="modal.deny()">{{'recurringPayments.find.close' | translate}}</button>
+    </div>
+  </div>
+</ng-template>
+<ng-template let-context let-modal="modal" #modalUpdatePlan>
+  <div class="header">
+    <span>{{(inputDataForUpdatePlan.hideSchedulePlan)!=true?('recurringPayments.update.heading' | translate):'Update
+      Account'}}</span>
+    <i #closePlanWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-update-recurring (OutputData)="outputDataFromUpdatePlan($event)" [InputData]="inputDataForUpdatePlan">
+    </app-update-recurring>
+    <button class="tiny ui button" (click)="modal.deny()">{{'facility.add.cancel' | translate}}</button>
+
+
+  </div>
+
+</ng-template>

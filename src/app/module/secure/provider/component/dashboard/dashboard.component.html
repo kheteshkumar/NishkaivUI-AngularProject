@@ -1,0 +1,31 @@
+<app-toaster [toaster]="toastData"></app-toaster>
+<div class="main-content" id="initialLoad">
+  <!-- <div class="ui" *ngIf="isLoader">
+    <div class="ui active dimmer">
+      <div class="ui indeterminate text loader">{{'common.processing' | translate}}</div>
+    </div>
+  </div> -->
+  <h1 class="ui header">{{'dashboard.provider.heading' | translate}}</h1>
+
+  <div class="ui grid dashboard-block" *ngIf="permissions.viewPublicSubmissions">
+    <div class="doubling one column row">
+      <div class="column">
+        <div class="ui segment" style="min-height: 220px;">
+          <h3>
+            <div class="ui orange ribbon label">
+              <i class="bell icon"></i>
+              {{'notifications.find.heading' | translate}}
+            </div>
+          </h3>
+          <div id="canvas">
+            <app-notification-cards [InputData]="{}" (OutputData)="outputDataFromNotifications($event)">
+            </app-notification-cards>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <app-header-buttons (OutputData)="outputDataFromHeaderButtons($event)"></app-header-buttons>
+  <br>
+  <!-- main-content -->

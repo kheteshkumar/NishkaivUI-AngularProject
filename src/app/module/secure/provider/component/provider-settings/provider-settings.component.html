@@ -1,0 +1,28 @@
+<div class="main-content">
+  <h1 class="ui header">{{'settings.provider.settings' | translate}}</h1>
+  <div class="ui" *ngIf="isLoader">
+    <div class="ui active dimmer">
+      <div class="ui indeterminate text loader">{{'common.loading' | translate}}</div>
+    </div>
+  </div>
+  <div class="settings" *ngIf="!isLoader">
+    <sui-accordion class="styled fluid" *ngIf="loggedInUserData.userType==1 && permissions.uploadLogo">
+      <sui-accordion-panel [isOpen]="true">
+        <div title>
+          <i class="dropdown icon"></i>
+          {{'settings.provider.uploadLogo' | translate}}
+        </div>
+        <div content>
+          <app-upload-logo [InputData]='inputDataForUploadLogo'></app-upload-logo>
+        </div>
+      </sui-accordion-panel>
+    </sui-accordion>
+    <app-skin *ngIf="loggedInUserData.userType==1 && permissions.skins"></app-skin>
+    <app-profile *ngIf="permissions.profile"></app-profile>
+    <app-change-password *ngIf="permissions.changePassword"></app-change-password>
+    <app-email-settings *ngIf="permissions.emailSetting"></app-email-settings>
+    <app-notification-settings *ngIf="permissions.viewNotificationSetting"></app-notification-settings>
+
+
+  </div><!-- settings -->
+</div><!-- main-content end -->

@@ -1,0 +1,77 @@
+<div class="ui" *ngIf="isLoader">
+    <div class="ui active dimmer">
+      <div class="ui indeterminate text loader">{{'common.processing' | translate}}</div>
+    </div>
+  </div>
+  <form [formGroup]="addPatientNoteForm" class="ui form">
+      <div class="toaster-static toaster-s" *ngIf="showSuccessMessage">
+        <span><a href="javascript:void(0)" (click)="showSuccessMessage=!showSuccessMessage"><i class="close icon"></i></a></span>
+        <p>{{successMessage}}</p>
+      </div>
+      <div class="toaster-static toaster-e" *ngIf="showErrorMessage">
+        <span><a href="javascript:void(0)" (click)="showErrorMessage=!showErrorMessage"><i class="close icon"></i></a></span>
+        <p>{{errorMessage}}</p>
+      </div>
+          <div class="ui tiny form">
+            
+                  <!-- Patient Notes Start -->
+    <div class="ui list">
+        <div class="item">
+           
+          <div class="content">
+            
+            <!-- Note List -->
+            <div class="list">
+              <div class="item" *ngFor="let note of PatientNotesList ">
+                <div class="content">
+                    
+                  <div class="description">
+                      <i class="sticky note outline icon"></i><span class="positive">{{note.title}}</span>
+                      <span class="separator">|</span> {{note.modifiedOn}}
+                    
+                  </div>
+                  <div class="description"><strong>Note: </strong><span >{{note.description}}</span>
+                    <label (click)="editNote(note)"><i class="pencil alternate icon"></i></label></div>
+                    <br>
+                  
+                  
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- No Records Found Message -->
+      <!--<sui-message class="attached warning" [isDismissable]="false" *ngIf="PatientNotesList.length==0">
+        <p>{{ noResultsMessage }}</p>
+      </sui-message>-->
+    <!-- Recurring Payment History End -->
+           
+          
+          
+        </div>
+      <!--<div class="ui fitted divider"></div>-->
+        
+          <div class="ui tiny form">
+          <div class="required field">
+            <label>{{'patient.note.title' | translate}}</label>
+            <input placeholder="Title" type="text" formControlName="Title">
+            <span>{{addPatientNoteFormErrors.Title}}</span>
+          </div>
+          <div class="field">
+            <label>{{'patient.note.description' | translate}}</label>
+            <textarea placeholder="{{'patient.note.description' | translate}}" formControlName="Description" rows="3" style="height: 52px;"></textarea>
+            <span>{{addPatientNoteFormErrors.Description}}</span>
+          </div>
+          
+          </div>
+     
+  </form>
+  <div class="ui fitted divider"></div>
+  <br>
+  
+        <button class="tiny ui orange button" autofocus  (click)='onAddPatientNoteClick()' [disabled]="!addPatientNoteForm.dirty" *ngIf="!isEdit">{{'patient.note.save' | translate}}</button>
+        <button class="tiny ui orange button" autofocus (click)='onEditPatientNoteClick(editNoteValue)' [disabled]="!addPatientNoteForm.dirty" *ngIf="isEdit" >{{'patient.noteEdit.save' | translate}}</button>
+        <button class="tiny ui orange button" autofocus (click)='clear()'>{{'patient.noteEdit.clear' | translate}}</button>
+  
+  

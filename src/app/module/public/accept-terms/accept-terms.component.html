@@ -1,0 +1,143 @@
+<app-toaster [toaster]="toastData"></app-toaster>
+<div class="limiter">
+  <div class="container-login100 img-bg">
+    <div class="wrap-termsconditons">
+        <!-- <div style='height: 49px;width: 800px;'> -->
+            <img  *ngIf="logo!=='' && logo!==null" class="logo-center" src="{{logo}}"/>
+        <!-- </div> -->
+      <br />
+      <form [formGroup]="acceptTermsForm">
+        <div class="ui segment">
+          <h2>{{ 'resetPassword.acceptTerms' | translate}}</h2>
+          <div class="ui form">
+            <sui-accordion [closeOthers]="true">
+              <sui-accordion-panel [(isOpen)]="accordian.termsOfUse">
+                <div title>
+                  <i class="dropdown icon"></i>
+                  {{'resetPassword.termsOfUse' | translate}}
+                </div>
+                <div content (click)="$event.stopPropagation()">
+                  <div class="ui stackable padded grid">
+                    <div class="pymnt-ctrl">
+                      <div class="tiny ui form">
+                        <div class="ui stackableX Xpadded grid">
+                          <div class="forteen wide column">
+                            <div
+                              style="overflow: auto; overflow-x: hidden; max-height: 20em; padding-top: 5px; padding-left: 2px;">
+                              <div class="ui list">
+                                <app-terms-of-use></app-terms-of-use>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </sui-accordion-panel>
+              <div class="ui fitted divider"></div>
+              <sui-accordion-panel [(isOpen)]="accordian.privacyPolicy">
+                <div title>
+                  <i class="dropdown icon"></i>
+                  {{'resetPassword.privacyPolicy' | translate}}
+                </div>
+
+                <div content (click)="$event.stopPropagation()">
+                  <div class="ui stackable padded grid">
+                    <div class="pymnt-ctrl">
+                      <div class="tiny ui form">
+                        <div class="ui stackableX Xpadded grid">
+                          <div class="forteen wide column">
+                            <div
+                              style="overflow: auto; overflow-x: hidden; max-height: 20em; padding-top: 5px; padding-left: 2px;">
+                              <div class="ui list">
+                                <app-privacy-policy></app-privacy-policy>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </sui-accordion-panel>
+              <div class="ui fitted divider"></div>
+              <sui-accordion-panel [(isOpen)]="accordian.hipaaAuthorization">
+                <div title>
+                  <i class="dropdown icon"></i>
+                  {{'resetPassword.hipaaAuthorization' | translate}}
+                </div>
+
+                <div content (click)="$event.stopPropagation()">
+                  <div class="ui stackable padded grid">
+                    <div class="pymnt-ctrl">
+                      <div class="tiny ui form">
+                        <div class="ui stackableX Xpadded grid">
+                          <div class="forteen wide column">
+                            <div
+                              style="overflow: auto; overflow-x: hidden; max-height: 20em; padding-top: 5px; padding-left: 2px;">
+                              <div class="ui list">
+                                <app-hippa-authorization></app-hippa-authorization>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </sui-accordion-panel>
+
+            </sui-accordion>
+            <div class="ui fitted divider"></div>
+            <div class="field">
+              <sui-checkbox formControlName="TermsOfUse">I agree to the HelloPatients <a
+                  href="https://hellopatients.com/terms-and-conditions/" target="_blank">Terms of Use</a></sui-checkbox>
+              <span>{{acceptTermsFormErrors.TermsOfUse}}</span>
+            </div>
+            <div class="field">
+              <sui-checkbox formControlName="PrivacyPolicy">I agree to the HelloPatients <a
+                  href="https://hellopatients.com/privacy-policy/" target="_blank">Privacy Policy</a></sui-checkbox>
+              <span>{{acceptTermsFormErrors.PrivacyPolicy}}</span>
+            </div>
+            <div class="field">
+              <sui-checkbox formControlName="HIPAAAuthorization">I agree to the HelloPatients <a
+                  href="https://hellopatients.com/hipaa-authorization/" target="_blank">HIPAA Authorization</a>
+              </sui-checkbox>
+              <span>{{acceptTermsFormErrors.HIPAAAuthorization}}</span>
+            </div>
+
+
+
+            <div class="required inline field" *ngIf="loginMethod=='authcode'">
+              <!-- <label>{{ 'login.authCode' | translate}}</label> -->
+              <div class="ui left icon input">
+                <i class="lock icon"></i>
+                <input type="text" placeholder="Auth Code" formControlName="authCode" #authcode />
+              </div>
+              <span class="error-msg" style="text-align: left;">
+                {{acceptTermsFormErrors.authCode}}
+              </span>
+            </div>
+            <div class="inline field" *ngIf="loginMethod=='authcode'">
+              <div class="ui left icon input">
+                <p>{{ 'login.authCodeMessage' | translate}}</p>
+              </div>
+            </div>
+
+
+
+            <div class="ui fitted divider"></div>
+            <br>
+
+            <button class="tiny ui orange button" (click)='onSubmit()'
+              [disabled]="isDisabled">{{'resetPassword.accept' | translate}}</button>
+            <button class="tiny ui orange button"
+              (click)='redirectToLogin()'>{{'resetPassword.cancel' | translate}}</button>
+          </div>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>

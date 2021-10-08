@@ -1,0 +1,82 @@
+<app-toaster [toaster]="toastData"></app-toaster>
+
+<form novalidate [formGroup]="emailSettingsForm">
+  <sui-accordion class="styled fluid">
+    <sui-accordion-panel>
+      <div title>
+        <i class="dropdown icon"></i>
+        Email Settings
+      </div>
+      <div content>
+        <div class="ui two column stackable grid">
+          <div class="column">
+            <div class="ui small form">
+              <div class="required field">
+                <label class="change-pw-label">{{'emailSettings.add.fromEmail' | translate}}</label>
+                <div class="ui left input">
+                  <input placeholder="From Email" type="text" formControlName="FromEmail">
+                </div>
+                <span class="invalid-feedback">
+                  <span class="error-msgX">
+                    {{emailSettingsFormErrors.FromEmail}}
+                  </span>
+                </span>
+              </div>
+
+              <div class="field" *ngIf="!isEmailVerified">
+                <sui-message class="info" *ngIf="emailVerificationSent" [isDismissable]="true">
+                  <div class="header">
+                    {{ 'emailSettings.emailVerify.approveHeader' | translate }} ({{ savedFromEmail }})
+                  </div>
+                  <p>{{ 'emailSettings.emailVerify.approveBody' | translate }}</p>
+                </sui-message>
+                <sui-message class="warning" style="margin-bottom: 1rem" *ngIf="!emailVerificationSent"
+                  [isDismissable]="false">
+                  <div class="header">
+                    {{ 'emailSettings.emailVerify.verifyHeader' | translate }} ({{ savedFromEmail }})
+                  </div>
+                  <p>{{ 'emailSettings.emailVerify.verifyBody' | translate }}</p>
+                  <button [ngClass]="verifyLoader ? 'ui tiny orange button loading' : 'ui tiny orange button'"
+                    (click)="verifyEmail()">
+                    {{ 'emailSettings.emailVerify.verify' | translate }}
+                  </button>
+                </sui-message>
+              </div>
+
+              <div class="field">
+                <label class="change-pw-label">
+                  {{'emailSettings.add.phone' | translate}}
+                  <i class="info circle icon" data-html="true" suiPopup
+                    popupText="From Name will be sent in Emails as the name of sender" popupInverted
+                    [popupPlacement]="'top'"></i>
+                </label>
+                <div class="ui left input">
+                  <input placeholder="Phone" type="text" mask="000-000-0000" unmask=true [validation]="false"
+                    formControlName="Phone" [attr.disabled]="true">
+                </div>
+                <span class="invalid-feedback">
+                  <span class="error-msgX">
+                    {{emailSettingsFormErrors.Phone}}
+                  </span>
+                </span>
+              </div>
+              <!-- <div class="field">
+                <label style="font-size: 0.7rem !important;">{{'Please contact application administrator to change phone
+                  number' |
+                  translate}}</label>
+              </div> -->
+
+              <!-- <div class="field">
+                <label style="font-size: 0.7rem !important;">{{'emailSettings.add.emailNotification' |
+                  translate}}</label>
+              </div> -->
+
+              <button [ngClass]="isLoader ? 'ui tiny primary orange button loading' : 'ui tiny orange primary button'"
+                (click)="save()">{{ 'emailSettings.add.save' | translate}}</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </sui-accordion-panel>
+  </sui-accordion>
+</form>

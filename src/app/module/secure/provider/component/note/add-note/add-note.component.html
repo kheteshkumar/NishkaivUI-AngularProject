@@ -1,0 +1,51 @@
+<div class="ui" *ngIf="isLoader">
+    <div class="ui active dimmer">
+      <div class="ui indeterminate text loader">{{'common.processing' | translate}}</div>
+    </div>
+  </div>
+  <form [formGroup]="addPatientNoteForm" class="ui form">
+      <div class="toaster-static toaster-s" *ngIf="showSuccessMessage">
+        <span><a href="javascript:void(0)" (click)="showSuccessMessage=!showSuccessMessage"><i class="close icon"></i></a></span>
+        <p>{{successMessage}}</p>
+      </div>
+      <div class="toaster-static toaster-e" *ngIf="showErrorMessage">
+        <span><a href="javascript:void(0)" (click)="showErrorMessage=!showErrorMessage"><i class="close icon"></i></a></span>
+        <p>{{errorMessage}}</p>
+      </div>
+        
+          <div class="ui tiny form">
+              <div class="required field">
+                  <label>{{'note.add.selectPatient' | translate}}</label>
+                  <sui-select class="selection" [options]="searchPatientList" formControlName="PatientName"
+                   labelField="displayName" valueField="id" #PatientName>
+                    <div class="ui icon search input">
+                      <i class="search icon"></i>
+                      <input suiSelectSearch type="text" placeholder="Search options...">
+                    </div>
+                    <div class="divider"></div>
+                    <sui-select-option *ngFor="let o of PatientName.filteredOptions" [value]="o"></sui-select-option>
+                  </sui-select>
+                  <span>{{addPatientNoteFormErrors.PatientName}}</span>
+                </div>
+          <div class="required field">
+            <label>{{'patient.note.title' | translate}}</label>
+            <input placeholder="Title" type="text" formControlName="Title">
+            <span>{{addPatientNoteFormErrors.Title}}</span>
+          </div>
+          <div class="field">
+            <label>{{'patient.note.description' | translate}}</label>
+            <textarea placeholder="{{'patient.note.description' | translate}}" formControlName="Description" rows="3" style="height: 52px;"></textarea>
+            <span>{{addPatientNoteFormErrors.Description}}</span>
+          </div>
+          
+          </div>
+     
+  </form>
+  <div class="ui fitted divider"></div>
+  <br>
+  
+        <button class="tiny ui orange button" autofocus  (click)='onAddPatientNoteClick()' [disabled]="!addPatientNoteForm.dirty" *ngIf="!isEdit">{{'patient.note.save' | translate}}</button>
+        <button class="tiny ui orange button" autofocus (click)='onEditPatientNoteClick(editNoteValue)' [disabled]="!addPatientNoteForm.dirty" *ngIf="isEdit" >{{'patient.noteEdit.save' | translate}}</button>
+        <button class="tiny ui orange button" autofocus (click)='clear()'>{{'patient.noteEdit.clear' | translate}}</button>
+  
+  

@@ -1,0 +1,76 @@
+<div class="ui" *ngIf="isLoader">
+    <div class="ui active dimmer">
+      <div class="ui indeterminate text loader">{{'common.processing' | translate}}</div>
+    </div>
+  </div>
+  <form [formGroup]="deleteAppointmentForm" class="ui form">
+      <div class="toaster-static toaster-s" *ngIf="showSuccessMessage">
+        <span><a href="javascript:void(0)" (click)="showSuccessMessage=!showSuccessMessage"><i class="close icon"></i></a></span>
+        <p>{{successMessage}}</p>
+      </div>
+      <div class="toaster-static toaster-e" *ngIf="showErrorMessage">
+        <span><a href="javascript:void(0)" (click)="showErrorMessage=!showErrorMessage"><i class="close icon"></i></a></span>
+        <p>{{errorMessage}}</p>
+      </div>
+        
+          <div class="ui tiny form">
+          
+          <div class="content">
+            <div class="ui large icon message">
+              <div class="content">
+                <p>{{ 'appointment.cancel.confirmation' | translate}}</p>
+              </div>
+            </div>
+            <div class="required field" *ngIf="InputData.data.event.repeatOn>0">
+              <label for="CancelRecurringApt">{{'appointment.cancel.cancelRecurringApt' | translate}}</label>
+              <div class="inline fields">
+                <div class="ui radio checkbox">
+                  <sui-radio-button name="cancelRecurringApt" value="1" formControlName="CancelRecurringApt" #CancelRecurringApt>
+                    {{'appointment.cancel.thisApt' | translate}}
+                  </sui-radio-button>
+                </div>
+                &nbsp;&nbsp;&nbsp;&nbsp;
+                <div class="ui radio checkbox" *ngIf="InputData.data.event.aptCount!=1">
+                  <sui-radio-button name="cancelRecurringApt" value="2" formControlName="CancelRecurringApt" #CancelRecurringApt>
+                    {{'appointment.cancel.thisAndFuture' | translate}}
+                  </sui-radio-button>
+                </div>
+                &nbsp;&nbsp;&nbsp;&nbsp;
+                <div class="ui radio checkbox">
+                  <sui-radio-button name="cancelRecurringApt" value="3" formControlName="CancelRecurringApt" #CancelRecurringApt>
+                    {{'appointment.cancel.allApt' | translate}}
+                  </sui-radio-button>
+                </div>
+              </div>
+              <span>{{deleteAppointmentFormErrors.CancelRecurringApt}}</span>
+            </div>
+            <div class="required field">
+                <label>{{'appointment.cancel.reason' | translate}}</label>
+                <textarea placeholder="{{'appointment.cancel.reason' | translate}}" formControlName="Description" rows="3" style="height: 52px;"></textarea>
+                <span>{{deleteAppointmentFormErrors.Description}}</span>
+              </div>
+            </div>
+            
+          <!-- <div class="required field">
+            <label>{{'appointment.cancel.confirmation' | translate}}</label>
+          </div> -->
+          </div>
+          <!-- <br>
+          <div class="content">
+            <div class="ui large icon message">
+              <div class="content">
+                <p>{{ 'appointment.cancel.confirmation' | translate}}</p>
+              </div>
+            </div>
+            </div> -->
+            <!-- <div class="actions">
+            <div class="ui tiny">
+              <button class="tiny ui orange button" (click)="cancelPaymentClick()" [disabled]="!deleteAppointmentForm.dirty">{{'appointment.cancel.yes' | translate}}</button><button class="ui tiny button" (click)="modal.deny()">{{'appointment.cancel.no' | translate}}</button>
+            </div>
+            </div> -->
+     
+  </form>
+  <div class="ui fitted divider"></div>
+  <br>
+  
+  

@@ -1,0 +1,197 @@
+<form [formGroup]="searchForm" class="ui form">
+  <div class="toaster-static toaster-s" *ngIf="showSuccessMessage">
+    <span><a href="javascript:void(0)" (click)="showSuccessMessage=!showSuccessMessage"><i
+          class="close icon"></i></a></span>
+    <p>{{successMessage}}</p>
+  </div>
+  <div class="toaster-static toaster-e" *ngIf="showErrorMessage">
+    <span><a href="javascript:void(0)" (click)="showErrorMessage=!showErrorMessage"><i
+          class="close icon"></i></a></span>
+    <p>{{errorMessage}}</p>
+  </div>
+
+  <div class="ui tiny form">
+    <div class="four fields">
+      <div class="field">
+        <label> {{'practitioner.searchNpiRegistry.firstName' | translate}}</label>
+        <input placeholder="{{'practitioner.searchNpiRegistry.firstName' | translate}}" type="text"
+          formControlName="FirstName" #FirstName>
+        <span>{{searchFormErrors.FirstName}}</span>
+      </div>
+      <div class="required field">
+        <label> {{'practitioner.searchNpiRegistry.lastName' | translate}}</label>
+        <input placeholder="{{'practitioner.searchNpiRegistry.lastName' | translate}}" type="text"
+          formControlName="LastName" #LastName>
+        <span>{{searchFormErrors.LastName}}</span>
+      </div>
+      <div class="field">
+        <label>{{'practitioner.searchNpiRegistry.npiNumber' | translate}}</label>
+        <input placeholder="{{'practitioner.searchNpiRegistry.npiNumber' | translate}}" type="text"
+          formControlName="NpiNumber" #NpiNumber>
+        <span>{{searchFormErrors.NpiNumber}}</span>
+      </div>
+      <div class="field">
+        <label>{{'practitioner.searchNpiRegistry.city' | translate}}</label>
+        <input placeholder="{{'practitioner.searchNpiRegistry.city' | translate}}" type="text" formControlName="City">
+        <span>{{searchFormErrors.City}}</span>
+      </div>
+    </div>
+
+    <div class="three fields">
+      <!-- <div class="field">
+        <label>{{'practitioner.searchNpiRegistry.country' | translate}}</label>
+        <sui-select class="selection" [options]="countryList" formControlName="Country"
+          (selectedOptionChange)="populateState($event)" labelField="name" valueField="countryId" #country>
+          <div class="ui icon search input">
+            <i class="search icon"></i>
+            <input suiSelectSearch type="text" placeholder="Search options...">
+          </div>
+          <div class="divider"></div>
+          <sui-select-option *ngFor="let o of country.filteredOptions" [value]="o"></sui-select-option>
+        </sui-select>
+        <span>{{searchFormErrors.Country}}</span>
+      </div> -->
+      <div class="required field">
+        <label>{{'practitioner.searchNpiRegistry.state' | translate}}</label>
+        <sui-select class="selection" [options]="stateList" formControlName="State" labelField="name"
+          valueField="abbreviation" #state>
+          <div class="ui icon search input">
+            <i class="search icon"></i>
+            <input suiSelectSearch type="text" placeholder="Search options...">
+          </div>
+          <div class="divider"></div>
+          <sui-select-option *ngFor="let o of state.filteredOptions" [value]="o"></sui-select-option>
+        </sui-select>
+        <span>{{searchFormErrors.State}}</span>
+      </div>
+      <div class="field">
+        <label>{{'practitioner.searchNpiRegistry.postalCode' | translate}}</label>
+        <input placeholder="{{'practitioner.searchNpiRegistry.postalCode' | translate}}" type="text" mask="00000-0000"
+          unmask=true [validation]="false" formControlName="PostalCode">
+        <span>{{searchFormErrors.PostalCode}}</span>
+      </div>
+      <div class="field">
+        <label>&nbsp;</label>
+        <button [ngClass]="isLoader ? 'ui primary orange tiny button loading' : 'ui primary orange tiny button'"
+          autofocus (click)='searchNpiRegistry()'>{{'practitioner.searchNpiRegistry.search' | translate}}</button>
+      </div>
+    </div>
+    <div class="fields">
+      <div class="sixteen wide column field">
+        <p class="text_red">Note: Complete more fields to narrow down your search results.</p>
+      </div>
+    </div>
+  </div>
+
+</form>
+
+
+<div class="ui segment modal-loader" *ngIf="isLoader">
+  <div class="ui active dimmer">
+    <div class="ui medium text loader">Loading</div>
+  </div>
+</div>
+
+<ng-container *ngIf="npiDetails.length > 0 && !isLoader">
+  <div class="ui fitted divider wizard-footer"></div>
+  <sui-accordion [closeOthers]="true" style="max-height: 300px; overflow-y:auto;">
+    <sui-accordion-panel *ngFor="let detail of npiDetails">
+      <div title>
+        <i [ngClass]="detail.basic.status == 'A'? 'dropdown icon green': 'dropdown icon'"></i>
+        <span>
+          <strong>
+            <i [ngClass]="detail.enumeration_type == 'NPI-1'? 'icon user': 'icon building'"></i>
+            {{detail.basic.name_prefix | translate}}
+            {{detail.basic.name | translate}}
+
+          </strong>
+          <span class="separator">|</span>
+          <span>Credentials: {{(detail.basic.credential !=null && detail.basic.credential !='')? detail.basic.credential
+            :'--'}}</span>
+        </span>
+        <span class="separator">|</span>
+        <span>NPI: {{detail.number}}</span>
+        <!-- <span class="separator">|</span>
+        <span>Enumeration Type: {{detail.enumeration_type}}</span> -->
+        <div class="ui right floated header">
+          <a class="ui tiny right floated orange" *ngIf="detail" href="javascript:void(0)"
+            (click)="selectPractitioner(detail)">{{
+            'Select'}}</a>
+        </div>
+      </div>
+      <div content class="ui segment results" (click)="$event.stopPropagation()">
+        <div class="ui divided list" *ngIf="detail">
+          <div class="item">
+            <div class="content">
+              <strong> {{'Gender' | translate}}:
+              </strong>{{ detail.basic.gender }}
+              <span class="separator">|</span>
+              <strong> {{'Credential' | translate}}:
+              </strong>{{ detail.basic.credential }}
+              <span class="separator">|</span>
+              <strong> {{'Sole Proprietor' | translate}}: </strong>
+              {{ detail.basic.sole_proprietor }}
+              <span class="separator">|</span>
+              <strong> {{'Status' | translate}}: </strong>{{ (detail.basic.status == 'A')? 'Active': 'In Active' }}
+            </div>
+          </div>
+          <ng-container *ngIf="detail.addresses.length > 0">
+            <div class="item">
+              <div class="content">
+                <span class="ui sub header" style="font-size: 1rem;">Practitioner Addresses</span>
+              </div>
+            </div>
+            <div class="item" *ngFor="let address of detail.addresses; index as i">
+              <div class="content">
+                <i class="icon building"></i>
+                <strong> {{'Address ' + (i+1) | translate}}:</strong>
+                {{address.address_1}} {{ (address.address_2 != null && address.address_2 !='')? ', ' +
+                address.address_2: ''}}, {{address.city}}, {{address.state}}, {{address.country_name}}
+                <span class="separator">|</span>
+                <strong> {{'Postal Code' | translate}}:</strong>
+                {{address.postal_code}}
+                <span class="separator">|</span>
+                <strong> {{'Phone' | translate}}:</strong>
+                {{address.telephone_number}}
+              </div>
+            </div>
+          </ng-container>
+          <ng-container *ngIf="detail.taxonomies.length > 0">
+            <div class="item">
+              <div class="content">
+                <span class="ui sub header" style="font-size: 1rem;">Practitioner Taxonomies</span>
+              </div>
+            </div>
+            <div class="item" *ngFor="let taxonomy of detail.taxonomies">
+              <div class="content">
+                <strong> {{'Code' | translate}}:</strong>
+                {{taxonomy.code}}
+                <span class="separator">|</span>
+                <strong> {{'Description' | translate}}:</strong>
+                {{taxonomy.desc}}
+                <span class="separator">|</span>
+                <strong> {{'Licence' | translate}}:</strong>
+                {{taxonomy.license}}
+                <span class="separator">|</span>
+                <strong> {{'State' | translate}}:</strong>
+                {{taxonomy.state}}
+                <span class="separator">|</span>
+                <strong> {{'Is Primary' | translate}}:</strong>
+                {{(taxonomy.primary == true)?'YES': 'NO'}}
+              </div>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+    </sui-accordion-panel>
+  </sui-accordion>
+</ng-container>
+
+
+<sui-message class="attached warning" [isDismissable]="false" *ngIf="noRecordsFound_DoctorList && !isLoader">
+  <p>No Records Found</p>
+</sui-message>
+
+<ng-template #blankContent>
+  <span>--</span>
+</ng-template>

@@ -1,0 +1,37 @@
+<div class="ui" *ngIf="isLoader || isLoader_UploadProcessing">
+  <div class="ui active dimmer">
+    <div class="ui indeterminate text loader">{{ 'common.processing' | translate }}</div>
+  </div>
+</div>
+<form class="ui form" [formGroup]="linkForm" #myform="ngForm">
+  <div class="toaster-static toaster-s" *ngIf="showSuccessMessage">
+    <span><a href="javascript:void(0)" (click)="showSuccessMessage = !showSuccessMessage">
+        <i class="close icon"></i></a></span>
+    <p>{{ successMessage }}</p>
+  </div>
+  <div class="toaster-static toaster-e" *ngIf="showErrorMessage">
+    <span><a href="javascript:void(0)" (click)="showErrorMessage = !showErrorMessage"><i
+          class="close icon"></i></a></span>
+    <p>{{ errorMessage }}</p>
+  </div>
+
+
+  <div *ngIf="providerList && providerList.length">
+    <div class="field sixteen wide column">
+      <label>{{ 'Select Providers' | translate }}</label>
+      <ng-container class="field" *ngFor="let provider of providerList">
+        <label>
+          <input type="checkbox" [value]="provider.id" (change)="onCheckChange($event)">
+          {{provider.name}}
+        </label>
+      </ng-container>
+    </div>
+  </div>
+
+</form>
+<div class="ui fitted divider wizard-footer"></div>
+<div class="actions">
+  <button class="tiny ui button orange" autofocus (click)="submit()">{{ 'attachment.link.save' | translate
+    }}</button>
+  <button class="tiny ui button" (click)="cancel()">{{ 'attachment.link.cancel' | translate }}</button>
+</div>

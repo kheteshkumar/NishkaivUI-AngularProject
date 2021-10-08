@@ -1,0 +1,122 @@
+<app-toaster [toaster]="toastData"></app-toaster>
+
+<div id="initialLoad">
+  <div class="ui" *ngIf="isLoader_Notifications">
+    <div class="ui active dimmer">
+      <div class="ui indeterminate text loader">{{'common.processing' | translate}}</div>
+    </div>
+  </div>
+  <div class="main-content">
+
+    <h1 class="ui header">{{'Notifications' | translate}}</h1>
+
+    <div class="ui segment apf-search" *ngIf="notifications.length > 0">
+
+      <!-- <div class="ui segment modal-loader" style=" max-height: 165px; min-height: 165px;"
+        *ngIf="isLoader_Notifications">
+        <div class="ui active inverted dimmer">
+          <div class="ui medium text loader"></div>
+        </div>
+      </div> -->
+
+      <div class="ui stackable four column grid">
+        <div *ngFor="let notification of notifications" class="column">
+          <div class="content">
+
+            <div class="ui card card-selectX" style="min-height: 185px;">
+              <div class="ui active  dimmer" *ngIf="notification.isLoader_NotificationProcessing">
+                <div class="ui small text loader"></div>
+              </div>
+
+              <div class="content">
+                <div class="header">{{(notification.submission.data.formTitle!=undefined &&
+                  notification.submission.data.formTitle !=null)?notification.submission.data.formTitle:'--' |
+                  translate}}
+                </div>
+                <!-- <div class="meta"></div> -->
+              </div>
+              <div class="content">
+                <div class="item">
+                  <strong> {{'Date' | translate}}:</strong>
+                  {{notification.createdDate!=null ? getFormattedDateToDisplay(notification.createdDate) : '--'}}
+                </div>
+                <div class="divider" style="padding: 3px;"></div>
+                <div class="item">
+                  <div class="content">
+                    <strong> {{'Patient' | translate}}: </strong>
+                    <span>{{notification.submission.data.uqiFname | translate}}
+                      {{notification.submission.data.uqiLname | translate}}</span>
+                  </div>
+                </div>
+                <div class="item" *ngIf="notification.submission.data.amount">
+                  <div class="content">
+                    <strong>{{'Amount' | translate}}:
+                    </strong>{{notification.submission.data.amount | CustomFormatCurrency}}
+                  </div>
+                </div>
+                <div style="clear: both;"></div>
+                <!-- <button class="orange circular ui right floated icon button" type="button"
+                  (click)="$event.stopPropagation();onNotificationOperationClick({key: 'dismiss', value: 'Dismiss'}, notification)"
+                  suiPopup popupText="Dismiss" popupInverted [popupPlacement]="'top'">
+                  <i class="close icon"></i>
+                </button> -->
+                <button class="orange circular ui right floated icon button" type="button"
+                  (click)="$event.stopPropagation();onNotificationOperationClick({key: 'view', value: 'View Notification'}, notification)"
+                  suiPopup popupText="View" popupInverted [popupPlacement]="'top'">
+                  <i class="arrow eye icon"></i>
+                </button>
+                <button class="orange circular ui right floated icon button" type="button"
+                  *ngIf="notification.submission.data.transactionDetails !== undefined"
+                  (click)="$event.stopPropagation();onNotificationOperationClick({key: 'viewTransactionReceipt', value: 'View Transaction Receipt'}, notification)"
+                  suiPopup popupText="View Transaction" popupInverted [popupPlacement]="'top'">
+                  <i class="dollar icon"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <app-pagination [pager]="pager" (OutputData)="getAllNotification($event)"></app-pagination>
+
+    </div>
+
+    <sui-message class="attached warning" [isDismissable]="false" *ngIf="noRecordsFound">
+      <p>{{'No notifications found'}}</p>
+    </sui-message>
+
+  </div>
+</div>
+
+
+
+
+
+
+
+<!-- View Notification Start -->
+<ng-template let-context let-modal="modal" #modalViewNotification>
+  <div class="header">{{this.inputDataForNotification.heading | translate}}
+    <i #closeModal (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-view-notification [InputData]="inputDataForNotification"
+      (OutputData)="outputDataFromViewNotificationOperation($event)">
+    </app-view-notification>
+  </div>
+</ng-template>
+<!-- View Notification End -->
+
+<ng-template let-context let-modal="modal" #modalTransactionOperations>
+  <div class="header">{{'Transaction Receipt'}}
+    <i #closeModal (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-transaction-operations [InputData]="inputDataTransactionForOperation"
+      (OutputData)="outputDataFromTransactionOperation($event)"></app-transaction-operations>
+  </div>
+  <div class="actions">
+    <div class="ui tiny">
+      <button class="ui tiny button" (click)="modal.deny()">{{'transaction.find.close' | translate}}</button>
+    </div>
+  </div>
+</ng-template>

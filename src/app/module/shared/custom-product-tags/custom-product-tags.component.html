@@ -1,0 +1,49 @@
+<div class="ui" *ngIf="isLoader">
+  <div class="ui active inverted dimmer">
+    <div class="ui small text loader">{{'common.processing' | translate}}</div>
+  </div>
+  <p></p>
+</div>
+
+<div class="ui grid" style="margin-top: 10px;">
+  <div class="sixteen wide column">
+    <div class="selectionX ui dropdown multiple ng-valid ng-touched ng-dirty">
+      <div class="chipX transition visible ui label" *ngFor="let item of chips" style="margin-bottom:5px; padding: 4px; font-size: 10px;">
+        <span>{{item.name}}</span>
+        <span (click)="closeItem(item)" class="prodtg-close">&nbsp;<i class="close icon"></i></span>
+      </div>
+      <button class="tiny ui orange icon primary button" style="padding: 4px;" *ngIf="flag" (click)="showAutocomplete();">
+        <span *ngIf="chips.length > 0"><i class="plus icon" style="margin:0"></i></span>
+        <span *ngIf="chips.length == 0">Add Tags</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="fourteen wide column pt0" *ngIf="showInput">
+    <div class="dropdown mt-2 menu transition">
+      <label for="Tag" style="position:relative;top:6px;">Tags : </label>
+      <input type="text" maxlength="50" [(ngModel)]="item" class="form-control no-radiusX no-shadow tagSelectInput" autofocus [appAutoComplete]="data"
+        [template]="template" (emitNewItem)="addNewItem($event)" (emitFilterValues)="filterItems($event)"
+        (keyup)='checkOnenter($event)' (blur)="focusOutEvent($event)" (focus)="inputFocusEvent($event)">
+    </div>
+
+    <ng-template #template>
+      <div class="ui segment prodtg-lst">
+        <div class="ui middle aligned selection list">
+          <ng-container *ngIf="filterData.length>0">
+            <div class="prod-lst item" (mousedown)="selectedItem(item)" *ngFor="let item of filterData">
+              {{item.name}}
+            </div>
+          </ng-container>
+          <ng-container *ngIf="filterData.length==0">
+            <div class="prod-lst item">No Data Found</div>
+          </ng-container>
+        </div>
+      </div>
+    </ng-template>
+  </div>
+
+  <div class="sixteen wide column pt0 field" style="margin:0 0 5px 10px;">
+    <span *ngIf="duplicateTagErrorFlag">{{duplicateTagError}}</span>
+  </div>
+</div>

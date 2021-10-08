@@ -1,0 +1,167 @@
+<app-toaster [toaster]="toastData"></app-toaster>
+<!-- <div *ngIf="isLoader_FindInvoice" class="ui bottom attached loading tab segment"></div> -->
+<div class="ui segment modal-loader" style=" max-height: 165px; min-height: 165px;" *ngIf="isLoader_FindInvoice">
+  <div class="ui active inverted dimmer">
+    <div class="ui medium text loader"></div>
+  </div>
+</div>
+<div *ngIf="!isLoader_FindInvoice">
+  <sui-message class="attached warning" [isDismissable]="false" *ngIf="noRecordsFound_InvoiceList">
+    <p>{{noResultsMessage}}</p>
+  </sui-message>
+
+  <div *ngIf="invoiceList.length>0">
+
+    <div>
+      <form novalidate [formGroup]="invoiceListForm" class="ui grid dashboard-block">
+
+        <div class="doubling two column row"
+          style="cursor: default; overflow-y:scroll; overflow-x:hidden; max-height: 170px;">
+          <ng-container *ngFor="let invoice of invoiceList">
+
+            <div class="column" style="margin-top: 5px;" *ngIf="invoice.finalAmount > 0">
+
+              <div class="ui segment results card" *ngIf="invoice.invoiceStatus !=1" style="width: 100%;">
+                <!-- <div class="ui active dimmer" *ngIf="invoice.isLoader_InvoiceOperation">
+                  <div class="ui small text loader"></div>
+                </div> -->
+
+                <div class="results-crsr">
+                  <!-- Invoice Status End -->
+                  <div class="ui horizontal list">
+                    <div class="item">
+                      <div class="content">
+                        <div class="ui sub header">
+                          <span *ngIf="invoice.invoiceNumber">{{invoice.invoiceNumber}}
+                            <span class="separator">|</span>
+                          </span>
+                          {{invoice.providerName}}
+                        </div>
+                        <div class="item">
+                          <strong [ngClass]="{'text_red': checkDueDate(invoice)}">
+                            {{'invoice.find.dueDate' | translate}}:
+                          </strong>
+                          <span [ngClass]="{'text_red': checkDueDate(invoice)}">
+                            {{ getFormattedDate(invoice.dueDate)}}
+                          </span>
+                        </div>
+                        <div class="divider" style="padding: 3px;"></div>
+                        <div class="item">
+                          <strong> {{'invoice.find.invoiceDate' | translate}}:
+                          </strong>{{invoice.displayInvoiceDate}}<span class="separator">|</span>
+                          <strong> {{'invoice.find.doctorName' | translate}}: </strong>
+                          {{(invoice.doctorName !== null && invoice.doctorName != '')? invoice.doctorName: '-'}}
+                        </div>
+                        <div class="divider" style="padding: 3px;"></div>
+                        <div class="item">
+                          <div class="content">
+                            <i class="info circle icon"></i>
+                            <strong>{{'invoice.find.totalAmount' | translate}}:
+                            </strong>{{invoice.finalAmount | CustomFormatCurrency}}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="divider" style="padding: 3px;"></div>
+                  <button class="orange circular ui right floated icon button" type="button"
+                    (click)="$event.stopPropagation();download(invoice)" suiPopup popupText="Download" popupInverted
+                    [popupPlacement]="'top'">
+
+                    <i class="arrow alternate down icon"></i>
+                  </button>
+
+                  <button class="orange circular ui right floated icon button" type="button"
+                    (click)="$event.stopPropagation();preview(invoice)" suiPopup popupText="Preview" popupInverted
+                    [popupPlacement]="'top'">
+
+                    <i class="arrow eye icon"></i>
+                  </button>
+
+                  <button class="orange circular ui right floated icon button" type="button"
+                    *ngIf="invoice.displayInvoiceStatus=='Awaiting Payment'"
+                    (click)="$event.stopPropagation();makePayment(invoice)" suiPopup popupText="Pay Now" popupInverted
+                    [popupPlacement]="'top'">
+
+                    <i class="arrow dollar icon"></i>
+                  </button>
+
+
+
+
+                </div>
+
+
+              </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            </div>
+
+          </ng-container>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<ng-template let-context let-modal="modal" #modalPreviewInvoice>
+  <div class="header">{{'invoice.find.invoicePreviewHeader' | translate}}
+    <i #closeWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-invoice-template [InputData]="inputDataForPreview"></app-invoice-template>
+  </div>
+  <div class="actions">
+    <button class="tiny ui button" (click)="modal.deny()">{{'invoice.add.close' | translate}}</button>
+  </div>
+</ng-template>
+
+<!-- Add Transaction Start -->
+<ng-template let-context let-modal="modal" #modalAddTransaction>
+  <div class="header">{{'transaction.add.acceptPayment' | translate}}
+    <i #closeTransactionWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-add-transaction [InputData]="inputDataOneTimePayment" (OutputData)="outputDataFromTransaction($event)">
+    </app-add-transaction>
+  </div>
+</ng-template>
+<!-- Add Transaction End -->
+
+<!-- Recurring Payment Start -->
+<ng-template let-context let-modal="modal" #modalAddRecurringPayments>
+  <div class="header">
+    <span *ngIf="!inputDataForOperation.isEdit">{{'recurringPayments.add.heading' | translate}}</span>
+    <i #cancel (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-add-recurring (cancel)='closeRecurringModal($event)' [InputData]="inputDataPaymentPlan"
+      (OutputData)="outputDataFromAddRecurring($event)"></app-add-recurring>
+  </div>
+</ng-template>
+<!-- Recurring Payment Start -->

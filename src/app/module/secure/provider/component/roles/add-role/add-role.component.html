@@ -1,0 +1,87 @@
+<meta charset="utf-8">
+
+<div class="ui" *ngIf="isLoader || isLoader_moduleList || isLoader_processing">
+  <div class="ui active dimmer">
+    <div class="ui indeterminate text loader">{{'common.processing' | translate}}</div>
+  </div>
+</div>
+<form [formGroup]="addRoleForm" class="ui form">
+
+  <div class="toaster-static toaster-e" *ngIf="showErrorMessage">
+    <span><a href="javascript:void(0)" (click)="showErrorMessage=!showErrorMessage"><i
+          class="close icon"></i></a></span>
+    <p>{{errorMessage}}</p>
+  </div>
+
+  <div content (click)="$event.stopPropagation()">
+    <div class="ui tiny form">
+
+      <div class="fields">
+        <div class="required sixteen wide column field">
+          <label>{{'role.add.roleName' | translate}}</label>
+          <input placeholder="{{'role.add.roleName' | translate}}" type="text" formControlName="RoleName">
+          <span>{{addRoleFormErrors.RoleName}}</span>
+        </div>
+      </div>
+      <div class="fields">
+        <div class="sixteen wide column field">
+          <label>{{'role.add.description' | translate}}</label>
+          <textarea placeholder="{{'role.add.description' | translate}}" formControlName="Description" rows="3"
+            style="height: 52px;"></textarea>
+          <span>{{addRoleFormErrors.Description}}</span>
+        </div>
+      </div>
+
+      <div class="ui segment">
+        <p>Choose Permissions</p>
+        <sui-accordion [closeOthers]="false" *ngIf="moduleList && moduleList.length > 0">
+
+          <ng-container *ngFor="let module of moduleList; index as i">
+            <sui-accordion-panel [(isOpen)]="module.panelOpen" [isDisabled]="true">
+              <div title>
+
+                <span (click)="module.panelOpen = !module.panelOpen">
+                  <i class="dropdown icon"></i>
+                  {{ module.name | translate}}
+                </span>
+
+                <div class="ui right floated header">
+                  <div class="ui test toggle checkbox" id="modules">
+                    <input type="checkbox" [value]="module.moduleId" (change)="onModuleCheckboxChange($event)" />
+                    <label>{{'Select All' | translate}}</label>
+                  </div>
+                </div>
+
+              </div>
+              <div content class="ui segment results" (click)="$event.stopPropagation()">
+
+                <div class="field" *ngFor="let feature of module.features; index as findex">
+                  <label id="features">
+                    <input type="checkbox" [value]="feature.featureId" (change)="onCheckboxChange($event)" />
+                    {{feature.featureName}}
+                  </label>
+                </div>
+
+              </div>
+            </sui-accordion-panel>
+          </ng-container>
+        </sui-accordion>
+      </div>
+
+    </div>
+
+  </div>
+
+</form>
+
+<div class="ui fitted divider wizard-footer"></div>
+<div class="actions">
+  <div class="ui tiny">
+    <button class="orange ui tiny primary button" autofocus (click)='addRole()'
+      *ngIf="!InputData.isEdit">{{'role.add.save' | translate}}</button>
+    <button class="ui orange tiny primary button" autofocus (click)='editRole()'
+      *ngIf="InputData.isEdit">{{'role.edit.save'
+      | translate}}</button>
+    <button class="ui tiny button" (click)="cancel()">{{'role.add.cancel' | translate}}</button>
+  </div>
+</div>

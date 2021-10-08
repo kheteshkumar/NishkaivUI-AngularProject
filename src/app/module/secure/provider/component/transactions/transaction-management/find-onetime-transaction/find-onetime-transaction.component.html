@@ -1,0 +1,380 @@
+<app-toaster [toaster]="toastData"></app-toaster>
+<div id="initialLoad">
+  <form novalidate [formGroup]="findRecurringForm">
+    <div class="main-content">
+      <h1 class="ui header">{{'recurringPayments.onetime.heading' | translate}}
+      </h1>
+      <div class="ui segment apf-search">
+        <!-- <button class="tiny ui orange right floated button" type="button" (click)="open()" *ngIf="loggedInUserData.userType==1">
+        <i class="calendar plus outline icon"></i>{{'recurringPayments.find.addRecurringPayment' | translate}}
+      </button> -->
+        <button class="tiny ui orange right floated button" type="button" (click)="open()"><i
+            class="dollar sign icon"></i>{{'transaction.find.virtualTerminal' | translate}}</button>
+        <div class="u-cf-m"></div>
+        <sui-tabset>
+          <div class="tiny ui secondary menu">
+            <a class="item" suiTabHeader="6">{{'recurringPayments.find.status' | translate}}</a>
+            <a class="item" suiTabHeader="1" *ngIf="loggedInUserData.userType==1">{{'recurringPayments.find.patient' |
+              translate}}</a>
+            <!-- <a class="item" suiTabHeader="2">{{'recurringPayments.find.nextBillingDate' | translate}}</a> -->
+            <a class="item" suiTabHeader="3">{{'recurringPayments.find.paymentAmount' | translate}}</a>
+            <!-- <a class="item" suiTabHeader="4">{{'recurringPayments.find.paymentName' | translate}}</a>
+          <a class="item" suiTabHeader="5">{{'recurringPayments.find.type' | translate}}</a>-->
+
+          </div>
+          <div class="ui segment selection-area">
+            <a class="ui label"
+              *ngIf="findRecurringForm.value.PatientName != null && findRecurringForm.value.PatientName.length > 0">
+              {{'recurringPayments.find.patient' | translate}}: {{ displayFilter }}
+              <i class="delete icon" (click)="clear('PatientName')"></i>
+            </a>
+            <a class="ui label" *ngIf="findRecurringForm.value.NextBillingStartDate">
+              {{'recurringPayments.find.nextBillingDate' | translate}}:
+              {{getFormattedDateToDisplay(findRecurringForm.value.NextBillingStartDate)}} <span>-</span>
+              {{getFormattedDateToDisplay(findRecurringForm.value.NextBillingEndDate)}}
+              <i class="delete icon" (click)="clear('NextBillingStartDate'); clear('NextBillingEndDate')"></i>
+            </a>
+            <a class="ui label" *ngIf="findRecurringForm.value.MinAmount || findRecurringForm.value.MaxAmount">
+              {{'recurringPayments.find.paymentAmount' | translate}}: {{ findRecurringForm.value.MinAmount }}
+              <span *ngIf="findRecurringForm.value.MinAmount && findRecurringForm.value.MaxAmount">-</span>
+              {{ findRecurringForm.value.MaxAmount }}
+              <i class="delete icon" (click)="clear('MinAmount'); clear('MaxAmount');"></i>
+            </a>
+            <!-- <a class="ui label" *ngIf="findRecurringForm.value.PaymentName">
+            {{'recurringPayments.find.paymentName' | translate}}: {{ findRecurringForm.value.PaymentName }}
+            <i class="delete icon" (click)="clear('PaymentName')"></i>
+          </a> -->
+            <a class="ui label" *ngIf="findRecurringForm.value.Type != null && findRecurringForm.value.Type.length > 0">
+              {{'recurringPayments.find.type' | translate}}: {{ findRecurringForm.value.Type }}
+              <i class="delete icon" (click)="clear('Type')"></i>
+            </a>
+            <a class="ui label"
+              *ngIf="findRecurringForm.value.Status != null && findRecurringForm.value.Status.length > 0">
+              {{'recurringPayments.find.status' | translate}}: {{ findRecurringForm.value.Status }}
+              <i class="delete icon" (click)="clear('Status')"></i>
+            </a>
+          </div>
+          <!-- Patient -->
+          <!--<div class="ui" suiTabContent="1" *ngIf="loggedInUserData.userType==1">
+          <sui-multi-select [options]="searchPatientList" formControlName="PatientName" labelField="displayName"
+            valueField="id" [maxSelected]="5" icon="search" #PatientName
+            (selectedOptionsChange)="onMultiSelectClick(PatientName)">
+            <div class="ui icon search input">
+              <i class="search icon"></i>
+              <input suiSelectSearch type="text" placeholder="Search options..."
+                (input)="patientLookUp($event.target.value)" />
+            </div>
+            <div class="divider"></div>
+            <div class="header">
+              <i class="list icon"></i>
+              Options
+            </div>
+            <div class="scrolling menu">
+              <sui-select-option *ngFor="let o of PatientName.filteredOptions" [value]="o"></sui-select-option>
+            </div>
+          </sui-multi-select>
+        </div>-->
+          <div class="ui" suiTabContent="1" *ngIf="loggedInUserData.userType==1">
+            <div class="ui tiny form">
+              <div class="three fields mb0">
+                <div class="field">
+                  <sui-multi-select class="selection" formControlName="PatientName" #PatientName
+                    (selectedOptionsChange)="onMultiSelectClick(PatientName)" [hasLabels]="true" [maxSelected]="5"
+                    labelField="displayName" valueField="id" [isSearchable]="true" [options]="searchPatientList"
+                    icon="search">
+                    <sui-select-option *ngFor="let o of PatientName.filteredOptions" [value]="o"></sui-select-option>
+                  </sui-multi-select>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Next Transaction Date Range -->
+          <!-- <div class="ui" suiTabContent="2">
+          <div class="tiny ui form">
+            <div class="ui left icon input">
+              <i class="calendar icon"></i>
+              <input placeholder="Start Date" suiDatepicker [pickerMode]="dateMode" [pickerUseNativeOnMobile]="false"
+                [pickerMinDate]="minStartDate" [pickerMaxDate]="maxStartDate" formControlName="NextBillingStartDate"
+                #StartDate readonly />
+            </div>
+            &nbsp;&nbsp;&nbsp;&nbsp;
+            <div class="ui left icon input">
+              <i class="calendar icon"></i>
+              <input placeholder="End Date" suiDatepicker [pickerMode]="dateMode" [pickerUseNativeOnMobile]="false"
+                [pickerMinDate]="minEndDate" formControlName="NextBillingEndDate" #EndDate readonly />
+            </div>
+          </div>
+          <div class="field">
+            <span>{{ formErrors.StartDate }}</span>
+          </div>
+        </div> -->
+          <!-- Amount Range -->
+          <div class="ui" suiTabContent="3">
+            <div class="tiny ui form">
+              <div class="five fields mb0">
+                <div class="field">
+                  <input placeholder="Min Amount" type="text" formControlName="MinAmount" />
+                  <span>{{ formErrors.MinAmount }}</span>
+                </div>
+                <div class="field">
+                  <input placeholder="Max Amount" type="text" formControlName="MaxAmount" />
+                  <span>{{ formErrors.MaxAmount }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Payment Name -->
+          <!-- <div class="ui" suiTabContent="4">
+          <div class="tiny ui form">
+            <div class="field">
+              <input class="tiny-input" placeholder="Payment Name" type="text" formControlName="PaymentName" />
+              <span>{{ formErrors.PaymentName }}</span>
+            </div>
+          </div>
+        </div>  -->
+          <!-- Type -->
+          <!--<div class="ui" suiTabContent="5">
+          <sui-multi-select [options]="recurringTypeList" formControlName="Type" labelField="type" valueField="type"
+            [maxSelected]="2" icon="search" #Type>
+            <div class="ui icon search input">
+              <i class="search icon"></i>
+              <input suiSelectSearch type="text" placeholder="Search options..." />
+            </div>
+            <div class="divider"></div>
+            <div class="header">
+              <i class="list icon"></i>
+              Options
+            </div>
+            <div class="scrolling menu">
+              <sui-select-option *ngFor="let o of Type.filteredOptions" [value]="o"></sui-select-option>
+            </div>
+          </sui-multi-select>
+        </div>-->
+          <!-- Status -->
+          <div class="ui" suiTabContent="6">
+            <div class="ui tiny form">
+              <div class="three fields mb0">
+                <div class="field">
+                  <sui-multi-select class="selection" formControlName="Status" #Status
+                    (selectedOptionsChange)="onMultiSelectClick(Status, 'TransactionStatus')" [hasLabels]="true"
+                    [maxSelected]="5" labelField="statusName" valueField="statusName" [isSearchable]="true"
+                    [options]="recurringPaymentStatusList" icon="search">
+                    <sui-select-option *ngFor="let o of Status.filteredOptions" [value]="o"></sui-select-option>
+                  </sui-multi-select>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ui clearing divider"></div>
+          <button [ngClass]="isLoader ? 'tiny ui orange button loading' : 'tiny ui orange button'"
+            class="tiny ui orange button" type="submit" (click)="find()">Find</button>
+          <button class="tiny ui button" (click)="clearForm()">Clear</button>
+        </sui-tabset>
+      </div>
+
+
+      <div *ngIf="findClicked">
+        <sui-message class="attached warning" [isDismissable]="false" *ngIf="!searchResultFlag && !isLoader">
+          <p>{{ noResultsMessage }}</p>
+        </sui-message>
+
+        <div *ngIf="searchResultFlag">
+          <form novalidate [formGroup]="recurringResultsForm">
+            <div class="ui grid">
+              <div class="eight wide column">
+                <div class="ui mini compact segment sort">
+                  <div class="inline field sort-dd">
+                    <label>Sort by: </label>
+                    <sui-select class="selection" [options]="sortingItemsList" formControlName="Sorting"
+                      labelField="label" valueField="label" (selectedOptionChange)="sortTransactions(Sorting)" #Sorting>
+                      <sui-select-option *ngFor="let option of sortingItemsList" [value]="option"></sui-select-option>
+                    </sui-select>
+                  </div>
+                </div>
+              </div>
+              <!--<div class="right aligned eight wide column btn-export">
+              <sui-select class="ui mini floating labeled basic icon button" icon="download"
+                (selectedOptionChange)="download($event)" [isSearchable]="false" placeholder="Export" #filterSelect>
+                <sui-select-option value="PDF"></sui-select-option>
+                <sui-select-option value="CSV"></sui-select-option>
+              </sui-select>
+            </div>-->
+            </div>
+          </form>
+
+          <div>
+            <!-- div for forst record -->
+            <!-- Find Recurring Payments Results -->
+            <div *ngFor="let recurringPayment of recurringPaymentsList" class="ui segment results">
+              <div class="ui active dimmer" *ngIf="recurringPayment.isLoader_recurringOperation">
+                <div class="ui small text loader"></div>
+              </div>
+              <div class="results-crsr" (click)="getRecurringTransactionById(recurringPayment)">
+                <!---->
+                <div class="ui right floated header">
+                  <button class="ui mini right floated button status green"
+                    *ngIf="recurringPayment.status==2">{{'recurringPayments.find.active' | translate}}</button>
+                  <button class="ui mini right floated button status blue"
+                    *ngIf="recurringPayment.status==3">{{'recurringPayments.find.paid' | translate}}</button>
+                  <button class="ui mini right floated button status red"
+                    *ngIf="recurringPayment.status==8">{{'recurringPayments.find.cancelled' | translate}}</button>
+                  <button class="ui mini right floated button status red"
+                    *ngIf="recurringPayment.status==30">{{'recurringPayments.find.closed' | translate}}</button>
+                  <button class="ui mini right floated button status orange"
+                    *ngIf="recurringPayment.status==1">{{'recurringPayments.find.pendingForActivation' |
+                    translate}}</button>
+                  <button class="ui mini right floated button status red"
+                    *ngIf="recurringPayment.status==5">{{'recurringPayments.find.failed' | translate}}</button>
+                  <div class="ui right pointing dropdown" suiDropdown (click)="$event.stopPropagation()"
+                    *ngIf="recurringPayment.operations.length>0">
+                    <i class="ellipsis horizontal icon"></i>
+                    <div class="menu" suiDropdownMenu>
+                      <div class="item" *ngFor="let operation of recurringPayment.operations"
+                        (click)="onRecurringOperationClick(operation, recurringPayment)">
+                        <div class="w100">{{operation.value}}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="ui horizontal list">
+                  <div class="item">
+                    <div class="content">
+                      <div class="ui sub header">{{recurringPayment.firstName}} {{recurringPayment.lastName}}
+                        <span>&nbsp;&nbsp;{{recurringPayment.paymentAmount | CustomFormatCurrency}} </span>
+                        <span>
+                          <span class="small-text">&nbsp;&nbsp; <b>{{'transaction.find.recurringId' | translate}}:</b>
+                            {{recurringPayment.id}}</span>
+                        </span>
+                      </div>
+
+                      <strong> {{'transaction.find.OneTimetxnDate' | translate}}: </strong> {{recurringPayment.startDate
+                      != null ? getFormattedDate(recurringPayment.startDate) : '--'}}<span class="separator">|</span>
+                      {{recurringPayment.cardType}}: ****{{recurringPayment.maskedCardNumber}}<span
+                        class="separator">|</span>
+                      <strong>{{'transaction.find.type' | translate}}: </strong>Schedule Payment
+                      <span class="separator">|</span>
+                      <strong>{{'transaction.find.createdOn' | translate}}:
+                      </strong>{{getFormattedDate(recurringPayment.createdOn)}}
+                      <!--<strong>{{'transaction.find.nameOnCard' | translate}}: </strong>{{recurringPayment.nameOnCheckOrCard}} -->
+                    </div>
+                  </div>
+                </div>
+                <div class="ui divided list" [suiTransition]="transitionController"
+                  *ngIf="recurringPayment.showDetails">
+                  <div class="item">
+                    <i class="info circle icon"></i>
+                    <div class="content">
+                      <strong>{{'transaction.find.totalAmount' | translate}}: </strong>{{recurringPayment.totalAmount|
+                      CustomFormatCurrency}}
+                      <span class="separator">|</span>
+                      {{'transaction.find.amount' | translate}}: {{recurringPayment.amount| CustomFormatCurrency}}<span
+                        class="separator">|</span>
+                      <span *ngIf="recurringPayment.discountType=='1'"> <strong>
+                          {{'customPlans.find.discount' | translate}}</strong>:
+                        {{recurringPayment.discountAmount | CustomFormatCurrency}}</span>
+                      <span *ngIf="recurringPayment.discountType=='2'"> <strong>
+                          {{'customPlans.find.discount' | translate}}</strong>:
+                        {{recurringPayment.discountRate}}%</span><span class="separator">|</span>
+                      {{'transaction.find.taxAmount' | translate}}: {{recurringPayment.taxAmount| CustomFormatCurrency}}
+                    </div>
+                  </div>
+                  <div class="item">
+                    <i class="building icon"></i>
+                    <div class="content">
+                      <strong>{{'transaction.find.email' | translate}}: </strong>{{recurringPayment.email != null ?
+                      recurringPayment.email : '--'}}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <app-pagination [pager]="pager" (OutputData)="findRecurring($event)"></app-pagination>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<ng-template let-context let-modal="modal" #modalAddTransaction>
+  <div class="header">{{'transaction.add.acceptPayment' | translate}}
+    <i #closeModal (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-add-transaction [InputData]="inputDataForOperation" (OutputData)="outputDataFromAddTransaction($event)">
+    </app-add-transaction>
+  </div>
+  <!-- <div class="actions">
+      <div class="ui tiny">
+        <button class="ui tiny primary button" autofocus (click)='onProcessTransactionClick()'>{{'transaction.find.processTransaction' | translate}}</button>
+        <button class="ui tiny primary button" autofocus (click)='onResetFormsClick()'>{{'transaction.find.reset' | translate}}</button>
+        <button class="ui tiny button" (click)="modal.deny()">{{'transaction.find.cancel' | translate}}</button>
+      </div>
+    </div> -->
+</ng-template>
+
+<ng-template let-context let-modal="modal" #modalRecurringOperations>
+  <div class="header">{{typeOfOperationHeading}}
+    <i (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-recurring-operations [InputData]="inputDataForOperation"></app-recurring-operations>
+  </div>
+  <div class="actions">
+    <div class="ui tiny">
+      <button class="ui tiny button" (click)="modal.deny()">{{'recurringPayments.find.cancel' | translate}}</button>
+    </div>
+  </div>
+</ng-template>
+<ng-template let-context let-modal="modal" #modalCancelPlan>
+  <div class="header">
+    <span>{{'recurringPayments.cancel.heading' | translate}}</span>
+    <i #closeWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-cancel-payment-plan [InputData]="inputDataForOperation" (OutputData)="outputDataFromOperation($event)">
+    </app-cancel-payment-plan>
+  </div>
+  <div class="actions">
+    <div class="ui tiny">
+      <button class="tiny ui orange button" (click)="cancelPaymentClick()"
+        [disabled]="false">{{'recurringPayments.cancel.yes' | translate}}</button>
+      <button class="ui tiny button" (click)="modal.deny()">{{'recurringPayments.cancel.no' | translate}}</button>
+    </div>
+  </div>
+
+</ng-template>
+<ng-template let-context let-modal="modal" #modalUpdatePlan>
+  <div class="header">
+    <span>{{(inputDataForUpdatePlan.hideSchedulePlan)!=true?('recurringPayments.update.heading' | translate):'Update
+      Account'}}</span>
+    <i #closePlanWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-update-recurring (OutputData)="outputDataFromUpdatePlan($event)" [InputData]="inputDataForUpdatePlan">
+    </app-update-recurring>
+    <button class="tiny ui button" (click)="modal.deny()">{{'facility.add.cancel' | translate}}</button>
+
+
+  </div>
+
+</ng-template>
+<ng-template let-context let-modal="modal" #modalAddPatientAccount>
+  <div class="header">
+    <span>{{'patientAccount.add.heading' | translate}}</span>
+    <i #closeAccountModal (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <!-- <div id="hellopaygateway"></div> -->
+  <div class="content">
+
+    <app-add-patient-account [InputData]="inputDataForAccountOperation" (OutputData)="outputDataFromAccount($event)">
+    </app-add-patient-account>
+  </div>
+  <div class="actions">
+    <div class="ui tiny">
+      <button class="tiny ui orange button" autofocus (click)='onAddPatientAccountClick()'>{{'patient.add.save' |
+        translate}}</button>
+      <button class="tiny ui button" (click)="modal.deny()">{{'transaction.find.cancel' | translate}}</button>
+    </div>
+  </div>
+</ng-template>

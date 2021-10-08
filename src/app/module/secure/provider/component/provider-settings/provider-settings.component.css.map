@@ -1,0 +1,9 @@
+{
+    "version": 3,
+    "mappings": "",
+    "sources": [
+        "provider-settings.component.scss"
+    ],
+    "names": [],
+    "file": "provider-settings.component.css"
+}

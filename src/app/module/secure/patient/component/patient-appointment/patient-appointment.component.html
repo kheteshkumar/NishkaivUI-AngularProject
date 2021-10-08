@@ -1,0 +1,166 @@
+<app-toaster [toaster]="toastData"></app-toaster>
+<div id="initialLoad">
+  <form novalidate [formGroup]="">
+    <div class="main-content">
+      <h1 class="ui header">{{'patient.appointment.heading' | translate}}</h1>
+      <div class="ui three column stackable grid dashboard-block">
+        <div class="three column row">
+          <!--<div class="column">
+              <button class="fluid ui huge basic button">
+                <i class="id card outline icon colorOne"></i>
+                Create New Patient
+              </button>
+            </div>-->
+          <div class="column">
+            <button class="fluid ui huge basic button" type="button" (click)="btnClick()">
+              <i class="orange home icon"></i>
+              Home
+            </button>
+
+
+          </div>
+          <div class="column">
+            <button
+              [ngClass]="isLoader_AppointmentPatient ? 'fluid ui huge basic button loading' : 'fluid ui huge basic button'"
+              class="fluid ui huge basic button" type="button"
+              (click)="onPatientAccountOperationClick('addAccount', patient, '')">
+              <i class="orange calendar plus outline icon"></i>
+              Add Payment Account
+            </button>
+          </div>
+          <div class="column">
+            <button class="fluid ui huge basic button" type="button" (click)="open()">
+              <i class="orange dollar sign icon"></i>
+              Make a Payment
+            </button>
+          </div>
+
+        </div>
+      </div>
+      <!-- <h1 class="ui header">{{'patient.appointment.history' | translate}}</h1> -->
+      <!-- <div class="ui grid"> -->
+      <!-- <div class="eight wide column">
+                  <div class="ui mini compact segment sort">
+                    <div class="inline field sort-dd"> -->
+      <!-- <h1 class="ui header">{{'patient.appointment.history' | translate}}</h1> -->
+      <!-- </div>
+                  </div>
+                </div> -->
+      <!-- </div> -->
+
+      <!-- <div class="ui segment results" > -->
+
+      <br>
+      <!-- <div class="results-crsr" > -->
+      <div class="ui divided list" style="cursor: default">
+        <div class="content">
+          <!-- operation control will come here -->
+          <sui-tabset>
+            <div class="ui mini top attached tabular menu" style="flex-wrap: wrap;font-size: 1rem;">
+              <a class="item" suiTabHeader="1">Appointments</a>
+            </div>
+            <div class="ui bottom attached segment" suiTabContent="1">
+              <div class="ui segment modal-loader" *ngIf="isLoader_FindAppointment">
+                <div class="ui active dimmer">
+                  <div class="ui medium text loader">Loading</div>
+                </div>
+              </div>
+              <div style="overflow-x:scroll" *ngIf="appointmentList.length > 0 && !isLoader_FindAppointment">
+                <table style="width: 1000px !important;font-size: .78571429rem;" class="ui unstackable table">
+                  <thead>
+                    <tr>
+                      <th>{{'patient.appointment.date' | translate}}</th>
+                      <th>{{'patient.appointment.time' | translate}}</th>
+                      <th>{{'patient.appointment.duration' | translate}}</th>
+                      <th>{{'patient.appointment.providerName' | translate}}</th>
+                      <th>{{'patient.appointment.providerPhone' | translate}}</th>
+                      <th>{{'patient.appointment.providerEmail' | translate}}</th>
+                      <th>{{'patient.appointment.providerAddress' | translate}}</th>
+                      <th>{{'patient.appointment.action' | translate}}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let appointment of appointmentList">
+                      <td>{{appointment.fromDate | date:'MMM d, y'}}</td>
+                      <td>{{appointment.fromDate | date:'h:mm a'}}-{{appointment.toDate | date:'h:mm a'}}</td>
+                      <td>{{appointment.duration}}mins</td>
+                      <td>{{appointment.providerName}}</td>
+                      <td>{{appointment.providerPhone}}</td>
+                      <td>{{appointment.providerEmail}}</td>
+                      <td>{{appointment.providerAddress}}</td>
+                      <td><i class="trash alternate icon" style="cursor: pointer;"
+                          (click)="$event.stopPropagation();deleteAppointmentClick(appointment)" suiPopup
+                          popupText="Cancel" popupInverted [popupPlacement]="'top'"></i> </td>
+                    </tr>
+                  </tbody>
+                </table>
+
+              </div>
+              <!-- No Records Found patient Payment Account List -->
+              <div *ngIf="noRecordsFound_AppointmentList && !isLoader_FindAppointment">
+                <sui-message class="attached warning" [isDismissable]="false">
+                  <p>{{'transaction.add.noRecordsFound' | translate}}</p>
+                </sui-message>
+                <br>
+              </div>
+
+            </div>
+          </sui-tabset>
+        </div>
+        <!-- </div>
+                </div> -->
+      </div>
+    </div>
+
+
+  </form>
+</div>
+<ng-template let-context let-modal="modal" #modalAddPatientAccount>
+  <div class="header">
+    <span *ngIf="!inputDataForAccountOperation.isEdit">{{'patientAccount.add.heading' | translate}}</span>
+    <span *ngIf="inputDataForAccountOperation.isEdit">{{'patientAccount.edit.heading' | translate}}</span>
+    <i #closeModal (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-add-patient-account [InputData]="inputDataForAccountOperation" (OutputData)="outputDataOperation($event)">
+    </app-add-patient-account>
+  </div>
+  <div class="actions">
+    <div class="ui tiny">
+      <button class="tiny ui orange button" autofocus (click)='onAddPatientAccountClick()'
+        *ngIf="!inputDataForAccountOperation.isEdit">{{'patient.add.save' | translate}}</button>
+      <button class="tiny ui orange button" autofocus (click)='onEditPatientAccountClick()'
+        *ngIf="inputDataForAccountOperation.isEdit">{{'patient.add.save' | translate}}</button>
+      <button class="tiny ui button" (click)="modal.deny()">{{'transaction.find.cancel' | translate}}</button>
+    </div>
+  </div>
+</ng-template>
+<ng-template let-context let-modal="modal" #modalAddTransaction>
+  <div class="header">{{'transaction.add.acceptPayment' | translate}}
+    <i #closeModal (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-add-transaction [InputData]="inputDataForOperation" (OutputData)="outputDataFromOperation($event)">
+    </app-add-transaction>
+  </div>
+</ng-template>
+
+
+<ng-template let-context let-modal="modal" #modalDeleteAppointment>
+  <div class="header">
+    <span>{{'appointment.cancel.heading' | translate}}</span>
+    <i #closeWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-delete-appointment [InputData]="inputDataForOperation" (OutputData)="outputDataFromCancelOperation($event)">
+    </app-delete-appointment>
+  </div>
+  <div class="actions">
+    <div class="ui tiny">
+      <button class="tiny ui orange button" (click)="deleteAppointment()"
+        [disabled]="false">{{'appointment.cancel.yes' | translate}}</button>
+      <button class="ui tiny button" (click)="modal.deny()">{{'appointment.cancel.no' | translate}}</button>
+    </div>
+  </div>
+
+</ng-template>

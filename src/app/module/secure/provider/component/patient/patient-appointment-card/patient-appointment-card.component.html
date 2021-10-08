@@ -1,0 +1,120 @@
+<app-toaster [toaster]="toastData"></app-toaster>
+<div *ngIf="appointmentList.length == 0 && !isLoader_FindAppointment">
+  <div class="ui cards cards-overflow">
+    <div class="ui card add-insurance">
+      <sui-message class="attached warning" [isDismissable]="false">
+        <p>{{'No Appointment Scheduled' | translate}}
+      </sui-message>
+    </div>
+    <div class="card add-insurance" (click)="addAppointment()" *ngIf="permissions.addAppointment">
+      <div class="content">
+        <i class="plus circle orange link icon huge" suiPopup popupText="Add Appointment" popupInverted
+          [popupPlacement]="'top'"></i>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="ui segment modal-loader" *ngIf="isLoader_FindAppointment">
+  <div class="ui active dimmer">
+    <div class="ui medium text loader">Loading</div>
+  </div>
+</div>
+
+<div class="ui cards cards-overflow" style="margin: 0px; margin-bottom: 0.5em;"
+  *ngIf="appointmentList.length > 0 && !isLoader_FindAppointment">
+  <div class="card" *ngFor="let appointment of appointmentList">
+    <div class="ui active dimmer" *ngIf="appointment.isLoader_appointmentOperation">
+      <div class="ui small text loader"></div>
+    </div>
+    <div class="content">
+
+      <!-- operation control will come here -->
+      <!-- <div class="ui right floated pointing dropdown mr0" suiDropdown (click)="$event.stopPropagation()">
+        <i class="ellipsis horizontal icon"></i>
+        <div class="menu" suiDropdownMenu>
+          <div class="item" *ngFor="let operation of appointment.operations"
+            (click)="onOperationClick(operation, appointment)">
+            <div class="w100">{{operation.value}}</div>
+          </div>
+        </div>
+      </div> -->
+
+      <!-- <div class="ui mini green bottom right attached label">
+        {{'appointment.displayType'}}
+      </div> -->
+      <div class="header">
+        {{appointment.appoitmentDateTime}} for {{appointment.duration + ' mins'}}
+      </div>
+    </div>
+    <div class="content">
+      <div>
+        <div class="meta">
+          <div><strong>{{'Patient Name' | translate}}</strong>: {{appointment.fullName}}</div>
+          <div><strong>{{'Patient Phone' | translate}}</strong>: {{appointment.patientPhone!=null ?
+            (appointment.patientPhone | mask: '000-000-0000') : '--'}}</div>
+          <div><strong>{{'Doctor Name' | translate}}</strong>: {{appointment.doctorName}}</div>
+        </div>
+        <div class="description"></div>
+      </div>
+
+      <button class="orange circular ui left floated icon button" type="button" *ngIf="permissions.editAppointment"
+        (click)="$event.stopPropagation();onOperationClick({ 'key': 'editAppointment', 'value': 'Edit Appointment' }, appointment)"
+        suiPopup popupText="Edit Appointment" popupInverted [popupPlacement]="'top'">
+        <i class="pencil icon"></i>
+      </button>
+      <button class="orange circular ui left floated icon button" type="button" *ngIf="permissions.deleteAppointment"
+        (click)="$event.stopPropagation();onOperationClick({ 'key': 'cancelAppointment', 'value': 'Cancel Appointment' }, appointment)"
+        suiPopup popupText="Cancel Appointment" popupInverted [popupPlacement]="'top'">
+        <i class="trash alternate outline sign icon" style="color: #ffffff;"></i>
+      </button>
+      <button class="orange circular ui left floated icon button" type="button"
+        (click)="$event.stopPropagation();onOperationClick({ 'key': 'sendNotification', 'value': 'Send Notification' }, appointment)"
+        suiPopup popupText="Send Notification" popupInverted [popupPlacement]="'top'">
+        <i class="bell icon" style="color: #ffffff;"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="card add-insurance" *ngIf="!isLoader_FindAppointment && permissions.addAppointment"
+    (click)="addAppointment()">
+    <div class="content">
+      <i class="plus circle orange link icon huge" suiPopup popupText="Add Appointment" popupInverted
+        [popupPlacement]="'top'"></i>
+    </div>
+  </div>
+
+</div>
+
+<ng-template let-context let-modal="modal" #modalAddAppointment let-eventTimesChanged="eventTimesChanged">
+  <div class="header">
+    <span>{{'appointment.add.heading' | translate}}</span>
+    <i #closeAptModal (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-add-appointment (OutputData)="outputDataFromAptOperation($event)"
+      [InputData]="inputDataForAppointmentOperation">
+    </app-add-appointment>
+    <button class="tiny ui button" (click)="modal.deny()">{{'appointment.add.cancel' | translate}}</button>
+  </div>
+</ng-template>
+
+<ng-template let-context let-modal="modal" #modalDeleteAppointment>
+  <div class="header">
+    <span>{{'appointment.cancel.heading' | translate}}</span>
+    <i #closeAptModal (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-delete-appointment [InputData]="inputDataForDeleteAppointmentOperation"
+      (OutputData)="outputDataFromAptOperation($event)">
+    </app-delete-appointment>
+  </div>
+  <div class="actions">
+    <div class="ui tiny">
+      <button class="tiny ui orange button" (click)="deleteAppointment()" [disabled]="false">{{'appointment.cancel.yes'
+        | translate}}</button>
+      <button class="ui tiny button" (click)="modal.deny()">{{'appointment.cancel.no' | translate}}</button>
+    </div>
+  </div>
+
+</ng-template>

@@ -1,0 +1,789 @@
+<!-- <app-toaster [toaster]="toastData"></app-toaster> -->
+<div class="toaster-static toaster-s" *ngIf="showSuccessMessage">
+  <span><a href="javascript:void(0)" (click)="showSuccessMessage=!showSuccessMessage">
+      <i class="close icon"></i></a></span>
+  <p>{{successMessage}}</p>
+</div>
+
+<div class="toaster-static toaster-e" *ngIf="showErrorMessage">
+  <span><a href="javascript:void(0)" (click)="showErrorMessage=!showErrorMessage"><i class="close icon"></i></a></span>
+  <p>{{errorMessage}}</p>
+</div>
+
+
+<form [formGroup]="transactionOperationsForm">
+  <div class="ui segment modal-loader-small" *ngIf="!displayView">
+    <div class="ui active dimmer">
+      <div class="ui medium text loader">Loading</div>
+    </div>
+  </div>
+  <!--Payment Plan Receipt Start -->
+  <div id="demo" class="rcpt" *ngIf="InputData.operationName == 'paymentPlanReceipt'">
+    <!-- Payment Plan Success Receipt Start -->
+    <div *ngIf="displayView">
+      <div class="toaster-static toaster-s">
+        <h3>Transaction Scheduled</h3>
+      </div>
+      <!-- <div class="ui two column stackable padded grid"> -->
+      <div class="sixteen wide column rcpt-dtls">
+        <div class="ui horizontal segments">
+          <div class="ui segment details-cols2X">
+            <div class="ui small list">
+              <div class="item">
+                <div class="header">Status</div>
+                {{planReceipt.statusMessage}}
+              </div>
+            </div>
+          </div>
+          <div class="ui segment details-cols2X">
+            <div class="ui small list">
+              <div class="item">
+                <div class="header">Transaction Scheduled On:</div>
+                {{getFormattedDateToDisplay(planReceipt.firstTransactionDate)}}
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="orange circular big ui right floated icon button" [useExistingCss]="true" printTitle="Reciept"
+          printSectionId="demo" ngxPrint><i class="icon print"></i></button>
+        <!-- Send Email to alternate emails Start -->
+        <!-- <div class="btn1pop-wrapper">
+          <button class="orange circular big ui right floated icon button" (click)="sendReceiptToAlternateEmailsVisibility=true; savePatientVisibility=false;" suiPopup popupText="Send receipt to alternate emails" popupInverted [popupPlacement]="'left'">
+            <i class="icon envelope"></i>
+          </button>
+          <div [ngClass]= "sendReceiptToAlternateEmailsVisibility ? 'btn1pop-content btn1pop-content-open' : 'btn1pop-content'">
+            <div class="ui" *ngIf="isLoader_SendReceiptToAlternateEmails">
+              <div class="ui active inverted dimmer">
+                <div class="ui indeterminate text loader"></div>
+              </div>
+            </div>
+            <div class="custs-cards">
+              <form class="ui form" [formGroup]="sendReceiptToAlternateEmailsForm">
+                <button style="margin-bottom:-8px" class="circular ui mini icon button right floated" (click)="sendRecieptClear()">
+                  <i class="close link icon"></i>
+                </button>
+                <div class="field required">
+                  <label>Email</label>
+                  <input type="text" class="custom-pop" placeholder="Email" formControlName="TransactionEmail">
+                  <span>{{sendReceiptToAlternateEmailsFormErrors.TransactionEmail}}</span>
+                </div>
+              </form>
+              <div class="ui info message" *ngIf="showSuccessMessage_SendReceiptToAlternateEmails">{{successMessage_SendReceiptToAlternateEmails}}</div>
+              <div class="ui negative message" *ngIf="showErrorMessage_SendReceiptToAlternateEmails">{{errorMessage_SendReceiptToAlternateEmails}}</div>
+            </div>
+            <button class="fluid ui button" (click)="onSendReceiptToMorePatientClick()">Send</button>
+          </div>
+        </div> -->
+        <!-- Send Email to alternate emails End -->
+        <div class="u-cf"></div>
+        <div class="ui tinyX segments">
+          <div class="ui horizontal segments">
+            <div class="ui segment details-cols2X">
+              <div class="ui small list">
+                <div class="item">
+                  <div class="header">Name on Card</div>
+                  {{planReceipt.tenderInfo.accountHolderName}}
+                </div>
+              </div>
+            </div>
+            <div class="ui segment details-cols2X">
+              <div class="ui small list">
+                <div class="item">
+                  <div class="header">Card Details</div>
+                  {{planReceipt.tenderInfo.maskedCardNumber}} ({{planReceipt.tenderInfo.cardType}})
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ui right aligned segment">
+            <div class="rt-amount">
+              <span>Amount</span>
+              <span>{{planReceipt.amount| CustomFormatCurrency}}</span>
+            </div>
+          </div>
+          <div class="ui right aligned segment">
+            <div class="rt-amount">
+              <span>Discount</span>
+              <span>- {{planReceipt.discountAmount| CustomFormatCurrency}}</span>
+            </div>
+          </div>
+          <div class="ui right aligned segment">
+            <div class="rt-amount">
+              <span>Tax</span>
+              <span>+ {{planReceipt.taxAmount| CustomFormatCurrency}}</span>
+            </div>
+          </div>
+          <!-- <div class="ui right aligned segment">
+            <div class="rt-amount">
+              <span>Local Tax</span>
+              <span>$ {{transactionReceipt.tenderInfo.taxAmount.toFixed(2)}}</span>
+            </div>
+          </div>-->
+          <div class="ui right aligned segment">
+            <div class="rt-amount">
+              <span style="font-size: 1.5em">Total</span>
+              <span style="font-size: 1.5em">{{planReceipt.totalAmount| CustomFormatCurrency}}</span>
+            </div>
+          </div>
+          <div class="ui small bottom attached message">
+            <strong>Memo</strong><br />
+            {{planReceipt.remarks}}
+          </div>
+        </div><!-- ui segments end -->
+        <div class="u-cf"></div>
+      </div>
+      <!-- </div> -->
+    </div>
+    <!-- Payment Plan Success Receipt End -->
+  </div>
+  <!-- Payment Plan Receipt End -->
+  <!-- Receipt Start -->
+  <div id="demo" class="rcpt" *ngIf="InputData.operationName == 'receipt'">
+    <!-- Transaction Success Receipt Start -->
+    <div
+      *ngIf="displayView && transactionDetails.transactionStatus!='Failed' && transactionDetails.transactionStatus!='Denied' && transactionDetails.transactionStatus!='Hold'&& transactionDetails.transactionStatus!='Closed'">
+      <div class="toaster-static toaster-s">
+        <h3>Transaction {{transactionReceipt.transactionStatus}}</h3>
+      </div>
+      <!-- <div class="ui two column stackable padded grid"> -->
+      <div class="sixteen wide column rcpt-dtls">
+
+        <!-- Send Email to alternate emails Start -->
+        <div class="btn1pop-wrapper">
+          <button class="orange circular big ui right floated icon button" (click)="openEmailClick()" suiPopup
+            popupText="Send receipt to alternate emails" popupInverted [popupPlacement]="'left'">
+            <i class="icon envelope"></i>
+          </button>
+          <button class="orange circular big ui right floated icon button" [useExistingCss]="true" printTitle="Reciept"
+            printSectionId="demo" ngxPrint>
+            <i class="icon print"></i>
+          </button>
+          <button class="orange circular big ui right floated icon button" (click)="downloadReceiptClick()" suiPopup
+            popupText="Download Receipt" popupInverted [popupPlacement]="'left'">
+            <i class="icon arrow alternate down"></i>
+          </button>
+          <div
+            [ngClass]="sendReceiptToAlternateEmailsVisibility ? 'btn1pop-content btn1pop-content-open' : 'btn1pop-content'">
+            <div class="ui" *ngIf="isLoader_SendReceiptToAlternateEmails">
+              <div class="ui active inverted dimmer">
+                <div class="ui indeterminate text loader"></div>
+              </div>
+            </div>
+            <div class="custs-cards">
+              <form class="ui form" [formGroup]="sendReceiptToAlternateEmailsForm">
+                <button style="margin-bottom:-8px" class="circular ui mini icon button right floated"
+                  (click)="sendRecieptClear()">
+                  <i class="close link icon"></i>
+                </button>
+                <div class="field required">
+                  <label>Email</label>
+                  <input type="text" class="custom-pop" placeholder="Email" formControlName="TransactionEmail">
+                  <span>{{sendReceiptToAlternateEmailsFormErrors.TransactionEmail}}</span>
+                </div>
+              </form>
+              <div class="ui info message" *ngIf="showSuccessMessage_SendReceiptToAlternateEmails">
+                {{successMessage_SendReceiptToAlternateEmails}}</div>
+              <div class="ui negative message" *ngIf="showErrorMessage_SendReceiptToAlternateEmails">
+                {{errorMessage_SendReceiptToAlternateEmails}}</div>
+            </div>
+            <button class="fluid ui button" (click)="onSendReceiptToMorePatientClick()">Send</button>
+          </div>
+        </div>
+        <!-- Send Email to alternate emails End -->
+
+        <div class="ui tinyX segments">
+          <div class="ui grey segment">
+            <div class="ui list">
+              <div class="item">
+                <div class="header" style="word-break: break-all;">
+                  <h2>{{InputData.fullName}}</h2>
+                </div>
+                <div class="item">
+                  <i class="map marker icon list-icon"></i> {{InputData.fullAddress}}
+                </div>
+                <div class="item">
+                  <!-- <span *ngIf="transactionReceipt.providerDetails.contact.url"><i class="globe icon list-icon"></i> {{transactionReceipt.providerDetails.contact.url}} <span class="separator">|</span></span> -->
+                  <i class="envelope icon list-icon"></i> {{InputData.email}} <span class="separator">|</span>
+                  <i class="phone icon list-icon"></i> {{InputData.phone}}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ui horizontal segments">
+
+            <div class="ui segment details-cols2X">
+              <div class="ui small list">
+                <div class="item">
+                  <div class="header">Payment Type</div>
+                  {{transactionReceipt.operationType}} - {{transactionReceipt.tenderInfo.channelTypeName}}
+                </div>
+              </div>
+            </div>
+
+            <ng-container
+              *ngIf="transactionReceipt.operationType == 'Sale' && (transactionReceipt.tenderInfo.channelType == 2)">
+              <div class=" ui segment details-cols2X">
+                <div class="ui small list">
+                  <div class="item">
+                    <div class="header">Account Number</div>
+                    {{ transactionReceipt.tenderInfo.maskAccount | psstring }}
+                  </div>
+                </div>
+              </div>
+              <div class="ui segment details-cols2X">
+                <div class="ui small list">
+                  <div class="item">
+                    <div class="header">Account Name</div>
+                    {{transactionReceipt.tenderInfo.nameOnCheckOrCard==null?'NA':transactionReceipt.tenderInfo.nameOnCheckOrCard}}
+                  </div>
+                </div>
+              </div>
+              <div class="ui segment details-cols2X">
+                <div class="ui small list">
+                  <div class="item">
+                    <div class="header">Bank Name</div>
+                    {{transactionReceipt.tenderInfo.bankName==null?'NA':transactionReceipt.tenderInfo.bankName}}
+                  </div>
+                </div>
+              </div>
+            </ng-container>
+
+            <ng-container
+              *ngIf="transactionReceipt.operationType == 'Sale' && (transactionReceipt.tenderInfo.channelType == 10)">
+              <div class="ui segment details-cols2X">
+                <div class="ui small list">
+                  <div class="item">
+                    <div class="header">Check Details</div>
+                    Check Number: {{transactionReceipt.tenderInfo.checkNumber}} <br>
+                    <ng-container *ngIf="transactionReceipt.tenderInfo.accountNumber">
+                      Account Number: {{transactionReceipt.tenderInfo.accountNumber}}
+                    </ng-container>
+                  </div>
+                </div>
+              </div>
+              <div class="ui segment details-cols2X">
+                <div class="ui small list">
+                  <div class="item">
+                    <div class="header">Account Name</div>
+                    {{transactionReceipt.fullName}}
+                  </div>
+                </div>
+              </div>
+              <div class="ui segment details-cols2X">
+                <div class="ui small list">
+                  <div class="item">
+                    <div class="header">Name of Institution</div>
+                    {{(transactionReceipt.tenderInfo.bankName !== null && transactionReceipt.tenderInfo.bankName !==
+                    "")?transactionReceipt.tenderInfo.bankName: '--'}}
+                  </div>
+                </div>
+              </div>
+            </ng-container>
+
+            <ng-container
+              *ngIf="transactionReceipt.operationType == 'Sale' && (transactionReceipt.tenderInfo.channelType == 3)">
+              <div class="ui segment details-cols2X">
+                <div class="ui small list">
+                  <div class="item">
+                    <div class="header">Card Number</div>
+                    {{transactionReceipt.tenderInfo.maskCardNumber}}
+                  </div>
+                </div>
+              </div>
+              <div class="ui segment details-cols2X">
+                <div class="ui small list">
+                  <div class="item">
+                    <div class="header">Account Name</div>
+                    {{transactionReceipt.tenderInfo.nameOnCheckOrCard==null?'NA':transactionReceipt.tenderInfo.nameOnCheckOrCard}}
+                  </div>
+                </div>
+              </div>
+              <div class="ui segment details-cols2X">
+                <div class="ui small list">
+                  <div class="item">
+                    <div class="header">Card Type</div>
+                    {{transactionReceipt.tenderInfo.cardType==null?'NA':transactionReceipt.tenderInfo.cardType}}
+                  </div>
+                </div>
+              </div>
+            </ng-container>
+          </div>
+        </div>
+
+        <div class="ui horizontal segments" *ngIf="InputData.patientDetails !== undefined">
+          <div class="ui segment details-cols2X">
+            <div class="ui small list">
+              <div class="item">
+                <div class="header">Reference No</div>
+                {{transactionReceipt.invoiceNumber}}
+              </div>
+            </div>
+          </div>
+          <div class="ui segment details-cols2X">
+            <div class="ui small list">
+              <div class="item">
+                <div class="header">Patient Name</div>
+                {{InputData.patientDetails.patientName}}
+              </div>
+            </div>
+          </div>
+          <div class="ui segment details-cols2X">
+            <div class="ui small list">
+              <div class="item">
+                <div class="header">Email</div>
+                {{InputData.patientDetails.email}}
+              </div>
+            </div>
+          </div>
+          <div class="ui segment details-cols2X">
+            <div class="ui small list">
+              <div class="item">
+                <div class="header">Phone</div>
+                {{InputData.patientDetails.phone}}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Invoice line Items in case Receipt is for Invoice Starts -->
+        <div class="u-cf"></div>
+        <div class="ui tinyX segments" *ngIf="(invoiceData | json) != '{}'">
+          <div class="ui horizontal segments">
+            <div style="overflow-x: auto; width: 100%;">
+              <table class="ui table celled unstackable" style="border: none;">
+                <tbody>
+                  <tr class="heading">
+                    <td style="padding-top: 10px;padding-bottom: 10px;"><b>{{'invoice.find.productName' |
+                        translate}}</b></td>
+                    <td style="padding-top: 10px;padding-bottom: 10px;"><b>{{'invoice.find.unitRate' |
+                        translate}}</b></td>
+                    <td style="padding-top: 10px;padding-bottom: 10px;"><b>{{'invoice.find.quantity' |
+                        translate}}</b></td>
+                    <td style="padding-top: 10px;padding-bottom: 10px;"><b>{{'invoice.find.discount' |
+                        translate}}</b></td>
+                    <td style="padding-top: 10px;padding-bottom: 10px;"><b>{{'invoice.find.taxPercent' |
+                        translate}}</b></td>
+                    <td style="padding-top: 10px;padding-bottom: 10px;"><b>{{'invoice.find.amount' |
+                        translate}}</b></td>
+                  </tr>
+                  <tr class="details" *ngFor="let product of invoiceData.items">
+                    <td>
+                      <p style="font-size: 14px;margin: 0; line-height: 1.2">{{product.name}}</p>
+                    </td>
+                    <td>{{product.unitPrice | CustomFormatCurrency}}</td>
+                    <td>{{product.quantity}}</td>
+                    <td *ngIf="product.discountType!=2">{{product.discount | CustomFormatCurrency}}</td>
+                    <td *ngIf="product.discountType==2">{{product.calculatedDiscountAmount |
+                      CustomFormatCurrency}}
+                    </td>
+                    <td>{{product.taxPercent | CustomFormatPercentage}}</td>
+                    <td>{{product.calculatedTotalPrice | CustomFormatCurrency}}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <!-- Invoice line Items in case Receipt is for Invoice Ends -->
+
+        <div class="u-cf"></div>
+        <div class="ui tinyX segments">
+
+          <div class="ui horizontal segments">
+            <div class="ui segment details-cols2X">
+              <div class="ui small list">
+                <div class="item">
+                  <div class="header">Provider ID</div>
+                  {{transactionReceipt.providerId}}
+                </div>
+              </div>
+            </div>
+            <div class="ui segment details-cols2X">
+              <div class="ui small list">
+                <div class="item">
+                  <div class="header">Transaction Date</div>
+                  {{getFormattedDate(transactionReceipt.transactionDate)}}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ui right aligned segment">
+            <div class="rt-amount">
+              <span>Amount</span>
+              <span *ngIf="(invoiceData | json) != '{}'">{{invoiceData.subTotalAmount | CustomFormatCurrency}}</span>
+              <span *ngIf="(invoiceData | json) == '{}'">{{transactionReceipt.tenderInfo.amount |
+                CustomFormatCurrency}}</span>
+            </div>
+          </div>
+
+          <div class="ui right aligned segment">
+            <div class="rt-amount">
+              <span>Discount</span>
+              <span *ngIf="(invoiceData | json) != '{}'">{{invoiceData.totalDiscountAmount |
+                CustomFormatCurrency}}</span>
+              <span *ngIf="(invoiceData | json) == '{}'">{{transactionReceipt.discountAmount |
+                CustomFormatCurrency}}</span>
+            </div>
+          </div>
+
+          <div class="ui right aligned segment">
+            <div class="rt-amount">
+              <span>Tax</span>
+              <span *ngIf="(invoiceData | json) != '{}'">{{invoiceData.totalTaxAmount | CustomFormatCurrency}}</span>
+              <span *ngIf="(invoiceData | json) == '{}'">{{transactionReceipt.tenderInfo.taxAmount |
+                CustomFormatCurrency}}</span>
+            </div>
+          </div>
+
+          <div class="ui right aligned segment">
+            <div class="rt-amount">
+              <span style="font-size: 1.5em">Total</span>
+              <span style="font-size: 1.5em">$ {{transactionReceipt.tenderInfo.totalAmount.toFixed(2)}}</span>
+            </div>
+          </div>
+
+          <div class="ui small bottom attached message">
+            <strong>Memo</strong><br />
+            {{transactionReceipt.remarks}}
+          </div>
+
+        </div><!-- ui segments end -->
+        <div class="u-cf"></div>
+      </div>
+      <!-- </div> -->
+    </div>
+    <!-- Transaction Success Receipt End -->
+
+    <!-- Transaction Failed Receipt Start -->
+    <div
+      *ngIf="displayView && transactionDetails.transactionStatus=='Failed' || transactionDetails.transactionStatus=='Denied' || transactionDetails.transactionStatus=='Hold' || transactionDetails.transactionStatus=='Closed'">
+      <div class="toaster-static toaster-e">
+        <h3>Transaction {{transactionReceipt.transactionStatus}}</h3>
+      </div>
+      <!-- <div class="ui two column stackable padded grid"> -->
+      <!-- <div class="four wide column rcpt-actions">
+          <div class="ui vertical labeled icon menu">
+            <a class="item">
+              <i class="envelope open icon"></i>
+              <span class="actions">Inform system administrator</span>
+            </a>
+          </div>
+        </div> -->
+      <div class="sixteen wide column rcpt-dtls">
+        <!-- <button class="circular big ui right floated icon button" suiPopup popupText="Retry this transaction" popupInverted [popupPlacement]="'left'" (click)="onRetryClick()">
+            <i class="undo icon"></i>
+          </button> -->
+        <!-- <button class="circular big ui right floated icon button" suiPopup popupText="Inform system administrator" popupInverted [popupPlacement]="'left'" (click)="onInformSystemAdministratorClick()">
+            <i class="envelope icon"></i>
+          </button> -->
+        <div class="u-cf"></div>
+        <div class="ui segments">
+          <div class="ui horizontal segments">
+            <div class="ui segment">
+              <div class="ui small list">
+                <div class="item">
+                  <div class="header">Status</div>
+                  {{transactionReceipt.transactionStatus}}
+                </div>
+              </div>
+            </div>
+            <div class="ui segment">
+              <div class="ui small list">
+                <div class="item">
+                  <div class="header">Time</div>
+                  {{transactionReceipt.transactionDate}}
+                </div>
+              </div>
+            </div>
+            <!-- <div class="ui segment">
+                <div class="ui small list">
+                  <div class="item">
+                    <div class="header">AVS Response Code</div>
+                    {{(transactionReceipt.transactionResult==null) ? '' : transactionReceipt.transactionResult.verification1Code}}
+                  </div>
+                </div>
+              </div>
+              <div class="ui segment">
+                <div class="ui small list">
+                  <div class="item">
+                    <div class="header">CVC Response Code</div>
+                    {{(transactionReceipt.transactionResult==null) ? '' : transactionReceipt.transactionResult.verification2Code}}
+                  </div>
+                </div>
+              </div>-->
+          </div>
+          <div class="ui horizontal segments">
+            <div class="ui segment">
+              <div class="ui small list">
+                <div class="item">
+                  <div class="header">Declined By</div>
+                  Processor
+                </div>
+              </div>
+            </div>
+            <div class="ui segment">
+              <div class="ui small list">
+                <div class="item">
+                  <div class="header">Transaction Id</div>
+                  {{transactionReceipt.id}}
+                </div>
+              </div>
+            </div>
+            <div class="ui segment">
+              <div class="ui small list">
+                <div class="item">
+                  <div class="header">Failure Code</div>
+                  {{transactionDetails.reasonCode==null ? '' : transactionReceipt.reasonCode}}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ui small bottom attached warning message">
+            <i class="warning icon"></i><strong>Failure Reason</strong><br />
+            {{transactionDetails.reasonStatus==null ? '' : transactionReceipt.reasonStatus}}
+            <br>
+            {{(transactionReceipt.additionResultData !== null)? transactionReceipt.additionResultData: ''}}
+            <br>
+            {{(transactionReceipt.additionResultData2 !== null)? transactionReceipt.additionResultData2: ''}}
+          </div>
+        </div><!-- ui segments end -->
+        <!-- <div class="u-cf"></div>
+          <div class="ui tinyX segments">
+            <div class="ui grey segment">
+              <div class="ui list">
+                <div class="item">
+                  <div class="header">
+                    <h2>{{transactionReceipt.providerDetails.name}}</h2>
+                  </div>
+                  <div class="ui list">
+                    <div class="item">{{transactionReceipt.providerDetails.fullAddress}}</div>
+                    <div class="item"><i class="globe icon"></i> {{transactionReceipt.providerDetails.contact.url}} |
+                      <i class="envelope icon"></i> {{transactionReceipt.providerDetails.contact.email}} |
+                      <i class="phone icon"></i> {{transactionReceipt.providerDetails.contact.phone}}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="ui horizontal segments">
+              <div class="ui segment details-cols2X">
+                <div class="ui small list">
+                  <div class="item">
+                    <div class="header">Provider Id</div>
+                    {{loggedInUserData.parentId}}
+                  </div>
+                </div>
+              </div>
+              <div class="ui segment details-cols2X">
+                <div class="ui small list">
+                  <div class="item">
+                    <div class="header">Name on Card</div>
+                    {{transactionReceipt.tenderInfo.cardHolderName}}
+                  </div>
+                </div>
+              </div>
+              <div class="ui segment details-cols2X">
+                <div class="ui small list">
+                  <div class="item">
+                    <div class="header">Card Details</div>
+                    {{transactionReceipt.tenderInfo.maskCardNumber}} ({{transactionReceipt.tenderInfo.cardType}})
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="ui right aligned segment">
+              <div class="rt-amount">
+                <span>Amount</span>
+                <span>$ {{transactionReceipt.tenderInfo.amount.toFixed(2)}}</span>
+              </div>
+            </div>
+            <div class="ui right aligned segment">
+              <div class="rt-amount">
+                <span>Surcharge</span>
+                <span>$ {{transactionReceipt.tenderInfo.convenienceAmount.toFixed(2)}}</span>
+              </div>
+            </div>
+            <div class="ui right aligned segment">
+              <div class="rt-amount">
+                <span>Local Tax%</span>
+                <span>$ {{transactionReceipt.tenderInfo.taxAmount.toFixed(2)}}</span>
+              </div>
+            </div>
+            <div class="ui right aligned segment">
+              <div class="rt-amount">
+                <span style="font-size: 1.5em">Total</span>
+                <span style="font-size: 1.5em">$ {{transactionReceipt.tenderInfo.captureAmount.toFixed(2)}}</span>
+              </div>
+            </div>
+
+            <div class="ui small bottom attached message">
+              <i class="info circle icon"></i><strong>Memo</strong><br />
+              {{transactionReceipt.remarks}}
+            </div>
+          </div>
+          <div class="u-cf"></div> -->
+      </div>
+      <!-- </div> -->
+    </div>
+    <!-- Transaction Failed Receipt End -->
+
+
+  </div>
+  <!-- Receipt End -->
+
+  <!-- Adjust Start -->
+  <!-- <div *ngIf="InputData.operationName == 'adjust' && displayView">
+    <div content>
+      <div class="ui tiny form">
+        <div class="two fields">
+          <div class="required field">
+            <label>Tip Amount ($)</label>
+            <input type="text" placeholder="Tip Amount ($)" formControlName="TipAmount" />
+            <span>{{formErrors.TipAmount}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>-->
+  <!-- Adjust End -->
+
+  <!-- Refund Start -->
+  <div *ngIf="InputData.operationName == 'refund' && displayView && !isLoaderTransDetails">
+    <div content>
+      <div class="ui tiny form">
+        <div class="field">
+          **Maximum amount allowed to refund : {{transactionDetails.tenderInfo.totalAmount}}
+        </div>
+        <div class="inline fields">
+
+          <div class="field">
+            <sui-radio-button name="refundType" value="partial" formControlName="RefundType">Partial Refund
+            </sui-radio-button>
+          </div>
+          <div class="field">
+            <sui-radio-button name="refundType" value="full" formControlName="RefundType">Full Refund</sui-radio-button>
+          </div>
+
+        </div>
+        <div class="required fields">
+          <div class="required field">
+            <label>Amount ($)</label>
+            <input type="text" placeholder="Amount ($)" formControlName="Amount" currencyMask />
+            <span>{{formErrors.Amount}}</span>
+          </div>
+        </div>
+        <div class="inline required field">
+          <label>Reason</label>
+          <textarea rows="2" formControlName="Description"></textarea>
+          <span>{{formErrors.Description}}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Refund End -->
+
+  <!-- Force Sale Start -->
+  <div *ngIf="InputData.operationName == 'forceauth' && displayView">
+    <div content>
+      <div class="ui tiny form">
+        <div class="two fields">
+          <div class="required field">
+            <label>Amount ($)</label>
+            <input type="text" placeholder="Amount ($)" formControlName="Amount" />
+            <span>{{formErrors.Amount}}</span>
+          </div>
+          <div class="field">
+            <label>Discount Amount ($)</label>
+            <input type="text" placeholder="Discount Amount ($)" formControlName="DiscountAmount" />
+            <span>{{formErrors.DiscountAmount}}</span>
+          </div>
+          <div class="field">
+            <label>Tax Amount ($)</label>
+            <input type="text" placeholder="Tax Amount ($)" formControlName="TaxAmount" />
+            <span>{{formErrors.TaxAmount}}</span>
+          </div>
+        </div>
+        <div class="two fields">
+          <div class="field">
+            <label>Total Amount ($)</label>
+            <input type="text" name="first-name" placeholder="Total Amount ($)" formControlName="TotalAmount"
+              readonly />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Force Sale End -->
+
+  <!-- Transaction Trail Start -->
+  <div *ngIf="InputData.operationName == 'trail' && displayView">
+    <div class="ui list">
+      <div class="item">
+        <i class="folder open icon"></i>
+        <div class="content">
+          <div class="header">{{transactionDetails.fullName != '' ? transactionDetails.fullName : ''}} $
+            {{transactionDetails.tenderInfo.captureAmount.toFixed(2)}}
+            <div class="ui right floated header">
+              <div class="ui label mini green" *ngIf="transactionDetails.transactionStatus=='Success'">
+                {{transactionDetails.transactionStatus}}</div>
+              <div class="ui label mini red"
+                *ngIf="transactionDetails.transactionStatus=='Denied'||transactionDetails.transactionStatus=='Failed' || transactionDetails.transactionStatus=='Closed'">
+                {{transactionDetails.transactionStatus}}</div>
+              <div class="ui label mini blue"
+                *ngIf="transactionDetails.transactionStatus!='Success' && transactionDetails.transactionStatus!='Denied' && transactionDetails.transactionStatus!='Failed' && transactionDetails.transactionStatus!='Closed'">
+                {{transactionDetails.transactionStatus}}</div>
+            </div>
+          </div>
+          <!-- Root Transaction -->
+          <div class="description">
+            Date/Time: {{getFormattedDate(transactionDetails.transactionDate)}} <span class="separator">|</span>
+            {{transactionDetails.tenderInfo.cardType}} : {{transactionDetails.tenderInfo.maskCardNumber}}
+            <!-- <span
+              class="separator">|</span>
+            Auth Code: {{transactionDetails.authCode != null ? transactionDetails.authCode : '--'}}--> <span
+              class="separator">|</span>
+            Type: <span class="positive">{{transactionDetails.operationType}}</span><span class="separator">|</span>
+            Name on card: {{transactionDetails.tenderInfo.nameOnCheckOrCard}}
+          </div>
+          <!-- Child Transactions -->
+          <div class="list">
+            <div class="item" *ngFor="let transaction of trailTransactionList">
+              <i class="arrow circle right icon"
+                [ngClass]="transaction.transactionId==InputData.transactionId ? 'green' : ''"></i>
+              <div class="content">
+                <div class="header">{{transaction.patientName}} $ {{transaction.captureAmount.toFixed(2)}}
+                  <div class="ui right floated header">
+                    <div class="ui label mini green" *ngIf="transaction.transactionStatus=='Success'">
+                      {{transaction.transactionStatus}}</div>
+                    <div class="ui label mini red"
+                      *ngIf="transaction.transactionStatus=='Denied'||transaction.transactionStatus=='Failed' || transaction.transactionStatus=='Closed'">
+                      {{transaction.transactionStatus}}</div>
+                    <div class="ui label mini blue"
+                      *ngIf="transaction.transactionStatus!='Success' && transaction.transactionStatus!='Denied' && transaction.transactionStatus!='Closed'">
+                      {{transaction.transactionStatus}}</div>
+                  </div>
+                </div>
+                <div class="description">
+                  Txn Date Time: {{getFormattedDate(transaction.transactionDate)}}<span class="separator">|</span>
+                  {{transaction.cardType}}: {{transaction.cardNumber}}
+                  <!--<span class="separator">|</span>
+                  Auth Code: {{transaction.authCode != null ? transaction.authCode : '--'}}--><span
+                    class="separator">|</span>
+                  Type: <span class="positive">{{transaction.operationType}}</span><span class="separator">|</span>
+                  Name on card: {{transaction.nameOnCheckOrCard}}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- No Records Found Message -->
+    <sui-message class="attached warning" [isDismissable]="false" *ngIf="trailTransactionList.length==0">
+      <p>{{ noResultsMessage }}</p>
+    </sui-message>
+  </div>
+  <!-- Transaction Trail End -->
+</form>
+<app-download-receipt [InputData]="inputDataForDownload"></app-download-receipt>

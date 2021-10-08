@@ -1,0 +1,144 @@
+<app-toaster [toaster]="toastData"></app-toaster>
+<!--provider profile settings start-->
+<sui-accordion class="styled fluid" *ngIf="loggedInUserData.userType==1">
+  <sui-accordion-panel>
+    <div title>
+      <i class="dropdown icon"></i>
+      {{'settings.provider.profile' | translate}}
+    </div>
+    <div content class="user-prof">
+      <div class="ui horizontal list">
+        <div class="content" *ngIf="isLoader_Profile">
+          <div class="ui sub header">
+            <div class="ui segment modal-loader">
+              <div class="ui active dimmer">
+                <div class="ui small loader"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="item" *ngIf="!isLoader_Profile">
+          <div class="content">
+            <div class="ui sub header">
+              {{providerData.details.userName}}
+              <span>&nbsp;&nbsp;<i class="user outline icon"></i>{{providerData.details.contact.name.firstName}}
+                {{providerData.details.contact.name.lastName}}</span>
+            </div>
+            <div class="item">
+              <strong>{{'settings.provider.creationDate' | translate}}:
+              </strong>{{getFormattedDate(providerData.details.createdOn)}}<span class="separator">|</span>
+              <strong>{{'settings.provider.email' | translate}}:
+              </strong>{{providerData.details.contact.email!=null ? providerData.details.contact.email : '--'}}<span
+                class="separator">|</span>
+              <strong>{{'settings.provider.phone' | translate}}:
+              </strong>{{providerData.details.phone!=undefined ? providerData.details.phone : '--'}}
+            </div>
+            <div class="item">
+              <strong> {{'settings.provider.address' | translate}}: </strong>{{providerData.details.fullAddress}}
+            </div>
+            <div class="item" style="word-break: break-all;">
+              <strong> {{'settings.provider.url' | translate}}:
+              </strong>{{providerName!=null? providerData.details.baseUrl :'--'}}
+            </div>
+            <div class="item" style="word-break: break-all;">
+              <strong> {{'settings.provider.patientUrl' | translate}}:
+              </strong>{{providerName!=null? providerData.details.patientUrl :'--'}}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sui-accordion-panel>
+</sui-accordion>
+<!--provider profile settings end-->
+<!--patient profile settings start-->
+<div class="results-crsr" *ngIf="loggedInUserData.userType==0">
+  <div class="ui segment modal-loader" *ngIf="isLoader_Profile">
+    <div class="ui active dimmer">
+      <div class="ui medium text loader">Loading</div>
+    </div>
+  </div>
+  <div class="ui horizontal list" *ngIf="!isLoader_Profile">
+
+    <div class="item">
+      <div class="content">
+        <div class="ui sub header"><b>{{patient.fullName}}</b>
+          <span>&nbsp;&nbsp;MRN : <i class="address card outline icon"></i>
+            {{patient.mrn!=null && patient.mrn!='' ? patient.mrn : '--'}}</span>
+        </div>
+        <div class="item">
+          <strong> {{'patient.find.dob' | translate}}:
+          </strong>{{patient.dob!=null ? getFormattedDateToDisplay(patient.dob) : '--'}}<span class="separator">|</span>
+          <strong> {{'patient.find.email' | translate}}:
+          </strong>{{(patient.email!=null && patient.email!='')? patient.email : '--'}}<span class="separator">|</span>
+          <strong> {{'patient.find.phone' | translate}}:
+          </strong>{{patient.mobile!=null ? (patient.mobile | mask: '000-000-0000') : '--'}}
+          <span class="separator">|</span>
+          <strong> {{'patient.find.creationDate' | translate}}: </strong>{{patient.createdOn}}<span
+            class="separator">|</span>
+          <strong>{{'patient.find.ssn' | translate}}: </strong>
+          {{(patient.ssn !=null && patient.ssn != ''? (patient.ssn | dashMask: 'XXX-XX-XXXX'): '--')}}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="ui divided list" *ngIf="!isLoader_Profile">
+    <div class="item">
+      <i class="map marker icon"></i>
+      <div class="content">
+        <!-- <i class="map marker icon"></i> -->
+        <strong> {{'patient.find.address' | translate}}:
+        </strong>{{patient.fullAddress!='' ? patient.fullAddress : '--'}}
+      </div>
+    </div>
+    <div class="item" *ngIf="patient.isInsured">
+      <div class="content">
+        <!--<i class="globe icon"></i>-->
+        <div class="item" *ngFor="let details of patient.insuranceDetails">
+          <strong> {{'patient.find.insurancePartner' | translate}}:
+          </strong>{{details.insurancePartner}}<span class="separator">|</span>
+          <strong> {{'patient.find.policyNo' | translate}}: </strong>{{details.policyNo}}<span
+            class="separator">|</span>
+          <strong> {{'patient.find.groupNo' | translate}}: </strong>{{details.groupNo}}<span class="separator">|</span>
+          <strong> {{'patient.find.binNo' | translate}}:
+          </strong>{{details.binNo!=null ? details.binNo : '--'}}<span class="separator">|</span>
+          <strong> {{'patient.find.relation' | translate}}:
+          </strong>{{relationList[details.relation].title}}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button class="ui orange tiny primary button" *ngIf="!isLoader_Profile" (click)="onPatientOperationClick(patient)">{{
+    'settings.patient.edit' | translate}}</button>
+</div>
+<!--patient profile settings end-->
+
+<ng-template let-context let-modal="modal" #modalAddPatient>
+  <div class="header"><span
+      *ngIf="inputDataForEditOperation.isEdit && loggedInUserData.userType == 0">{{'patient.updateProfile.heading' |
+      translate}}</span>
+    <span *ngIf="!inputDataForEditOperation.isEdit">{{'patient.add.heading' | translate}}</span>
+    <i #closeWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-add-patient (OutputData)="outputDataFromOperation($event)" [InputData]="inputDataForEditOperation">
+    </app-add-patient>
+  </div>
+  <div class="actions">
+    <div class="ui tiny">
+      <!--<button class="tiny ui orange button" autofocus (click)="onAddPatientClick({'saveAndContinue': false})" *ngIf="!inputDataForOperation.isEdit">{{'patient.add.save' | translate}}</button>-->
+      <button class="tiny ui orange button" autofocus (click)="onAddPatientClick({'saveAndContinue': true})"
+        *ngIf="!inputDataForEditOperation.isEdit && isLinked==undefined">{{'patient.add.save' | translate}}</button>
+      <button class="tiny ui orange button" autofocus (click)='onEditPatientClick()'
+        *ngIf="inputDataForEditOperation.isEdit && isLinked==undefined">{{'patient.add.save' | translate}}</button>
+      <button class="tiny ui orange button" autofocus (click)='confirmPaymentTypeModal(patientData)'
+        *ngIf="isLinked!=undefined && isLinked">{{'patient.add.continue' | translate}}</button>
+      <button class="tiny ui orange button" autofocus (click)='linkPatient(patientData)'
+        *ngIf="isLinked!=undefined && !isLinked">{{'patient.add.link' | translate}}</button>
+      <button class="tiny ui button" *ngIf="!inputDataForEditOperation.isEdit"
+        (click)="clearAddPatientForm()">{{'patient.add.clear' | translate}}</button>
+      <button class="tiny ui button" (click)="modal.deny()">{{'patient.add.cancel' | translate}}</button>
+    </div>
+  </div>
+</ng-template>

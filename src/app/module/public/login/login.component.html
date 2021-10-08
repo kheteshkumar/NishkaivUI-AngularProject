@@ -1,0 +1,77 @@
+<app-toaster [toaster]="toastData"></app-toaster>
+<div class="limiter">
+  <div class="container-login100 img-bg">
+    <div class="wrap-login100">
+      <div class="ui active inverted dimmer" *ngIf="isloggingin"></div>
+      <!-- <img *ngIf="logo == ''" class="logo-center" src="../../../../assets/images/logo_login.png" />
+      <img *ngIf="logo !== ''" class="logo-center" src="{{logo}}"/> -->
+      <!-- <div style='height: 49px;width: 500px;'> -->
+      <img *ngIf="logo!=='' && logo!==null && !this.isLoaderLogo" class="logo-center" src="{{logo}}" />
+      <!-- </div> -->
+      <br />
+      <form novalidate [formGroup]="loginForm" (ngSubmit)="login()">
+        <sui-dimmer class="inverted" [(isDimmed)]="isLoaderTheme">
+          <div class="ui text loader">Finally Loading..</div>
+        </sui-dimmer>
+        <div class="ui segment" *ngIf="!isLoaderTheme">
+          <!-- <h2>{{ 'login.loginHeading' | translate}}</h2>-->
+          <h2>Login</h2>
+          <h4 *ngIf="showGuestUserMessage && !showGuestUserErrorMessage">{{ 'login.emulateLoad' | translate}}</h4>
+          <h4 *ngIf="showGuestUserErrorMessage">{{ 'login.emulateError' | translate}}</h4>
+          <div class="ui form" *ngIf="!showGuestUserMessage">
+            <div class="required inline field">
+              <label>{{ 'login.userName' | translate}}</label>
+              <div class="ui left icon input">
+                <i class="user icon"></i>
+                <input type="text" placeholder="username" formControlName="userName"
+                  [ngClass]="{'is-invalid': (loginForm.get('userName').touched || loginForm.get('userName').dirty) && !loginForm.get('userName').valid }" />
+              </div>
+              <span class="invalid-feedback">
+                <span class="error-msg">
+                  {{formErrors.userName}}
+                </span>
+              </span>
+            </div>
+            <div class="required inline field">
+              <label>{{ 'login.password' | translate}}</label>
+              <div class="ui left icon input">
+                <i class="lock icon"></i>
+                <input type="text" placeholder="password" formControlName="password" #password
+                  [type]="showPassword ? 'text' : 'password'" />
+                <a class="ui icon view-pw" suiPopup popupInverted
+                  popupText="{{ this.showPassword ?  'Hide password' : 'Show password' }}" popupPlacement="right"
+                  (click)="toggleShow()">
+                  <i [ngClass]="showPassword ? 'eye icon' : 'low vision icon'"></i>
+                </a>
+                <!-- <a class="ui icon view-pw" suiPopup popupInverted popupText="{{ this.showPassword ?  'Hide password' : 'Show password' }}" popupPlacement="right" class="showon2" (click)="toggleShow()"><i class="eye icon"></i></a>  -->
+              </div>
+              <span class="error-msg">
+                {{formErrors.password}}
+              </span>
+            </div>
+            <!-- <div class="field login-ckeck">
+              <sui-checkbox>
+                {{ 'login.remeberMe' | translate}}
+              </sui-checkbox>
+            </div> -->
+            <button
+              [ngClass]="isloggingin ? 'tiny ui orange button loading' : 'tiny ui orange button'">{{ 'login.submit' | translate}}</button>
+            <!-- <a routerLink="/forgot-username"> &nbsp; &nbsp; {{ 'login.forgotUsername' | translate}} </a><span class="separator">|</span> -->
+            <a [routerLink]="forgotPasswordLink">&nbsp; &nbsp;{{ 'login.forgotPassword' | translate}} </a>
+          </div>
+        </div>
+      </form>
+
+      <div style="text-align: center;margin-top: 15%;">
+        <span><a href="https://hellopatients.com/privacy-policy/"
+            target="_blank">{{ 'login.privacyPolicy' | translate}}</a></span>
+        <span class="divider"> | </span>
+        <span><a href="https://hellopatients.com/terms-and-conditions/"
+            target="_blank">{{ 'login.termsAndConditions' | translate}}</a></span>
+        <span class="divider"> | </span>
+        <span><a href="https://hellopatients.com/hipaa-authorization/"
+            target="_blank">{{ 'login.hipaaPolicy' | translate}}</a></span>
+      </div>
+    </div>
+  </div>
+</div>

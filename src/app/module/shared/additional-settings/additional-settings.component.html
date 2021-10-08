@@ -1,0 +1,38 @@
+<app-toaster [toaster]="toastData"></app-toaster>
+
+<form novalidate [formGroup]="additionalSettings">
+  <!-- <sui-accordion class="styled fluid">
+    <sui-accordion-panel>
+      <div title>
+        <i class="dropdown icon"></i>
+        {{'settings.patient.additionalSettings' | translate}}
+      </div> -->
+      <div class="content" *ngIf="isLoader_Setting">
+        <div class="ui sub header">
+          <div class="ui segment modal-loader">
+            <div class="ui active dimmer">
+              <div class="ui small loader"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+  <div content *ngIf="!isLoader_Setting">
+    <div class="ui one column grid">
+      <div class="column">
+        <div class="ui normal form">
+          <div class="fields">
+            <div class="field inline">
+              <p style="vertical-align: top">{{'settings.patient.textNotification' | translate}}({{optInOptOutStatus}})</p>
+              <sui-checkbox class="toggle" (checkChange)="onChangeOptInOptOutSms()" #optInOptOut
+                style="margin-top: 0px; margin-left:20px;" formControlName="optInOptOut">
+              </sui-checkbox>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- </sui-accordion-panel>
+  </sui-accordion> -->
+</form>

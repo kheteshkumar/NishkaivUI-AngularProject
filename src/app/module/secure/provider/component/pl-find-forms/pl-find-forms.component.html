@@ -1,0 +1,326 @@
+<app-toaster [toaster]="toastData"></app-toaster>
+<div id="initialLoad">
+  <form novalidate [formGroup]="findFormsForm">
+    <div class="main-content">
+      <h1 class="ui header">{{ 'plforms.find.heading' | translate }}</h1>
+      <div class="ui segment apf-search">
+        <button class="tiny ui orange right floated button" type="button" *ngIf="permissions.addForms"
+          (click)="addNewFormModal()">
+          <!-- <i class="outline icon"></i> -->
+          {{ 'plforms.find.addForm' | translate }}
+        </button>
+        <div class="u-cf-m"></div>
+        <sui-tabset>
+          <div class="tiny ui secondary menu">
+            <a class="item" suiTabHeader="1">{{ 'plforms.find.title' | translate }}</a>
+            <!-- <a class="item" suiTabHeader="2">{{ 'plforms.find.status' | translate }}</a> -->
+          </div>
+          <div class="ui segment selection-area">
+            <a class="ui label" *ngIf="findFormsForm.value.FormTitle">
+              {{ 'plforms.find.title' | translate }}: {{ findFormsForm.value.FormTitle }}
+              <i class="delete icon" (click)="clear('FormTitle')"></i>
+            </a>
+            <!-- <a class="ui label" *ngIf="findFormsForm.value.BranchName">
+          {{'plforms.find.branchName' | translate}}: {{findFormsForm.value.BranchName}}
+          <i class="delete icon" (click)="clear('BranchName')"></i>
+        </a>-->
+            <!--<a class="ui label" *ngIf="findFormsForm.value.Email">
+          {{'plforms.find.email' | translate}}: {{findFormsForm.value.Email}}
+          <i class="delete icon" (click)="clear('Email')"></i>
+        </a>-->
+            <a class="ui label" *ngIf="findFormsForm.value.Status != null && findFormsForm.value.Status.length > 0">
+              {{ 'plforms.find.status' | translate }}: {{ getFormStatusText(findFormsForm.value.Status) }}
+              <i class="delete icon" (click)="clear('Status')"></i>
+            </a>
+          </div>
+          <!-- Form Name -->
+          <div class="ui" suiTabContent="1">
+            <div class="ui tiny form">
+              <div class="five fields mb0">
+                <div class="field">
+                  <!-- <input placeholder="Form Title" type="text" formControlName="FormTitle" /> -->
+                  <!-- <span>{{ formErrors.FormTitle }}</span> -->
+                  <sui-multi-select class="selection" formControlName="FormTitle" labelField="formTitle" #formTitles
+                    valueField="formTitle" [isSearchable]="true" [options]="lookupList" icon="search">
+                    <sui-select-option *ngFor="let o of formTitles.filteredOptions" [value]="o"></sui-select-option>
+                  </sui-multi-select>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Email 
+      <div class="ui" suiTabContent="3">
+        <div class="ui tiny form">
+          <div class="five fields mb0">
+            <div class="field">
+              <input placeholder="Email" type="text" formControlName="Email">
+              <span>{{formErrors.Email}}</span>
+            </div>
+          </div>
+        </div>
+      </div>-->
+          <!-- Status -->
+          <div class="ui" suiTabContent="2">
+            <!-- <sui-multi-select [options]="formStatusList" formControlName="Status" labelField="statusName" valueField="statusName" [maxSelected]="5" icon="search" #Status> -->
+            <!--  <div class="ui icon search input"> -->
+            <!--    <i class="search icon"></i> -->
+            <!--    <input suiSelectSearch type="text" placeholder="Search options..."> -->
+            <!--  </div> -->
+            <!--  <div class="divider"></div> -->
+            <!--  <div class="header"> -->
+            <!--    <i class="list icon"></i> -->
+            <!--    {{'plforms.find.options' | translate}} -->
+            <!--  </div> -->
+            <!--  <div class="scrolling menu"> -->
+            <!--    <sui-select-option *ngFor="let o of Status.filteredOptions" [value]="o"></sui-select-option> -->
+            <!--  </div> -->
+            <!-- </sui-multi-select> -->
+
+            <div class="ui tiny form">
+              <div class="three fields mb0">
+                <div class="field">
+                  <!-- <sui-multi-select -->
+                  <!--   class="selection" -->
+                  <!--   formControlName="Status" -->
+                  <!--   #Status -->
+                  <!--   [hasLabels]="true" -->
+                  <!--   [maxSelected]="5" -->
+                  <!--   labelField="statusName" -->
+                  <!--   valueField="id" -->
+                  <!--   [isSearchable]="true" -->
+                  <!--   [options]="formStatusList" -->
+                  <!--   icon="search" -->
+                  <!-- > -->
+                  <!--   <sui-select-option *ngFor="let o of Status.filteredOptions" [value]="o"></sui-select-option> -->
+                  <!-- </sui-multi-select> -->
+
+                  <sui-multi-select class="selection" formControlName="Status" #Status labelField="statusName"
+                    valueField="id" [isSearchable]="true" [options]="formStatusList" icon="search">
+                    <sui-select-option *ngFor="let o of Status.filteredOptions" [value]="o"></sui-select-option>
+                  </sui-multi-select>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ui clearing divider"></div>
+          <button [ngClass]="{ loading: isLoader_FindForm }" class="tiny ui orange button" type="submit"
+            (click)="find()">
+            {{ 'plforms.find.find' | translate }}
+          </button>
+          <button class="tiny ui tiny button" (click)="clearForm()">{{ 'plforms.find.clear' | translate }}</button>
+        </sui-tabset>
+      </div>
+
+      <!-- <!-1- <div> -1-> -->
+      <sui-message class="attached warning" [isDismissable]="false" *ngIf="noRecordsFound_FormsList">
+        <p>{{ noResultsMessage }}</p>
+      </sui-message>
+
+      <div *ngIf="formsList && formsList.length > 0">
+        <form novalidate [formGroup]="formResultsForm">
+          <div class="ui grid">
+            <div class="eight wide column">
+              <div class="ui mini compact segment sort">
+                <div class="inline field sort-dd">
+                  <label>{{ 'common.sortBy' | translate }}: </label>
+                  <sui-select class="selection" [options]="sortingItemsList" formControlName="Sorting"
+                    labelField="label" valueField="label" (selectedOptionChange)="find()" #Sorting>
+                    <sui-select-option *ngFor="let option of sortingItemsList" [value]="option"> </sui-select-option>
+                  </sui-select>
+                </div>
+              </div>
+            </div>
+            <!-- <div class="right aligned eight wide column btn-export"> -->
+            <!--   <sui-select -->
+            <!--     class="ui mini floating labeled basic icon button" -->
+            <!--     icon="download" -->
+            <!--     (selectedOptionChange)="download($event)" -->
+            <!--     [isSearchable]="false" -->
+            <!--     placeholder="Export" -->
+            <!--     #filterSelect -->
+            <!--   > -->
+            <!--     <sui-select-option value="PDF"></sui-select-option> -->
+            <!--     <sui-select-option value="CSV"></sui-select-option> -->
+            <!--   </sui-select> -->
+            <!-- </div> -->
+          </div>
+        </form>
+        <!-- Form List -->
+        <div>
+          <div *ngFor="let form of formsList" class="ui segment results"
+            [ngClass]="{ loading: form.isLoader_FormOperation }">
+            <!-- <div class="ui active dimmer" *ngIf="form.isLoader_ActivateInactivate"> -->
+            <!--   <div class="ui small text loader"></div> -->
+            <!-- </div> -->
+            <div class="results-crsr" (click)="form.showDetails = form.showDetails == true ? false : true">
+              <div (click)="$event.stopPropagation()">
+                <div class="ui right floated header">
+                  <button [class]="'ui mini right floated button status ' + form.statusColor">
+                    {{ form.statusText }}
+                  </button>
+                  <div class="ui right pointing dropdown" suiPopup popupText="Actions" popupInverted suiDropdown
+                    (click)="$event.stopPropagation()">
+                    <i class="ellipsis horizontal icon"></i>
+                    <div class="menu" suiDropdownMenu>
+                      <div class="item" *ngFor="let operation of form.operations">
+                        <div class="w100" (click)="onFormOperationClick(operation, form)">
+                          {{ operation.value }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- <button -->
+                <!--   class="red circular ui right floated icon button" -->
+                <!--   type="button" -->
+                <!--   [disabled]="form.status === FormStatus.Published" -->
+                <!--   [ngClass]="{ loading: form.isLoader_DeleteOperation }" -->
+                <!--   (click)="deleteForm(form)" -->
+                <!--   suiPopup -->
+                <!--   popupText="Delete Form" -->
+                <!--   popupInverted -->
+                <!--   [popupPlacement]="'top'" -->
+                <!-- > -->
+                <!--   <i class="sticky delete icon"></i> -->
+                <!-- </button> -->
+                <!-- <button -->
+                <!--   class="orange circular ui right floated icon button" -->
+                <!--   [ngClass]="{ loading: form.isLoader_PublishOperation }" -->
+                <!--   type="button" -->
+                <!--   [disabled]="form.status === FormStatus.Published" -->
+                <!--   (click)="publishForm(form)" -->
+                <!--   suiPopup -->
+                <!--   popupText="Publish Form" -->
+                <!--   popupInverted -->
+                <!--   [popupPlacement]="'top'" -->
+                <!-- > -->
+                <!--   <i class="sticky bullhorn outline icon"></i> -->
+                <!-- </button> -->
+                <button class="orange circular ui right floated icon button" type="button"
+                  *ngIf="permissions.editForms" [disabled]="!form.isEditable"
+                  (click)="openEditFormModalWithParam(form)" suiPopup popupText="Edit Form" popupInverted
+                  [popupPlacement]="'top'">
+                  <i class="sticky edit outline icon"></i>
+                </button>
+                <button class="orange circular ui right floated icon button" type="button"
+                  (click)="openPreviewFormModalWithParam(form)" suiPopup popupText="Preview Form" popupInverted
+                  [popupPlacement]="'top'">
+                  <i class="sticky eye outline icon"></i>
+                </button>
+                <button class="orange circular ui right floated icon button" type="button"
+                  [disabled]="form.isActivated === ActivationEnum.Deactivated"
+                  (click)="openSendEmailModalWithParam(form)" suiPopup popupText="Send Email" popupInverted
+                  [popupPlacement]="'top'">
+                  <i class="icon envelope"></i>
+                </button>
+              </div>
+
+              <div class="ui horizontal list">
+                <div class="item">
+                  <div class="content">
+                    <div class="ui sub header">
+                      {{ form.formTitle }}
+                      <!-- <span>&nbsp;&nbsp;<i class="hospital outline icon"></i>{{ form.creationDate }}</span> -->
+                    </div>
+                    <div class="item">
+                      <strong> {{ 'plforms.find.createdDate' | translate }}: </strong>{{ form.createdDate
+                      }}<span class="separator">|</span>
+                      <strong> {{ 'plforms.find.modifiedDate' | translate }}: </strong>{{ form.modifiedDate }}
+                      <!-- <strong> {{'forms.find.fax' | translate}}: </strong>{{form.contact.fax!='' ? form.contact.fax : '--'}}<span class="separator">|</span> -->
+                      <!--<strong> {{'forms.find.email' | translate}}: </strong>{{form.email!=null ? form.email : '--'}}-->
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Form Description -->
+              <!-- [suiTransition]="transitionController" -->
+              <div class="ui divided list" *ngIf="form.showDetails" style="cursor: default">
+                <div class="item">
+                  <i class="list icon"></i>
+                  <div class="content">
+                    <strong>{{ 'plforms.find.description' | translate }}: </strong>{{ form.formDescription ?
+                    form.formDescription : '--' }}
+                  </div>
+                </div>
+                <!-- <div class="item"> -->
+                <!--   <i class="globe icon"></i> -->
+                <!--   <div class="content"> -->
+                <!--     <strong>{{ 'provider.find.url' | translate }}: </strong> -->
+                <!--     <span *ngIf="form.url != null && form.url != ''"> -->
+                <!--       <a href="{{ form.url }}" target="_blank">{{ form.url }}</a> -->
+                <!--     </span> -->
+                <!--     <span *ngIf="form.url == null || form.url == ''"> -->
+                <!--       -- -->
+                <!--     </span> -->
+                <!--   </div> -->
+                <!-- </div> -->
+              </div>
+            </div>
+          </div>
+        </div>
+        <app-pagination [pager]="pager" (OutputData)="find($event)"></app-pagination>
+      </div>
+      <!-- <app-formio-demo></app-formio-demo> -->
+    </div>
+  </form>
+</div>
+
+<ng-template let-context let-modal="modal" #modalAddForm>
+  <div class="header">
+    <span *ngIf="inputDataForOperation.isEdit">{{ 'plforms.edit.heading' | translate }}</span>
+    <span *ngIf="!inputDataForOperation.isEdit">{{ 'plforms.add.heading' | translate }}</span>
+    <i #closeWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-pl-add-form (OutputData)="outputDataFromOperation($event)" [InputData]="inputDataForOperation" #linkForm>
+    </app-pl-add-form>
+    <!-- <app-pl-link-form -->
+    <!--   (OutputData)="outputDataFromOperation($event)" -->
+    <!--   [InputData]="inputDataForOperation" -->
+    <!--   #linkForm -->
+    <!-- ></app-pl-link-form> -->
+  </div>
+</ng-template>
+
+<ng-template let-context let-modal="modal" #modalPreviewForm>
+  <div class="header">
+    <span>{{ 'plforms.preview.heading' | translate }}</span>
+    <i #closePreviewEl (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-pl-preview-form [InputData]="inputDataForOperation"></app-pl-preview-form>
+    <button class="tiny ui button" (click)="modal.deny()">{{ 'plforms.preview.close' | translate }}</button>
+  </div>
+</ng-template>
+
+<ng-template let-context let-modal="modal" #modalGetFormUrl>
+  <div class="header">
+    <span>{{ 'plforms.getformurl.heading' | translate }}</span>
+    <i #closeGenerateFormUrl (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-pl-get-form-url [InputData]="inputDataForOperation"></app-pl-get-form-url>
+    <button class="tiny ui button" (click)="modal.deny()">{{ 'plforms.getformurl.close' | translate }}</button>
+  </div>
+</ng-template>
+
+<ng-template let-context let-modal="modal" #modalSendEmail>
+  <div class="header">
+    <span>{{ 'plforms.sendEmail.heading' | translate }}</span>
+    <i #closeSendEmail (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-pl-send-email [InputData]="inputDataForOperation"></app-pl-send-email>
+    <button class="tiny ui button" (click)="modal.deny()">{{ 'plforms.sendEmail.close' | translate }}</button>
+  </div>
+</ng-template>
+<ng-template let-context let-modal="modal" #modalViewSubmissions>
+  <div class="header">
+    <span>{{ 'plforms.viewSubmissions.heading' | translate }}</span>
+    <i #closeSendEmail (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-pl-view-submissions [InputData]="inputDataForOperation"></app-pl-view-submissions>
+    <button class="tiny ui button" (click)="modal.deny()">{{ 'plforms.viewSubmissions.close' | translate }}</button>
+  </div>
+</ng-template>

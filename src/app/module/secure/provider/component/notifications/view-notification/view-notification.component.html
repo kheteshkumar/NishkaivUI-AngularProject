@@ -1,0 +1,38 @@
+<div class="toaster-static toaster-s" *ngIf="showSuccessMessage">
+  <span><a href="javascript:void(0)" (click)="showSuccessMessage=!showSuccessMessage"><i
+        class="close icon"></i></a></span>
+  <p>{{successMessage}}</p>
+</div>
+<div class="toaster-static toaster-e" *ngIf="showErrorMessage">
+  <span><a href="javascript:void(0)" (click)="showErrorMessage=!showErrorMessage"><i class="close icon"></i></a></span>
+  <p>{{errorMessage}}</p>
+</div>
+<div class="ui segment modal-loader" *ngIf="isLoader">
+  <div class="ui active dimmer">
+    <div class="ui medium text loader">Loading</div>
+  </div>
+</div>
+
+
+<div class="ui" *ngIf="isLoader_processing">
+  <div class="ui active dimmer">
+    <div class="ui indeterminate text loader">{{'common.processing' | translate}}</div>
+  </div>
+</div>
+
+<ng-container *ngIf="!isLoader">
+  <app-formio-renderer [submission]="this.InputData.notification.submission" [viewDescription]="false"
+    [form]="augmentedForm" [viewOnly]="true" [viewTitle]="false" [readOnly]="true">
+  </app-formio-renderer>
+</ng-container>
+
+<div class="ui fitted divider wizard-footer"></div>
+
+<div class="actions">
+  <div class="ui tiny">
+    <button class="ui primary orange tiny button" autofocus
+      (click)='dismiss(this.InputData.notification)'>{{'notifications.view.dismiss' |
+      translate}}</button>
+    <button class="ui tiny button" (click)="closeModal()">{{'notifications.view.close' | translate}}</button>
+  </div>
+</div>

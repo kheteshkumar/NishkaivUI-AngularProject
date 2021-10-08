@@ -1,0 +1,86 @@
+<!-- <app-toaster [toaster]="toastData"></app-toaster> -->
+<sui-accordion class="styled fluid">
+  <sui-accordion-panel>
+    <div title>
+      <i class="dropdown icon"></i>
+      {{'settings.provider.skins' | translate}}
+    </div>
+    <div content>
+      <div class="ui three column stackable grid skins">
+        <div class="column">
+          <div [ngClass]="selectedSkin == 7 ? 'ui fade reveal active' : 'ui reveal'" (click)="onSkinChange(7)">
+            <div class="visible content">
+              <img src="../../../../../../assets/images/skins/skin07.png" class="ui image skinsel">
+            </div>
+            <div class="hidden content">
+              <img src="../../../../../../assets/images/skins/skin07sel.png" class="ui image">
+            </div>
+          </div>
+        </div>
+        <div class="column">
+          <div [ngClass]="selectedSkin == 1 ? 'ui fade reveal active' : 'ui reveal'" (click)="onSkinChange(1)">
+            <div class="visible content">
+              <img src="../../../../../../assets/images/skins/skin01.png" class="ui image skinsel">
+            </div>
+            <div class="hidden content">
+              <img src="../../../../../../assets/images/skins/skin01sel.png" class="ui image">
+            </div>
+          </div>
+        </div>
+        <div class="column">
+          <div [ngClass]="selectedSkin == 2 ? 'ui fade reveal active' : 'ui reveal'" (click)="onSkinChange(2)">
+            <div class="visible content">
+              <img src="../../../../../../assets/images/skins/skin02.png" class="ui image skinsel">
+            </div>
+            <div class="hidden content">
+              <img src="../../../../../../assets/images/skins/skin02sel.png" class="ui image">
+            </div>
+          </div>
+        </div>
+        <div class="column">
+          <div [ngClass]="selectedSkin == 3 ? 'ui fade reveal active' : 'ui reveal'" (click)="onSkinChange(3)">
+            <div class="visible content">
+              <img src="../../../../../../assets/images/skins/skin03.png" class="ui image skinsel">
+            </div>
+            <div class="hidden content">
+              <img src="../../../../../../assets/images/skins/skin03sel.png" class="ui image">
+            </div>
+          </div>
+        </div>
+        <div class="column">
+          <div [ngClass]="selectedSkin == 4 ? 'ui fade reveal active' : 'ui reveal'" (click)="onSkinChange(4)">
+            <div class="visible content">
+              <img src="../../../../../../assets/images/skins/skin04.png" class="ui image skinsel">
+            </div>
+            <div class="hidden content">
+              <img src="../../../../../../assets/images/skins/skin04sel.png" class="ui image">
+            </div>
+          </div>
+        </div>
+        <div class="column">
+          <div [ngClass]="selectedSkin == 5 ? 'ui fade reveal active' : 'ui reveal'" (click)="onSkinChange(5)">
+            <div class="visible content">
+              <img src="../../../../../../assets/images/skins/skin05.png" class="ui image skinsel">
+            </div>
+            <div class="hidden content">
+              <img src="../../../../../../assets/images/skins/skin05sel.png" class="ui image">
+            </div>
+          </div>
+        </div>
+        <div class="column">
+          <div [ngClass]="selectedSkin == 6 ? 'ui fade reveal active' : 'ui reveal'" (click)="onSkinChange(6)">
+            <div class="visible content">
+              <img src="../../../../../../assets/images/skins/skin06.png" class="ui image skinsel">
+            </div>
+            <div class="hidden content">
+              <img src="../../../../../../assets/images/skins/skin06sel.png" class="ui image">
+            </div>
+          </div>
+        </div>
+      </div> <!-- grid end -->
+      <!-- <button [ngClass]= "isLoader ? 'normal ui primary button loading' : 'normal ui primary button'" type="submit" (click)="apply()">{{'settings.provider.apply' | translate}}</button> -->
+      <button class="normal ui button" type="submit"
+        (click)="reset()">{{'settings.provider.reset' | translate}}</button>
+    </div>
+  </sui-accordion-panel>
+</sui-accordion>

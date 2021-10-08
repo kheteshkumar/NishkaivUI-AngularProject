@@ -1,0 +1,194 @@
+<ng-template let-result let-query="query" #template>
+  {{ result.displayName}}
+</ng-template>
+<div class="ui" *ngIf="isLoader_Doctor || isLoader_processing">
+  <div class="ui active dimmer">
+    <div class="ui indeterminate text loader">{{'common.loading' | translate}}</div>
+  </div>
+</div>
+<form [formGroup]="addClaimsForm" class="ui form">
+
+  <div class="toaster-static toaster-s" *ngIf="showSuccessMessage">
+    <span><a href="javascript:void(0)" (click)="showSuccessMessage=!showSuccessMessage"><i
+          class="close icon"></i></a></span>
+    <p>{{successMessage}}</p>
+  </div>
+  <div class="toaster-static toaster-e" *ngIf="showErrorMessage">
+    <span><a href="javascript:void(0)" (click)="showErrorMessage=!showErrorMessage"><i
+          class="close icon"></i></a></span>
+    <p>{{errorMessage}}</p>
+  </div>
+
+
+  <div class="ui tiny form">
+    <div class="two fields">
+      <div class="required field" *ngIf="!InputData.isEdit">
+        <label>{{'claims.add.patientId' | translate}}</label>
+        <sui-select class="selection" formControlName="PatientId" #PatientId
+          (selectedOptionChange)="selectPatient(PatientId)" labelField="name" valueField="id" [isSearchable]="true"
+          [options]="patientList" icon="search">
+          <sui-select-option *ngFor="let o of PatientId.filteredOptions" [value]="o">
+          </sui-select-option>
+        </sui-select>
+        <span>{{addClaimsFormError.PatientId}}</span>
+      </div>
+      <div class="required field" *ngIf="InputData.isEdit">
+        <label>{{'claims.add.patientId' | translate}}</label>
+        <input placeholder="{{'claims.add.patientId' | translate}}" type="text" formControlName="PatientName"
+          #PatientName>
+      </div>
+
+      <div class="field required fifteen wide column claim-insurance-input">
+        <label>{{'claims.add.patientInsuranceId' | translate}}</label>
+        <sui-select class="selection" icon="search" [options]="patientInsuranceList" labelField="displayName"
+          valueField="id" (selectedOptionChange)="selectPatientInsurance(PatientInsuranceId)" [isSearchable]="true"
+          placeholder="{{'claims.add.patientInsuranceId' | translate}}" formControlName="PatientInsuranceId"
+          #PatientInsuranceId>
+          <sui-select-option *ngFor="let o of PatientInsuranceId.filteredOptions" [value]="o"></sui-select-option>
+        </sui-select>
+        <span>{{addClaimsFormError.PatientInsuranceId}}</span>
+      </div>
+      <div class="one wide column" style="margin-left: -5px; margin-top: 2px;" *ngIf="permissions.patientInsuranceManagement">
+        <div class="field">
+          <label>&nbsp;</label>
+          <button class="ui orange tiny default icon button" autofocus (click)="onAddPayerClick()" suiPopup
+            popupText="Update Patient Insurance Details" popupInverted [popupPlacement]="'top'">
+            <i class="pencil icon"></i>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- <div class="fields">
+      <div class="field required fifteen wide column claim-insurance-input">
+        <label>{{'claims.add.patientInsuranceId' | translate}}</label>
+        <sui-select class="selection" icon="search" [options]="patientInsuranceList" labelField="displayName"
+          valueField="id" (selectedOptionChange)="selectPatientInsurance(PatientInsuranceId)" [isSearchable]="true"
+          placeholder="{{'claims.add.patientInsuranceId' | translate}}" formControlName="PatientInsuranceId"
+          #PatientInsuranceId>
+          <sui-select-option *ngFor="let o of PatientInsuranceId.filteredOptions" [value]="o"></sui-select-option>
+        </sui-select>
+        <span>{{addClaimsFormError.PatientInsuranceId}}</span>
+      </div>
+      <div class="one wide column" style="margin-left: -5px; margin-top: 2px;">
+        <div class="field">
+          <label>&nbsp;</label>
+          <button class="ui orange tiny default icon button" autofocus (click)="onAddPayerClick()" suiPopup
+            popupText="Update Patient Insurance Details" popupInverted [popupPlacement]="'top'">
+            <i class="pencil icon"></i>
+          </button>
+        </div>
+      </div>
+    </div> -->
+
+    <div class="two fields" *ngIf="addClaimsForm.value.PatientInsuranceId" style="background: #ddd; padding: 10px;">
+      <div class="field">
+        <label>Policy Subscriber</label>
+        <p>{{selectedInsurance.relation}}</p>
+      </div>
+      <div class="field">
+        <label>Subscriber Name</label>
+        <p>{{selectedInsurance.firstName + ' ' + selectedInsurance.lastName}}</p>
+      </div>
+    </div>
+    <div class="two fields">
+      <div class="required field">
+        <label>{{'claims.add.doctorId' | translate}}</label>
+        <sui-select class="selection" formControlName="DoctorId" #DoctorId labelField="displayName" valueField="id"
+          [isSearchable]="true" [options]="doctorList" icon="search">
+          <sui-select-option *ngFor="let o of DoctorId.filteredOptions" [value]="o">
+          </sui-select-option>
+        </sui-select>
+        <span>{{addClaimsFormError.DoctorId}}</span>
+      </div>
+      <div class="required field">
+        <label>{{'claims.add.serviceDate' | translate}}</label>
+        <div class="ui left icon input">
+          <i class="calendar icon"></i>
+          <input placeholder="MM/DD/YYYY" type="text" mask="00/00/0000" [dropSpecialCharacters]="false"
+            [validation]="false" formControlName="ServiceDate">
+        </div>
+        <span>{{addClaimsFormError.ServiceDate}}</span>
+      </div>
+    </div>
+    <!-- <div class="two fields">
+      <div class="required field">
+        <label>{{'claims.add.serviceDate' | translate}}</label>
+        <div class="ui left icon input">
+          <i class="calendar icon"></i>
+          <input placeholder="MM/DD/YYYY" type="text" mask="00/00/0000" [dropSpecialCharacters]="false"
+            [validation]="false" formControlName="ServiceDate">
+        </div>
+        <span>{{addClaimsFormError.ServiceDate}}</span>
+      </div>
+    </div> -->
+    <!-- <div class="two fields">
+      <div class="required field">
+        <label>{{'claims.add.serviceDate' | translate}}</label>
+        <div class="ui left icon input">
+          <i class="calendar icon"></i>
+          <input suiDatepicker [pickerMode]="dateMode" [pickerMinDate]="minServiceDate" [pickerMaxDate]="maxServiceDate"
+            [pickerUseNativeOnMobile]="false" formControlName="ServiceDate" readonly>
+        </div>
+        <span>{{addClaimsFormError.ServiceDate}}</span>
+      </div>
+    </div> -->
+
+    <div class="field">
+      <sui-checkbox class="toggle" formControlName="CheckClaimNow" #CheckClaimNow>
+        {{'Check Claim Status Now' | translate}}</sui-checkbox>
+    </div>
+
+    <div class="three fields" *ngIf="!addClaimsForm.value.CheckClaimNow">
+      <div class="required field">
+        <label class="update-label">{{'claims.add.claimCycle' | translate}} </label>
+        <sui-select class="selection" [options]="frequencyList" formControlName="Frequency"
+          (selectedOptionChange)="onFrequencySelectionClick(Frequency)" labelField="title" #Frequency
+          valueField="value">
+          <sui-select-option *ngFor="let option of frequencyList" [value]="option"></sui-select-option>
+        </sui-select>
+      </div>
+      <div class="required field">
+        <label class="update-label">{{'claims.add.claimUpdate' | translate}} </label>
+        <div class="ui left icon input">
+          <i class="calendar icon"></i>
+          <input suiDatepicker [pickerMode]="dateMode" [pickerFirstDayOfWeek]="firstDayOfWeek" style="width: 115px;"
+            [pickerUseNativeOnMobile]="false" [pickerMinDate]="minClaimDate" [pickerMaxDate]="maxClaimDate"
+            formControlName="StartDate" #StartDate readonly>
+        </div>
+        <span>{{addClaimsFormError.StartDate}}</span>
+      </div>
+      <div class="required field">
+        <label class="update-label">{{'claims.add.noOfTimes' | translate}}</label>
+        <input type="text" placeholder="{{'claims.add.noOfTimes' | translate}}" formControlName="NoOfTimes" #NoOfTimes>
+        <span>{{addClaimsFormError.NoOfTimes}}</span>
+      </div>
+    </div>
+  </div>
+
+</form>
+
+<!-- Add Patient Start -->
+<ng-template let-context let-modal="modal" #modalAddPatient>
+  <div class="header">{{'patient.add.heading' | translate}}
+    <i #closeModal (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-add-patient [InputData]="inputDataForAddPatient" (OutputData)="outputDataFromPatientOperation($event)">
+    </app-add-patient>
+  </div>
+  <div class="actions">
+    <div class="ui tiny">
+
+      <button class="tiny ui orange button" autofocus (click)="onAddPatientClick({'saveAndContinue': false})"
+        *ngIf="!inputDataForAddPatient.isEdit && !linkPatient">{{'patient.add.save' | translate}}</button>
+
+      <button class="tiny ui orange button" autofocus (click)='onEditPatientClick()'
+        *ngIf="inputDataForAddPatient.isEdit && isLinked==undefined">{{'patient.add.save' | translate}}</button>
+
+      <button class="ui orange tiny button" (click)="modal.deny()">{{'patient.add.cancel' | translate}}</button>
+    </div>
+  </div>
+</ng-template>
+<!-- Add Patient End -->

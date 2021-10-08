@@ -1,0 +1,183 @@
+<app-toaster [toaster]="toastData"></app-toaster>
+<sui-tabset>
+  <div class="ui mini left attached tabular menu">
+    <a class="item" suiTabHeader="1">{{'patient.wallet.creditHeading' | translate}}</a>
+    <a class="item" suiTabHeader="2">{{'patient.wallet.achHeading' | translate}}</a>
+  </div>
+  <div class="ui bottom attached segment" suiTabContent="1">
+    <div *ngIf="noRecordsFound_CustCreditAccList">
+      <div class="ui cards cards-overflow">
+        <div class="ui card add-insurance">
+          <sui-message class="attached warning" [isDismissable]="false">
+            <p>{{'transaction.add.noRecordsFound' | translate}}</p>
+          </sui-message>
+        </div>
+      </div>
+    </div>
+    <div class="ui cards cards-overflow" style="max-height: none;">
+      <div *ngFor="let custAcc of CCList">
+        <div class="content">
+          <!-- operation control will come here -->
+
+          <div style="margin: 5px" class="ui card card-selectX" *ngIf="custAcc.accountType=='1'">
+            <div class="ui active dimmer" *ngIf="custAcc.isLoader_patientAccountOperation">
+              <div class="ui small text loader"></div>
+            </div>
+            <div class="content">
+              <div class="ui right floated pointing dropdown mr0" suiDropdown (click)="$event.stopPropagation()">
+                <i class="ellipsis horizontal icon"></i>
+                <div class="menu" suiDropdownMenu>
+                  <div class="item" *ngFor="let operation of custAcc.operations"
+                    (click)="onPatientAccountOperationClick(operation, patient, custAcc)">
+                    <div class="w100">{{operation.value}}</div>
+
+                  </div>
+                </div>
+              </div>
+              <div class="ui mini green bottom right attached label" *ngIf="custAcc.isActive=='1'">
+                {{'Active'}}
+              </div>
+              <div class="ui mini red bottom right attached label" *ngIf="custAcc.isActive!='1'">
+                {{'InActive'}}
+              </div>
+              <div class="header">
+                &nbsp;&nbsp;{{custAcc.accountHolderName}}</div>
+              <div class="meta">
+              </div>
+            </div>
+            <div class="content">
+              <span class="left floated like">
+                <b>****{{custAcc.maskedCardNumber}}</b><br>
+                Valid through: {{custAcc.cardExpiry}}
+              </span>
+              <span class="right floated star">
+                <img class="ui image" *ngIf="custAcc.cardType==''||custAcc.cardType==null"
+                  src="../../../../../../../assets/images/cards/BlankCard.png" />
+                <img class="ui image" *ngIf="custAcc.cardType=='AMEX'"
+                  src="../../../../../../../assets/images/cards/Amex.png" />
+                <img class="ui image" *ngIf="custAcc.cardType=='DINERS'"
+                  src="../../../../../../../assets/images/cards/Diners.png" />
+                <img class="ui image" *ngIf="custAcc.cardType=='DISCOVER'"
+                  src="../../../../../../../assets/images/cards/Discover.png" />
+                <img class="ui image" *ngIf="custAcc.cardType=='JCB'"
+                  src="../../../../../../../assets/images/cards/JCB.png" />
+                <img class="ui image" *ngIf="custAcc.cardType=='MASTERCARD'"
+                  src="../../../../../../../assets/images/cards/MasterCard.png" />
+                <img class="ui image" *ngIf="custAcc.cardType=='VISA'"
+                  src="../../../../../../../assets/images/cards/Visa.png" />
+              </span>
+              <div style="clear: both;"></div>
+              <button class="orange circular ui left floated icon button" type="button"
+                (click)="$event.stopPropagation();onPatientAccountOperationClick({ 'key': 'editPatientAccount', 'value': 'Edit' }, patient, custAcc)"
+                suiPopup popupText="Edit" popupInverted [popupPlacement]="'top'">
+                <i class="pencil sign icon"></i>
+              </button>
+              <button class="orange circular ui left floated icon button" type="button"
+                (click)="$event.stopPropagation();onPatientAccountOperationClick({ 'key': 'delete', 'value': 'Delete' }, patient, custAcc)"
+                suiPopup popupText="Delete" popupInverted [popupPlacement]="'top'">
+                <i class="trash alternate outline sign icon" style="color: #ffffff;"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="ui bottom attached segment" suiTabContent="2">
+    <div *ngIf="noRecordsFound_CustAchAccList">
+      <div class="ui cards cards-overflow">
+        <div class="ui card add-insurance">
+          <sui-message class="attached warning" [isDismissable]="false">
+            <p>{{'transaction.add.noRecordsFound' | translate}}</p>
+          </sui-message>
+        </div>
+      </div>
+    </div>
+    <div class="ui cards cards-overflow" style="max-height: none;">
+      <div *ngFor="let custAcc of ACHList">
+        <div class="content">
+          <!-- operation control will come here -->
+
+          <div style="margin: 5px" class="ui card card-selectX" *ngIf="custAcc.accountType=='2'">
+            <div class="ui active dimmer" *ngIf="custAcc.isLoader_patientAccountOperation">
+              <div class="ui small text loader"></div>
+            </div>
+            <div class="content">
+              <div class="ui right floated pointing dropdown mr0" suiDropdown (click)="$event.stopPropagation()">
+                <i class="ellipsis horizontal icon"></i>
+                <div class="menu" suiDropdownMenu>
+                  <div class="item" *ngFor="let operation of custAcc.operations"
+                    (click)="onPatientAccountOperationClick(operation, patient, custAcc)">
+                    <div class="w100">{{operation.value}}</div>
+
+                  </div>
+                </div>
+              </div>
+              <div class="ui mini green bottom right attached label" *ngIf="custAcc.isActive=='1'">
+                {{'Active'}}
+              </div>
+              <div class="ui mini red bottom right attached label" *ngIf="custAcc.isActive!='1'">
+                {{'InActive'}}
+              </div>
+              <div class="header">
+                &nbsp;&nbsp;{{custAcc.accountHolderName}}</div>
+              <div class="meta">
+              </div>
+            </div>
+            <div class="content">
+              <span class="left floated like">
+                <b>****{{custAcc.maskedAccountNo}}</b><br>
+                {{'transaction.add.paymentTypeACH' | translate}}
+              </span>
+              <div style="clear: both;"></div>
+              <button class="orange circular ui left floated icon button" type="button"
+                (click)="$event.stopPropagation();onPatientAccountOperationClick({ 'key': 'editPatientAccount', 'value': 'Edit' }, patient, custAcc)"
+                suiPopup popupText="Edit" popupInverted [popupPlacement]="'top'">
+                <i class="pencil sign icon"></i>
+              </button>
+              <button class="orange circular ui left floated icon button" type="button"
+                (click)="$event.stopPropagation();onPatientAccountOperationClick({ 'key': 'delete', 'value': 'Delete' }, patient, custAcc)"
+                suiPopup popupText="Delete" popupInverted [popupPlacement]="'top'">
+                <i class="trash alternate outline sign icon" style="color: #ffffff;"></i>
+              </button>
+            </div>
+
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</sui-tabset>
+
+
+<ng-template let-context let-modal="modal" #modalAddPatientAccount>
+  <div class="header">
+    <span *ngIf="!inputDataForAccountOperation.isEdit">{{'patientAccount.add.heading' | translate}}</span>
+    <span *ngIf="inputDataForAccountOperation.isEdit">{{'patientAccount.edit.heading' | translate}}</span>
+    <i #closeModal (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-add-patient-account [InputData]="inputDataForAccountOperation" (OutputData)="outputDataOperation($event)">
+    </app-add-patient-account>
+  </div>
+  <div class="actions">
+    <div class="ui tiny">
+      <button class="tiny ui orange button" autofocus (click)='onAddPatientAccountClick()'
+        *ngIf="!inputDataForAccountOperation.isEdit">{{'patient.add.save' | translate}}</button>
+      <button class="tiny ui orange button" autofocus (click)='onEditPatientAccountClick()'
+        *ngIf="inputDataForAccountOperation.isEdit">{{'patient.add.save' | translate}}</button>
+      <button class="tiny ui button" (click)="modal.deny()">{{'transaction.find.cancel' | translate}}</button>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template let-context let-modal="modal" #modalAddTransaction>
+  <div class="header">{{'transaction.add.acceptPayment' | translate}}
+    <i #closeModal (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-add-transaction [InputData]="inputDataForOperation" (OutputData)="outputDataFromOperation($event)">
+    </app-add-transaction>
+  </div>
+</ng-template>

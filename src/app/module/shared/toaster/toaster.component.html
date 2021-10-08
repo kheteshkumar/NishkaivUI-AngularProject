@@ -1,0 +1,12 @@
+<!--<div [ngClass]="toaster.isShow ? 'down toaster-s toaster' : 'toaster-s toaster up'" >
+    {{toaster.message}}<span><a href="javascript:void(0)" (click)="hideToaster();">&#215;</a></span></div>-->
+   <!-- <div [ngClass]="getClassName() == 'toaster-e toaster up' || getClassName() == 'toaster-s toaster up' || getClassName() == 'toaster' ? '' : 'toast-overlay'"
+    (click)="hideToaster();">
+</div>-->
+<div [ngClass]="getClassName()">
+    {{toaster.message}}
+    <span>
+        <a href="javascript:void(0)" (click)="hideToaster();"><i class="close icon"></i></a>
+    </span>
+</div>
+<!-- &#215; -->

@@ -1,0 +1,213 @@
+<div class="ui" *ngIf="isLoader">
+  <div class="ui active dimmer">
+    <div class="ui indeterminate text loader">{{'common.processing' | translate}}</div>
+  </div>
+</div>
+<form [formGroup]="addProviderForm" class="ui form">
+  <sui-accordion [closeOthers]="true">
+    <div class="toaster-static toaster-s" *ngIf="showSuccessMessage">
+      <span><a href="javascript:void(0)" (click)="showSuccessMessage=!showSuccessMessage"><i
+            class="close icon"></i></a></span>
+      <p>{{successMessage}}</p>
+    </div>
+    <div class="toaster-static toaster-e" *ngIf="showErrorMessage">
+      <span><a href="javascript:void(0)" (click)="showErrorMessage=!showErrorMessage"><i
+            class="close icon"></i></a></span>
+      <p>{{errorMessage}}</p>
+    </div>
+    <sui-accordion-panel [(isOpen)]="accordian.primaryDetails">
+      <div title>
+        <i class="dropdown icon"></i>
+        {{'provider.add.primaryDetails' | translate}}
+      </div>
+      <div content (click)="$event.stopPropagation()">
+        <div class="ui tiny form">
+          <div class="two fields">
+            <div class="required field">
+              <label>{{'provider.add.facilityName' | translate}}</label>
+              <sui-select class="selection" [options]="facilityNameList" formControlName="FacilityName"
+                labelField="name" valueField="id" (selectedOptionChange)="facilitySelected()" #facility>
+                <div class="ui icon search input">
+                  <i class="search icon"></i>
+                  <input suiSelectSearch type="text" placeholder="Search options...">
+                </div>
+                <div class="divider"></div>
+                <sui-select-option *ngFor="let o of facility.filteredOptions" [value]="o"></sui-select-option>
+              </sui-select>
+              <span>{{addProviderFormErrors.FacilityName}}</span>
+            </div>
+            <div class="required field">
+              <label> {{'provider.add.providerName' | translate}}</label>
+              <input placeholder="Provider Name" type="text" formControlName="ProviderName">
+              <span>{{addProviderFormErrors.ProviderName}}</span>
+            </div>
+
+          </div>
+          <div class="two fields">
+            <div class="required field">
+              <label> {{'provider.add.merchantKey' | translate}}</label>
+              <input type="text" placeholder="Provider Access Key" formControlName="MerchantKey" />
+              <span>{{addProviderFormErrors.MerchantKey}}</span>
+            </div>
+            <div class="required field">
+              <label>{{'provider.add.timezone' | translate}}</label>
+              <sui-select class="selection" [options]="offsetTmz" formControlName="TimeZone" [isSearchable]="true"
+                #timezone>
+                <sui-select-option *ngFor="let o of timezone.filteredOptions" [value]="o"></sui-select-option>
+              </sui-select>
+              <span>{{addProviderFormErrors.TimeZone}}</span>
+            </div>
+
+          </div>
+          <div class="two fields">
+            <div class="required field">
+              <label> {{'provider.add.phone' | translate}}</label>
+              <input placeholder="Phone" type="text" mask="000-000-0000" unmask=true [validation]="false"
+                formControlName="Phone">
+              <span>{{addProviderFormErrors.Phone}}</span>
+            </div>
+            <div class="field">
+              <label> {{'provider.add.url' | translate}}</label>
+              <input placeholder="Url" type="text" formControlName="Url">
+              <span>{{addProviderFormErrors.Url}}</span>
+            </div>
+
+          </div>
+          <div class="two fields">
+            <div class="required field">
+              <label> {{'provider.add.firstName' | translate}}</label>
+              <input placeholder="Admin First Name" type="text" formControlName="FirstName">
+              <span>{{addProviderFormErrors.FirstName}}</span>
+            </div>
+            <div class="required field">
+              <label> {{'provider.add.lastName' | translate}}</label>
+              <input placeholder="Admin Last Name" type="text" formControlName="LastName">
+              <span>{{addProviderFormErrors.LastName}}</span>
+            </div>
+          </div>
+          <div class="two fields">
+            <div class="required field">
+              <label> {{'provider.add.providerAdminUserName' | translate}}</label>
+              <input placeholder="Admin Username" type="text" formControlName="ProviderAdminUserName"
+                [readonly]="InputData.isEdit">
+              <span>{{addProviderFormErrors.ProviderAdminUserName}}</span>
+            </div>
+            <div class="required field">
+              <label> {{'provider.add.email' | translate}}</label>
+              <input placeholder="Email" type="text" formControlName="Email">
+              <span>{{addProviderFormErrors.Email}}</span>
+            </div>
+          </div>
+          <div class="two fields">
+            <div class="field">
+              <label>{{'provider.add.npiNumber' | translate}}</label>
+              <input placeholder="{{'provider.add.npiNumber' | translate}}" type="text" formControlName="NpiNumber"
+                #NpiNumber>
+              <span>{{addProviderFormErrors.NpiNumber}}</span>
+            </div>
+            <div class="field">
+              <label>{{'provider.add.taxId' | translate}}</label>
+              <input placeholder="{{'provider.add.taxId' | translate}}" type="text" formControlName="TaxId" #TaxId>
+              <span>{{addProviderFormErrors.TaxId}}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </sui-accordion-panel>
+    <div class="ui fitted divider"></div>
+    <sui-accordion-panel [(isOpen)]="accordian.addressDetails">
+      <div title><i class="dropdown icon"></i>{{'provider.add.addressDetails' | translate}}</div>
+      <div content (click)="$event.stopPropagation()">
+        <div class="ui tiny form">
+          <div class="field">
+            <!-- <label>&nbsp;</label> -->
+            <sui-checkbox class="toggle" formControlName="SameAsFacilityAddress" #SameAsFacilityAddress
+              [isDisabled]="DisableAddress" (checkChange)="onSameAddSelectionClick(SameAsFacilityAddress,facility)">
+              {{'provider.add.sameAsFacilityAddress' | translate}}</sui-checkbox>
+          </div>
+          <div class="required field">
+            <label>{{'provider.add.addressLine1' | translate}}</label>
+            <input placeholder="Address Line 1" type="text" formControlName="AddressLine1"
+              [attr.disabled]="(addProviderForm.value.SameAsFacilityAddress)?true:null">
+            <span>{{addProviderFormErrors.AddressLine1}}</span>
+          </div>
+          <div class="field">
+            <label>{{'provider.add.addressLine2' | translate}}</label>
+            <input placeholder="Address Line 2" type="text" formControlName="AddressLine2"
+              [attr.disabled]="(addProviderForm.value.SameAsFacilityAddress)?true:null">
+            <span>{{addProviderFormErrors.AddressLine2}}</span>
+          </div>
+          <div class="two fields">
+            <div class="required field">
+              <label>{{'provider.add.city' | translate}}</label>
+              <input placeholder="City" type="text" formControlName="City"
+                [attr.disabled]="(addProviderForm.value.SameAsFacilityAddress)?true:null">
+              <span>{{addProviderFormErrors.City}}</span>
+            </div>
+            <div class="required field">
+              <label>{{'provider.add.country' | translate}}</label>
+              <sui-select class="selection" [options]="countryList" formControlName="Country"
+                (selectedOptionChange)="populateState($event)" labelField="name" valueField="countryId"
+                [isDisabled]="(addProviderForm.value.SameAsFacilityAddress)?true:null" #country>
+                <div class="ui icon search input">
+                  <i class="search icon"></i>
+                  <input suiSelectSearch type="text" placeholder="Search options...">
+                </div>
+                <div class="divider"></div>
+                <sui-select-option *ngFor="let o of country.filteredOptions" [value]="o"></sui-select-option>
+              </sui-select>
+              <span>{{addProviderFormErrors.Country}}</span>
+            </div>
+          </div>
+          <div class="two fields">
+            <div class="required field">
+              <label>{{'provider.add.state' | translate}}</label>
+              <sui-select class="selection" [options]="stateList" formControlName="State" labelField="name"
+                valueField="abbreviation" [isDisabled]="(addProviderForm.value.SameAsFacilityAddress)?true:null" #state>
+                <div class="ui icon search input">
+                  <i class="search icon"></i>
+                  <input suiSelectSearch type="text" placeholder="Search options...">
+                </div>
+                <div class="divider"></div>
+                <sui-select-option *ngFor="let o of state.filteredOptions" [value]="o"></sui-select-option>
+              </sui-select>
+              <span>{{addProviderFormErrors.State}}</span>
+            </div>
+            <div class="required field">
+              <label>{{'provider.add.postalCode' | translate}}</label>
+              <input placeholder="Postal (Zip) Code" type="text" mask="00000-0000" unmask=true [validation]="false"
+                formControlName="PostalCode" [attr.disabled]="(addProviderForm.value.SameAsFacilityAddress)?true:null">
+              <span>{{addProviderFormErrors.PostalCode}}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </sui-accordion-panel>
+    <div class="ui fitted divider"></div>
+    <sui-accordion-panel [(isOpen)]="accordian.accessDetails">
+      <div title><i class="dropdown icon"></i>{{'provider.add.accessDetails' | translate}}</div>
+      <div content (click)="$event.stopPropagation()">
+        <div class="ui tiny form">
+          <div class="two fields" *ngFor="let module of moduleList">
+            <div class="sixteen wide field">
+              <sui-checkbox class="toggle" [ngModelOptions]="{standalone: true}"
+                (checkChange)="onChange($event, module)" [(ngModel)]="module.hasAccess"
+                [isDisabled]="module.isDisabled">
+                {{module.name | translate}}</sui-checkbox>
+            </div>
+          </div>
+        </div>
+      </div>
+    </sui-accordion-panel>
+
+  </sui-accordion>
+</form>
+<div class="ui fitted divider"></div>
+<br>
+
+<button class="tiny ui orange button" autofocus (click)='addProvider();' *ngIf="!InputData.isEdit">
+  {{'provider.add.save' | translate}}
+</button>
+<button class="tiny ui orange button" autofocus (click)='editProvider()' *ngIf="InputData.isEdit">
+  {{'provider.edit.save' | translate}}
+</button>

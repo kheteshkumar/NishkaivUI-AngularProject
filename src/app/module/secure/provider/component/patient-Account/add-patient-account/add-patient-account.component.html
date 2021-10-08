@@ -1,0 +1,216 @@
+<div class="ui" *ngIf="isLoader_AddCustAccount">
+  <div class="ui active dimmer">
+    <div class="ui indeterminate text loader">{{'common.processing' | translate}}</div>
+  </div>
+</div>
+<sui-accordion [closeOthers]="true">
+  <div class="toaster-static toaster-s" *ngIf="showSuccessMessage">
+    <span><a href="javascript:void(0)" (click)="showSuccessMessage=!showSuccessMessage"><i
+          class="close icon"></i></a></span>
+    <p>{{successMessage}}</p>
+  </div>
+  <div class="toaster-static toaster-e" *ngIf="showErrorMessage">
+    <span><a href="javascript:void(0)" (click)="showErrorMessage=!showErrorMessage"><i
+          class="close icon"></i></a></span>
+    <p>{{errorMessage}}</p>
+  </div>
+  <sui-accordion-panel [(isOpen)]="accordian.accountDetails">
+    <div title>
+      <i class="dropdown icon"></i>
+      {{'patientAccount.add.accountDetails' | translate}}
+    </div>
+    <div content class="ui tiny form" (click)="$event.stopPropagation()">
+      <form [formGroup]="addPatientAccountForm">
+        <div class="two fields">
+          <div class="required field">
+            <div class="inline fields">
+              <label for="Type">{{'patientAccount.add.paymentType' | translate}}</label>
+              <div class="ui radio checkbox">
+                <sui-radio-button name="paymentType" value="cc" formControlName="PaymentType" #PaymentType
+                  [isDisabled]="InputData.isEdit">{{'patientAccount.add.cc' | translate}}</sui-radio-button>
+              </div>
+              &nbsp;&nbsp;&nbsp;&nbsp;
+              <div class="ui radio checkbox">
+                <sui-radio-button name="paymentType" value="ach" formControlName="PaymentType" #PaymentType [isDisabled]="InputData.isEdit">{{'patientAccount.add.ach' | translate}}</sui-radio-button>
+              </div>
+            </div>
+            <span>{{addPatientAccountFormErrors.PaymentType}}</span>
+          </div>
+        </div>
+      </form>
+      <div *ngIf="addPatientAccountForm.value.PaymentType == 'cc'">
+        <form [formGroup]="addPatientAccountCCForm">
+          <div class="fields">
+            <div class="eight wide required field">
+              <label>{{'patientAccount.add.nameOnCard' | translate}}</label>
+              <input placeholder="Name on Card" type="text" formControlName="CardHolderName"
+                [attr.disabled]="InputData.isEdit ? true : null">
+              <span>{{addPatientAccountFormErrors.CardHolderName}}</span>
+            </div>
+            <div class="six wide required field">
+              <label>{{'patientAccount.add.cardNo' | translate}}</label>
+              <input placeholder="Card No" type="text" formControlName="cardNumber"
+                [attr.disabled]="InputData.isEdit ? true : null">
+              <span>{{addPatientAccountFormErrors.cardNumber}}</span>
+            </div>
+            <div class="two wide field">
+              <label>&nbsp;</label>
+              <img *ngIf="addPatientAccountCCForm.value.CardType==''||addPatientAccountCCForm.value.CardType==null"
+                src="../../../../../../../assets/images/cards/BlankCard.png" />
+              <img *ngIf="addPatientAccountCCForm.value.CardType=='AMEX'"
+                src="../../../../../../../assets/images/cards/Amex.png" />
+              <img *ngIf="addPatientAccountCCForm.value.CardType=='DINERS'"
+                src="../../../../../../../assets/images/cards/Diners.png" />
+              <img *ngIf="addPatientAccountCCForm.value.CardType=='DISCOVER'"
+                src="../../../../../../../assets/images/cards/Discover.png" />
+              <img *ngIf="addPatientAccountCCForm.value.CardType=='JCB'"
+                src="../../../../../../../assets/images/cards/JCB.png" />
+              <img *ngIf="addPatientAccountCCForm.value.CardType=='MASTERCARD'"
+                src="../../../../../../../assets/images/cards/MasterCard.png" />
+              <img *ngIf="addPatientAccountCCForm.value.CardType=='VISA'"
+                src="../../../../../../../assets/images/cards/Visa.png" />
+            </div>
+          </div>
+          <div class="two fields">
+            <div class="required field">
+              <label>{{'patientAccount.add.expiration' | translate}}</label>
+              <input placeholder="MM/YY" type="text" [validation]="false" mask="00/00" unmask=true
+                formControlName="cardExpiry" [attr.disabled]="InputData.isEdit ? true : null">
+              <span>{{addPatientAccountFormErrors.cardExpiry}}</span>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div *ngIf="addPatientAccountForm.value.PaymentType == 'ach'">
+        <form [formGroup]="addPatientAccountACHForm">
+          <div class="two fields">
+            <div class="required field">
+              <label>{{'patientAccount.add.nameOnAccount' | translate}}</label>
+              <input placeholder="Name on Card" type="text" formControlName="NameOnAccount"
+                [attr.disabled]="InputData.isEdit ? true : null">
+              <span>{{addPatientAccountFormErrors.NameOnAccount}}</span>
+            </div>
+            <div class="required field">
+              <label>{{'patientAccount.add.accountType' | translate}}</label>
+              <sui-select class="selection" [options]="accountTypeList" formControlName="AccountType" labelField="title"
+                valueField="value" [isDisabled]="InputData.isEdit">
+                <sui-select-option *ngFor="let option of accountTypeList" [value]="option">
+                </sui-select-option>
+              </sui-select>
+              <span>{{addPatientAccountFormErrors.AccountType}}</span>
+            </div>
+          </div>
+          <div class="two fields">
+            <div class="required field">
+              <label>{{'patientAccount.add.routingNo' | translate}}</label>
+              <input placeholder="Routing No" type="text" formControlName="routingNumber"
+                [attr.disabled]="InputData.isEdit ? true : null">
+              <span>{{addPatientAccountFormErrors.routingNumber}}</span>
+            </div>
+            <div class="required field">
+              <label>{{'patientAccount.add.accountNo' | translate}}</label>
+              <input placeholder="Account No" type="text" formControlName="AccountNo"
+                [attr.disabled]="InputData.isEdit ? true : null">
+              <span>{{addPatientAccountFormErrors.AccountNo}}</span>
+            </div>
+          </div>
+          <div class="two fields">
+            <div class="required field">
+              <label>{{'patientAccount.add.bankName' | translate}}</label>
+              <input placeholder="Bank Name" type="text" formControlName="BankName"
+                [attr.disabled]="InputData.isEdit ? true : null">
+              <span>{{addPatientAccountFormErrors.BankName}}</span>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </sui-accordion-panel>
+  <div class="ui fitted divider"></div>
+  <sui-accordion-panel [(isOpen)]="accordian.addressDetails">
+    <div title>
+      <i class="dropdown icon"></i>
+      {{'patientAccount.add.addressDetails' | translate}}
+    </div>
+    <div content (click)="$event.stopPropagation()">
+      <div class="ui tiny form">
+        <form [formGroup]="addressDetailsForm">
+          <div class="field">
+            <!-- <label>&nbsp;</label> -->
+            <sui-checkbox class="toggle" formControlName="SameAsPatientAddress"
+              (checkChange)="onChangeSameAsPatientAddress($event)" #SameAsPatientAddress>
+              {{'patientAccount.add.sameAsPatientAddress' | translate}}</sui-checkbox>
+          </div>
+          <div class="required field">
+          <!-- <div [class]="(addressFormHasValidation) ? 'required field': 'field'"> -->
+            <!-- <div [class]="(InputData.isEdit) ? 'required field': 'field'"> -->
+            <label>{{'patientAccount.add.addressLine1' | translate}}</label>
+            <input placeholder="{{'patientAccount.add.addressLine1' | translate}}" type="text"
+              formControlName="AddressLine1"
+              [attr.disabled]="(addressDetailsForm.value.SameAsPatientAddress)?true:null">
+            <span>{{addressDetailsFormErrors.AddressLine1}}</span>
+          </div>
+          <div class="field">
+            <label>{{'patientAccount.add.addressLine2' | translate}}</label>
+            <input placeholder="{{'patientAccount.add.addressLine2' | translate}}" type="text"
+              formControlName="AddressLine2"
+              [attr.disabled]="(addressDetailsForm.value.SameAsPatientAddress)?true:null">
+            <span>{{addressDetailsFormErrors.AddressLine2}}</span>
+          </div>
+          <div class="two fields">
+            <div class="required field">
+            <!-- <div [class]="(addressFormHasValidation) ? 'required field': 'field'"> -->
+              <!-- <div [class]="(InputData.isEdit) ? 'required field': 'field'"> -->
+              <label>{{'patientAccount.add.city' | translate}}</label>
+              <input placeholder="{{'patientAccount.add.city' | translate}}" type="text" formControlName="City"
+                [attr.disabled]="(addressDetailsForm.value.SameAsPatientAddress)?true:null">
+              <span>{{addressDetailsFormErrors.City}}</span>
+            </div>
+            <div class="required field">
+            <!-- <div [class]="(addressFormHasValidation) ? 'required field': 'field'"> -->
+              <!-- <div [class]="(InputData.isEdit) ? 'required field': 'field'"> -->
+              <label>{{'patientAccount.add.country' | translate}}</label>
+              <sui-select class="selection" [options]="countryList" formControlName="Country"
+                (selectedOptionChange)="populateState($event)" labelField="name" valueField="countryId" #country
+                [isDisabled]="addressDetailsForm.value.SameAsPatientAddress">
+                <div class="ui icon search input">
+                  <i class="search icon"></i>
+                  <input suiSelectSearch type="text" placeholder="Search options...">
+                </div>
+                <div class="divider"></div>
+                <sui-select-option *ngFor="let o of country.filteredOptions" [value]="o"></sui-select-option>
+              </sui-select>
+              <span>{{addressDetailsFormErrors.Country}}</span>
+            </div>
+          </div>
+          <div class="two fields">
+            <div class="required field">
+            <!-- <div [class]="(addressFormHasValidation) ? 'required field': 'field'"> -->
+              <!-- <div [class]="(InputData.isEdit) ? 'required field': 'field'"> -->
+              <label>{{'patientAccount.add.state' | translate}}</label>
+              <sui-select class="selection" [options]="stateList" formControlName="State" labelField="name"
+                valueField="abbreviation" #state [isDisabled]="addressDetailsForm.value.SameAsPatientAddress">
+                <div class="ui icon search input">
+                  <i class="search icon"></i>
+                  <input suiSelectSearch type="text" placeholder="Search options...">
+                </div>
+                <div class="divider"></div>
+                <sui-select-option *ngFor="let o of state.filteredOptions" [value]="o"></sui-select-option>
+              </sui-select>
+              <span>{{addressDetailsFormErrors.State}}</span>
+            </div>
+            <div class="required field">
+            <!-- <div [class]="(addressFormHasValidation) ? 'required field': 'field'"> -->
+              <!-- <div [class]="(InputData.isEdit) ? 'required field': 'field'"> -->
+              <label>{{'patientAccount.add.postalCode' | translate}}</label>
+              <input placeholder="{{'patientAccount.add.postalCode' | translate}}" type="text" mask="00000-0000"
+                unmask=true [validation]="false" formControlName="PostalCode"
+                [attr.disabled]="(addressDetailsForm.value.SameAsPatientAddress)?true:null">
+              <span>{{addressDetailsFormErrors.PostalCode}}</span>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </sui-accordion-panel>
+</sui-accordion>

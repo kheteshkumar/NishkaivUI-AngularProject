@@ -1,0 +1,173 @@
+<app-toaster [toaster]="toastData"></app-toaster>
+<div id="initialLoad">
+  <form novalidate [formGroup]="findNoteForm">
+    <div class="main-content">
+      <h1 class="ui header">{{'note.find.heading' | translate}}</h1>
+      <div class="ui segment apf-search">
+        <button class="tiny ui orange right floated button" type="button" *ngIf="permissions.addNotes" (click)="openAddNoteModal()"><i
+            class="user circle icon"></i>{{'note.find.addNote' | translate}}</button>
+        <!--<button id="tesbutton" onclick="clickMe()">TEST PAY</button>-->
+        <div class="u-cf-m"></div>
+        <sui-tabset>
+          <div class="tiny ui secondary menu">
+            <a class="item" suiTabHeader="1">{{'note.find.dateRange' | translate}}</a>
+            <a class="item" suiTabHeader="2">{{'note.find.name' | translate}}</a>
+            <a class="item" suiTabHeader="3">{{'note.find.searchTerm' | translate}}</a>
+          </div>
+          <div class="ui segment selection-area">
+            <a class="ui label" *ngIf="findNoteForm.value.StartDate">
+              {{'transaction.find.date' | translate}}: {{getFormattedDateToDisplay(findNoteForm.value.StartDate)}} -
+              {{getFormattedDateToDisplay(findNoteForm.value.EndDate)}}
+              <i class="delete icon" (click)="clear('StartDate');clear('EndDate')"></i>
+            </a>
+            <a class="ui label" *ngIf="findNoteForm.value.PatientName">
+              {{'note.find.name' | translate}}: {{displayFilter}}
+              <i class="delete icon" (click)="clear('PatientName');"></i>
+            </a>
+            <a class="ui label" *ngIf="findNoteForm.value.SearchTerm">
+              {{'note.find.searchTerm' | translate}}: {{findNoteForm.value.SearchTerm}}
+              <i class="delete icon" (click)="clear('SearchTerm')"></i>
+            </a>
+          </div>
+          <!-- Date Range -->
+          <div class="ui" suiTabContent="1">
+            <div class="ui tiny form">
+              <div class="ui left icon input">
+                <i class="calendar icon"></i>
+                <input placeholder="Start Date" suiDatepicker [pickerMode]="dateMode" [pickerUseNativeOnMobile]="false"
+                  [pickerMinDate]="minStartDate" [pickerMaxDate]="maxStartDate" formControlName="StartDate" #StartDate
+                  readonly>
+              </div>&nbsp;&nbsp;&nbsp;&nbsp;
+              <div class="ui left icon input">
+                <i class="calendar icon"></i>
+                <input placeholder="End Date" suiDatepicker [pickerMode]="dateMode" [pickerUseNativeOnMobile]="false"
+                  [pickerMinDate]="minEndDate" [pickerMaxDate]="maxEndDate" formControlName="EndDate" #EndDate readonly>
+              </div>
+            </div>
+            <div class="field">
+              <span>{{formErrors.StartDate}}</span>
+            </div>
+          </div>
+          <!-- Patient Name -->
+          <div class="ui" suiTabContent="2">
+            <div class="ui tiny form">
+              <div class="three fields mb0">
+                <div class="field">
+                  <sui-multi-select class="selection" formControlName="PatientName" #PatientName
+                    (selectedOptionsChange)="onMultiSelectClick(PatientName)" [hasLabels]="true" [maxSelected]="5"
+                    labelField="displayName" valueField="id" [isSearchable]="true" [options]="searchPatientList"
+                    icon="search">
+                    <sui-select-option *ngFor="let o of PatientName.filteredOptions" [value]="o"></sui-select-option>
+                  </sui-multi-select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SearchTerm -->
+          <div class="ui" suiTabContent="3">
+            <div class="ui tiny form">
+              <div class="five fields mb0">
+                <div class="field">
+                  <input placeholder="Search Term" type="text" formControlName="SearchTerm">
+                  <span>{{formErrors.SearchTerm}}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ui clearing divider"></div>
+          <button [ngClass]="isLoader_FindNote ? 'tiny ui orange button loading' : 'tiny ui orange button'"
+            class="tiny ui orange button" type="submit" (click)="find(true)">{{'note.find.find' | translate}}</button>
+          <button class="tiny ui button" (click)="clearForm()">{{'transaction.find.clear' | translate}}</button>
+        </sui-tabset>
+      </div>
+      <!-- <div> -->
+      <sui-message class="attached warning" [isDismissable]="false" *ngIf="noRecordsFound_NoteList">
+        <p>{{noResultsMessage}}</p>
+      </sui-message>
+
+      <div *ngIf="noteList.length>0">
+        <form novalidate [formGroup]="noteResultsForm">
+          <div class="ui grid">
+            <div class="eight wide column">
+              <div class="ui mini compact segment sort">
+                <div class="inline field sort-dd">
+                  <label>Sort by: </label>
+                  <sui-select class="selection" [options]="sortingItemsList" formControlName="Sorting"
+                    labelField="label" valueField="label" (selectedOptionChange)="sortNotes(Sorting)" #Sorting>
+                    <sui-select-option *ngFor="let option of sortingItemsList" [value]="option"></sui-select-option>
+                  </sui-select>
+                </div>
+              </div>
+            </div>
+            <!-- <div class="right aligned eight wide column btn-export">
+          <sui-select class="ui mini floating labeled basic icon button" icon="download" (selectedOptionChange)="download($event)"
+            [isSearchable]="false" placeholder="Export" #filterSelect>
+            <sui-select-option value="PDF"></sui-select-option>
+            <sui-select-option value="CSV"></sui-select-option>
+          </sui-select>
+        </div>-->
+          </div>
+        </form>
+        <!-- Note List -->
+        <div>
+          <div *ngFor="let note of noteList" class="ui segment results">
+            <div class="ui active dimmer" *ngIf="note.isLoader_noteOperation">
+              <div class="ui small text loader"></div>
+            </div>
+            <div class="results-crsr" (click)="onClick(note)">
+              <div class="ui horizontal list">
+                <div class="item">
+                  <div class="content">
+                    <div class="ui sub header">{{note.fullName}}
+                      <span>&nbsp;&nbsp;Title : {{note.title!=null ? note.title : '--'}}</span>
+                    </div>
+                    <div class="item">
+                      <!-- <i class="info circle icon"></i> -->
+                      <strong> {{'note.find.createdOn' | translate}}: </strong>{{note.createdOn}}
+                      <!-- <span class="separator">|</span>
+                  <strong> {{'note.find.createdBy' | translate}}: </strong>{{note.createdBy!=null ? note.createdBy : '--'}}-->
+                    </div>
+                    <div class="ui divided list" [suiTransition]="transitionController" *ngIf="note.showDetails"
+                      style="cursor: default">
+                      <div class="item">
+                        <div class="content">
+                          <!-- <i class="map marker icon"></i> -->
+                          <strong> {{'note.find.description' | translate}}: </strong>{{note.description!='' ?
+                          note.description : '--'}}
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+        <app-pagination [pager]="pager" (OutputData)="fetchNote($event)"></app-pagination>
+      </div>
+      <!-- </div> -->
+    </div>
+  </form>
+</div>
+
+
+
+
+<ng-template let-context let-modal="modal" #modalAddPatientNote>
+  <div class="header">
+    <span>{{'patient.note.heading' | translate}}</span>
+    <i #closeWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-add-note [InputData]="inputDataForAddNote" (OutputData)="outputDataFromOperation($event)"></app-add-note>
+  </div>
+  <div class="actions">
+    <div class="ui tiny">
+      <button class="ui tiny button" (click)="modal.deny()">{{'note.add.cancel' | translate}}</button>
+    </div>
+  </div>
+</ng-template>

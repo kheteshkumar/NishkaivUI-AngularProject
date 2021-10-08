@@ -1,0 +1,166 @@
+<div class="ui" *ngIf="isLoader || isLoader_customerDetails">
+  <div class="ui active dimmer">
+    <div class="ui indeterminate text loader">{{loaderValue}}</div>
+  </div>
+</div>
+<form [formGroup]="addAppointmentForm" class="ui form">
+  <sui-accordion [closeOthers]="true">
+    <div class="toaster-static toaster-s" *ngIf="showSuccessMessage">
+      <span><a href="javascript:void(0)" (click)="showSuccessMessage=!showSuccessMessage"><i
+            class="close icon"></i></a></span>
+      <p>{{successMessage}}</p>
+    </div>
+    <div class="toaster-static toaster-e" *ngIf="showErrorMessage">
+      <span><a href="javascript:void(0)" (click)="showErrorMessage=!showErrorMessage"><i
+            class="close icon"></i></a></span>
+      <p>{{errorMessage}}</p>
+    </div>
+    <sui-accordion-panel [isOpen]="true">
+      <div title>
+        <i class="dropdown icon"></i>
+        {{'appointment.add.primaryDetails' | translate}}
+      </div>
+      <div content (click)="$event.stopPropagation()">
+        <div class="ui tiny form">
+          <div class="fields">
+            <div class="required field sixteen wide column">
+              <label>{{'appointment.add.selectPatient' | translate}}</label>
+              <sui-select class="selection" [options]="searchPatientList" formControlName="PatientName"
+                labelField="displayName" valueField="id" #PatientName [isSearchable]="true" icon="search"
+                [isDisabled]="InputData.isEdited">
+                <sui-select-option *ngFor="let o of PatientName.filteredOptions" [value]="o"></sui-select-option>
+              </sui-select>
+              <span>{{addAppointmentFormErrors.PatientName}}</span>
+            </div>
+          </div>
+          <div class="fields">
+            <div class="required field sixteen wide column">
+              <label>{{'appointment.add.selectDoctor' | translate}}</label>
+              <sui-select class="selection" [options]="searchDoctorList" formControlName="DoctorName"
+                labelField="displayName" valueField="id" #DoctorName [isSearchable]="true" icon="search">
+                <sui-select-option *ngFor="let o of DoctorName.filteredOptions" [value]="o"></sui-select-option>
+              </sui-select>
+              <span>{{addAppointmentFormErrors.DoctorName}}</span>
+            </div>
+          </div>
+          <div class="two fields">
+            <div class="required field">
+              <label> {{'appointment.add.phone' | translate}}</label>
+              <input placeholder="Phone" type="text" mask="000-000-0000" unmask=true [validation]="false"
+                formControlName="Phone" [attr.disabled]=true>
+              <span>{{addAppointmentFormErrors.Phone}}</span>
+            </div>
+            <div class="field">
+              <label> {{'appointment.add.email' | translate}}</label>
+              <input placeholder="Email" type="text" formControlName="Email">
+              <span>{{addAppointmentFormErrors.Email}}</span>
+            </div>
+
+          </div>
+          <div class="three fields">
+            <!-- <div class="required field">
+              <label>{{'Start Date' | translate}}</label>
+              <div class="ui left icon input">
+                <i class="calendar icon"></i>
+                <input suiDatepicker placeholder="MM/DD/YYYY 00:00" [pickerMaxDate]="maxDate" [pickerMinDate]="minDate"
+                  [pickerMode]="dateTimeMode" [pickerUseNativeOnMobile]="false" formControlName="StartDate" #startDate>
+              </div>
+              <span>{{addAppointmentFormErrors.StartDate}}</span>
+              <span>{{PastStartTimeError}}</span>
+            </div> -->
+            <div class="required field">
+              <label>{{'Start Date' | translate}}</label>
+              <div class="ui left icon input">
+                <i class="calendar icon" (click)="picker.open()"></i>
+                <input matInput [matDatepicker]="picker" [min]="minDate" [max]="maxDate" formControlName="StartDate"
+                  [matDatepickerFilter]="myDateFilter" (click)="picker.open()" formControlName="StartDate" #startDate>
+                <mat-datepicker #picker></mat-datepicker>
+              </div>
+              <span>{{addAppointmentFormErrors.StartDate}}</span>
+              <span>{{PastStartTimeError}}</span>
+            </div>
+            <div class="required field time-picker">
+              <label>{{'Start Time' | translate}}</label>
+              <input [ngxTimepicker]="timepicker" placeholder="00:00" [format]="12" min="{{minStartTime}}"
+                max="{{maxStartTime}}" formControlName="StartTime">
+              <ngx-material-timepicker #timepicker [enableKeyboardInput]="false" [minutesGap]="5">
+              </ngx-material-timepicker>
+              <span>{{addAppointmentFormErrors.StartTime}}</span>
+            </div>
+            <div class="required field">
+              <label> {{'appointment.add.duration' | translate}}</label>
+              <input placeholder="Duration" type="text" formControlName="Duration"
+                [attr.disabled]="(isDisabled)?true:null">
+              <span>{{addAppointmentFormErrors.Duration}}</span>
+            </div>
+            <div class="required field">
+              <label> {{'appointment.add.endTime' | translate}}</label>
+              <input suiDatepicker pickerMode="time" placeholder="00:00" [pickerMinDate]="minEndTime"
+                [pickerUseNativeOnMobile]="false" formControlName="EndTime" [attr.disabled]=true>
+              <span>{{addAppointmentFormErrors.EndTime}}</span>
+            </div>
+
+          </div>
+          <div class="three fields">
+            <div class="required field" style="min-width: 210px;">
+              <label>{{'appointment.add.repeatOn' | translate}}</label>
+              <sui-select class="selection" [options]="recurrenceList" formControlName="RepeatOn" labelField="title"
+                valueField="value" #RepeatOn [isDisabled]="InputData.isEdited">
+                <sui-select-option *ngFor="let o of RepeatOn.filteredOptions" [value]="o"></sui-select-option>
+              </sui-select>
+              <span>{{addAppointmentFormErrors.RepeatOn}}</span>
+            </div>
+            <div class="field">
+              <label> {{'appointment.add.appointmentCount' | translate}}</label>
+              <input placeholder="No of Appointments" type="text" formControlName="AptTotalCount"
+                [attr.disabled]="InputData.isEdited?true:(isCountDisabled)?true:null">
+              <span>{{addAppointmentFormErrors.AptTotalCount}}</span>
+            </div>
+          </div>
+
+          <div class="one fields" *ngIf="permissions.addEligibility && hasModuleAccess(16)">
+            <div class="field">
+              <label></label>
+              <sui-checkbox formControlName="CheckEligibility" #CheckEligibility [isDisabled]="!isPatientSelected">
+                {{'Check Eligibility' | translate}} - <span style="font-size: 10px;">Charges may apply</span>
+              </sui-checkbox>
+            </div>
+          </div>
+
+          <div class="field required" *ngIf="addAppointmentForm.value.CheckEligibility">
+            <label>{{'appointment.add.patientInsuranceId' | translate}}</label>
+            <sui-select class="selection" icon="search" [options]="patientInsuranceList" labelField="displayName"
+              valueField="id" (selectedOptionChange)="selectPatientInsurance(PatientInsuranceId)" [isSearchable]="true"
+              placeholder="{{'claims.add.patientInsuranceId' | translate}}" [isDisabled]="InputData.isEdit"
+              formControlName="PatientInsuranceId" #PatientInsuranceId>
+              <sui-select-option *ngFor="let o of PatientInsuranceId.filteredOptions" [value]="o">
+              </sui-select-option>
+            </sui-select>
+            <span>{{addAppointmentFormErrors.PatientInsuranceId}}</span>
+            <ng-container
+              *ngIf="selectedInsurance && (selectedInsurance | json) != '{}' && (addAppointmentForm.value.CheckEligibility && !selectedInsurance.checkClaimStatus)">
+              <span>{{'Insurance payer not registered on Integrex' | translate}}</span>
+            </ng-container>
+          </div>
+
+          <div class="field">
+            <label>{{'appointment.add.memo' | translate}}</label>
+            <textarea rows="2" formControlName="Memo" placeholder="Note.."></textarea>
+            <span>{{addAppointmentFormErrors.Memo}}</span>
+          </div>
+
+
+        </div>
+      </div>
+    </sui-accordion-panel>
+  </sui-accordion>
+</form>
+<div class="ui fitted divider"></div>
+<br>
+
+<button class="tiny ui orange button" autofocus (click)='onAddAppointmentClick();'
+  [disabled]="!addAppointmentForm.dirty" *ngIf="!InputData.isEdited">{{'appointment.add.save' | translate}}</button>
+<button class="tiny ui orange button" autofocus (click)='onEditAppointmentClick()'
+  [disabled]="!addAppointmentForm.dirty" *ngIf="InputData.isEdited">{{'appointment.edit.save' | translate}}</button>
+<button class="tiny ui button" *ngIf="!InputData.isEdited" (click)="clearForm()">{{'patient.add.reset' |
+  translate}}</button>

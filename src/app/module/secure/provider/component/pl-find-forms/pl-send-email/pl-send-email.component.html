@@ -1,0 +1,96 @@
+<div class="ui">
+  <!-- <div class="toaster-static toaster-e" *ngIf="showErrorMessage"> -->
+  <!--   <span -->
+  <!--     ><a href="javascript:void(0)" (click)="showErrorMessage = !showErrorMessage"><i class="close icon"></i></a -->
+  <!--   ></span> -->
+  <!--   <p>{{ errorMessage }}</p> -->
+  <!-- </div> -->
+  <p>
+    <b>Form: </b>
+    {{ InputData.form.formTitle }}
+  </p>
+
+  <div class="ui list">
+    <!-- <div class="item segment ui"> -->
+    <!-- <div class="ui sub header" style="font-size: 1.28571429rem"> -->
+    <!--   {{ form.formTitle }} -->
+    <!-- </div> -->
+    <!-- <strong> {{ 'Description' | translate }}: </strong>{{ form.formDescription ? form.formDescription : '--' }} -->
+    <!-- <div class="ui segment modal-loader" *ngIf="isLoading; else sendEmail"> -->
+    <!--   <div class="ui active dimmer"> -->
+    <!--     <div class="ui indeterminate text loader">{{ 'common.loading' | translate }}</div> -->
+    <!--   </div> -->
+    <!-- </div> -->
+    <!-- <ng-template #sendEmail> -->
+    <form [formGroup]="sendEmailForm" class="ui form" (ngSubmit)="onSubmit()">
+      <div class="required field">
+        <label for="email">
+          {{ 'plforms.sendEmail.enter' | translate }}
+        </label>
+        <!-- <sui-message class="ui info" [isDismissable]="false"> -->
+        <p style="margin-bottom: 0.3rem; font-size: 0.9em">
+          {{ 'plforms.sendEmail.help' | translate }}
+        </p>
+        <!-- </sui-message> -->
+        <div style="display: flex">
+          <input name="email" formControlName="email" autofocus />
+          <button [disabled]="sendEmailForm.invalid" class="ui button tiny orange" type="submit">Add</button>
+        </div>
+      </div>
+      <sui-message *ngIf="maxLimitError" class="attached error" style="margin-bottom: 1rem" [isDismissable]="false">
+        <p>
+          {{ 'plforms.sendEmail.maxLimitError' | translate }}
+        </p>
+      </sui-message>
+    </form>
+    <div style="display: flex" *ngFor="let e of emailList" class="ui segment emails">
+      <ng-container *ngIf="emailMap.get(e) as eo">
+        <div style="flex-grow: 1">
+          <p>{{ e }}</p>
+          <sui-message *ngIf="eo.failed && !eo.loading" class="attached error" [isDismissable]="false">
+            <p>{{ eo.errorMessage }}</p>
+          </sui-message>
+        </div>
+        <div>
+          <button
+            class="tiny circular ui right floated icon button"
+            [ngClass]="{ green: eo.sent, red: !eo.sent, orange: eo.loading, loading: eo.loading }"
+            type="button"
+            [disabled]="eo.sent || eo.failed"
+            (click)="removeEmailFromMap(eo)"
+            suiPopup
+            *ngIf="!eo.failed; else retry"
+            popupText="Remove"
+            popupInverted
+            [popupPlacement]="'top'"
+          >
+            <!-- [ngClass]="{ loading: form.isLoader_DeleteOperation }" -->
+            <i [ngClass]="{ check: eo.sent, delete: !eo.sent }" class="sticky icon"></i>
+          </button>
+          <ng-template #retry>
+            <button
+              class="tiny circular ui right floated icon button blue"
+              type="button"
+              (click)="sendEmail(eo)"
+              suiPopup
+              popupText="Retry"
+              popupInverted
+              [popupPlacement]="'top'"
+            >
+              <!-- [ngClass]="{ loading: form.isLoader_DeleteOperation }" -->
+              <i class="sticky undo icon"></i>
+            </button>
+          </ng-template>
+        </div>
+      </ng-container>
+    </div>
+    <!-- </ng-template> -->
+  </div>
+</div>
+<br />
+<button (click)="sendAll()" [disabled]="!emailList.length" class="ui button orange tiny">
+  {{ 'plforms.sendEmail.sendAll' | translate }}
+</button>
+<button (click)="resetForm()" class="ui button tiny">
+  {{ 'plforms.sendEmail.reset' | translate }}
+</button>

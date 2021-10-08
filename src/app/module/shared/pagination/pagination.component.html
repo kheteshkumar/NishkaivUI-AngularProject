@@ -1,0 +1,29 @@
+<ul class="pagination">
+  <span *ngIf="pager.totalResults > pager.resultPerPage">
+    <li [ngClass]="{disabled:pager.currentPage === 1}" suiPopup popupInverted popupText="1" popupPlacement="right"
+      (click)="capturePageClick(1)">
+      <button class="circular ui tiny icon button"><i class="angle double left icon"></i></button>
+    </li>
+    <li [ngClass]="{disabled:pager.currentPage === 1}" (click)="capturePageClick(pager.currentPage - 1)">
+      <button class="circular ui tiny icon button"><i class="angle left icon"></i></button>
+    </li>
+    <li *ngFor="let page of pager.pages"
+      [ngClass]="{active:pager.currentPage === page, disabled:pager.currentPage === page}"
+      (click)="capturePageClick(page)">
+      <button class="circular ui tiny icon basic button">{{page}}</button>
+    </li>
+    <li [ngClass]="{disabled:pager.currentPage === pager.totalPages}"
+      (click)="capturePageClick((pager.currentPage + 1))">
+      <button class="circular ui tiny icon button"><i class="angle right icon"></i></button>
+    </li>
+    <li [ngClass]="{disabled:pager.currentPage === pager.totalPages}" (click)="capturePageClick(pager.totalPages)"
+      suiPopup popupInverted popupText="{{pager.totalPages}}" popupPlacement="right">
+      <button class="circular ui tiny icon button"><i class="angle double right icon"></i></button>
+    </li>
+  </span>
+  <div class="ui right floated list" *ngIf="pager.totalResults > 0">
+    <div class="item">
+      showing {{pager.startRecord}} to {{pager.endRecord}} of {{pager.totalResults}}
+    </div>
+  </div>
+</ul>

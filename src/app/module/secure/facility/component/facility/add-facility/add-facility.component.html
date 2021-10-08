@@ -1,0 +1,133 @@
+<div class="ui" *ngIf="isLoader">
+  <div class="ui active dimmer">
+    <div class="ui indeterminate text loader">{{'common.processing' | translate}}</div>
+  </div>
+</div>
+<form [formGroup]="addFacilityForm" class="ui form">
+  <sui-accordion [closeOthers]="true">
+    <div class="toaster-static toaster-s" *ngIf="showSuccessMessage">
+      <span><a href="javascript:void(0)" (click)="showSuccessMessage=!showSuccessMessage"><i class="close icon"></i></a></span>
+      <p>{{successMessage}}</p>
+    </div>
+    <div class="toaster-static toaster-e" *ngIf="showErrorMessage">
+      <span><a href="javascript:void(0)" (click)="showErrorMessage=!showErrorMessage"><i class="close icon"></i></a></span>
+      <p>{{errorMessage}}</p>
+    </div>
+    <sui-accordion-panel [(isOpen)]="accordian.primaryDetails">
+      <div title>
+        <i class="dropdown icon"></i>
+        {{'facility.add.primaryDetails' | translate}}
+      </div>
+      <div content (click)="$event.stopPropagation()">
+         <div class="ui tiny form">
+       <!--  <div class="two fields">
+          <div class="required field">
+            <label>{{'facility.add.parentFacility' | translate}}</label>
+           <sui-select class="selection" [options]="facilityList" formControlName="ParentFacility" labelField="facilityName" valueField="id">
+              <sui-select-option *ngFor="let option of facilityList" [value]="option">
+              </sui-select-option>
+            </sui-select> 
+            <input placeholder="Parent Facility" type="text" formControlName="ParentFacility" readonly>
+            <span>{{addFacilityFormErrors.ParentFacility}}</span>
+          </div>
+        </div>-->
+        <div class="two fields">
+          <div class="required field">
+            <label> {{'facility.add.facilityName' | translate}}</label>
+            <input placeholder="Facility Name" type="text" formControlName="FacilityName">
+            <span>{{addFacilityFormErrors.FacilityName}}</span>
+          </div>
+        <div class="field">
+            <label> {{'facility.add.branchName' | translate}}</label>
+            <input placeholder="Branch Name" type="text" formControlName="BranchName">
+            <span>{{addFacilityFormErrors.BranchName}}</span>
+          </div>
+        </div>
+    
+        <div class="two fields">
+          <div class="required field">
+            <label> {{'facility.add.phone' | translate}}</label>
+            <input placeholder="Phone" type="text"  mask="000-000-0000" unmask=true [validation]="false" formControlName="Phone">
+            <span>{{addFacilityFormErrors.Phone}}</span>
+          </div>
+          <div class="field">
+              <label> {{'facility.add.url' | translate}}</label>
+              <input placeholder="Url" type="text" formControlName="Url">
+              <span>{{addFacilityFormErrors.Url}}</span>
+            </div>
+         <!-- <div class="required field">
+            <label> {{'facility.add.email' | translate}}</label>
+            <input placeholder="Email" type="text" formControlName="Email">
+            <span>{{addFacilityFormErrors.Email}}</span>
+          </div>-->
+        </div>
+        </div>
+      </div>
+    </sui-accordion-panel>
+    <div class="ui fitted divider"></div>
+    <sui-accordion-panel [(isOpen)]="accordian.addressDetails">
+      <div title>
+        <i class="dropdown icon"></i>
+        {{'facility.add.addressDetails' | translate}}
+      </div>
+      <div content (click)="$event.stopPropagation()">
+        <div class="ui tiny form">
+        <div class="required field">
+          <label>{{'facility.add.addressLine1' | translate}}</label>
+          <input placeholder="Address Line 1" type="text" formControlName="AddressLine1">
+          <span>{{addFacilityFormErrors.AddressLine1}}</span>
+        </div>
+        <div class="field">
+          <label>{{'facility.add.addressLine2' | translate}}</label>
+          <input placeholder="Address Line 2" type="text" formControlName="AddressLine2">
+          <span>{{addFacilityFormErrors.AddressLine2}}</span>
+        </div>
+        <div class="two fields">
+          <div class="required field">
+            <label>{{'facility.add.city' | translate}}</label>
+            <input placeholder="City" type="text" formControlName="City">
+            <span>{{addFacilityFormErrors.City}}</span>
+          </div>
+          <div class="required field">
+            <label>{{'facility.add.country' | translate}}</label>
+            <sui-select class="selection" [options]="countryList" formControlName="Country" (selectedOptionChange)="populateState($event)" labelField="name" valueField="countryId" #country>
+              <div class="ui icon search input">
+                <i class="search icon"></i>
+                <input suiSelectSearch type="text" placeholder="Search options...">
+              </div>
+              <div class="divider"></div>
+              <sui-select-option *ngFor="let o of country.filteredOptions" [value]="o"></sui-select-option>
+            </sui-select>
+            <span>{{addFacilityFormErrors.Country}}</span>
+          </div>
+        </div>
+        <div class="two fields">
+          <div class="required field">
+            <label>{{'facility.add.state' | translate}}</label>
+            <sui-select class="selection" [options]="stateList" formControlName="State" labelField="name" valueField="abbreviation" #state>
+              <div class="ui icon search input">
+                <i class="search icon"></i>
+                <input suiSelectSearch type="text" placeholder="Search options...">
+              </div>
+              <div class="divider"></div>
+              <sui-select-option *ngFor="let o of state.filteredOptions" [value]="o"></sui-select-option>
+            </sui-select>
+            <span>{{addFacilityFormErrors.State}}</span>
+          </div>
+          <div class="required field">
+            <label>{{'facility.add.postalCode' | translate}}</label>
+            <input placeholder="Postal (Zip) Code" type="text" mask="00000-0000" unmask=true [validation]="false" formControlName="PostalCode">
+            <span>{{addFacilityFormErrors.PostalCode}}</span>
+          </div>
+        </div>
+        </div>
+      </div>
+    </sui-accordion-panel>
+  </sui-accordion>
+</form>
+<div class="ui fitted divider"></div>
+<br>
+<button class="tiny ui orange button" autofocus  (click)='onAddFacilityClick();' [disabled]="!addFacilityForm.dirty" *ngIf="!InputData.isEdit">{{'facility.add.save' | translate}}</button>
+<button class="tiny ui orange button" autofocus (click)='onEditFacilityClick()' [disabled]="!addFacilityForm.dirty" *ngIf="InputData.isEdit" >{{'facility.edit.save' | translate}}</button>
+
+

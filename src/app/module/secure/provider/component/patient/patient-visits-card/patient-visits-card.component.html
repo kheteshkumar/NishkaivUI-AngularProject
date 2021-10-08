@@ -1,0 +1,111 @@
+<app-toaster [toaster]="toastData"></app-toaster>
+
+<div *ngIf="visitList.length == 0 && !isLoader_FindVisit">
+  <div class="ui cards cards-overflow">
+    <div class="ui card add-insurance">
+      <sui-message class="attached warning" [isDismissable]="false">
+        <p>{{'transaction.add.noRecordsFound' | translate}}</p>
+      </sui-message>
+    </div>
+    <div class="card add-insurance"
+      (click)="onOperationClick({ 'key': 'checkIn', 'value': 'New Check In' }, InputData)">
+      <div class="content">
+        <i class="plus circle orange link icon huge" suiPopup popupText="New Check In" popupInverted
+          [popupPlacement]="'top'"></i>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="ui segment modal-loader" *ngIf="isLoader_FindVisit">
+  <div class="ui active dimmer">
+    <div class="ui medium text loader">Loading</div>
+  </div>
+</div>
+
+
+<div class="ui cards cards-overflow" style="margin: 0px; margin-bottom: 0.5em;"
+  *ngIf="visitList.length>0 && !isLoader_FindVisit">
+  <div class="card" *ngFor="let visit of visitList">
+
+    <div class="content">
+      <div class="ui mini red bottom right attached label" *ngIf="visit.visitStatus!=3">{{visit.displayStatus}}</div>
+      <div class="ui mini green bottom right attached label" *ngIf="visit.visitStatus==3">{{visit.displayStatus}}</div>
+
+      <div class="header">
+        <span class="ui sub header" style="font-size: 18px;">
+          {{(visit.doctorName!='')? visit.doctorName :'--'}}
+        </span>
+      </div>
+      <div style="border-bottom: 1px solid #34a653; margin: 5px 0px;"></div>
+      <div>
+        <div class="description">
+          <div class="item">
+            <span>
+              <strong>{{'patient.checkInOut.checkInAt' | translate}}: </strong>
+              {{visit.checkInDate}}
+            </span>
+          </div>
+          <div class="item">
+            <span>
+              <strong>{{'patient.checkInOut.withDoctor' | translate}}: </strong>
+              {{visit.doctorCheckInDate}}
+            </span>
+          </div>
+          <div class="item">
+            <span>
+              <strong>{{'patient.checkInOut.checkedOutAt' | translate}}: </strong>
+              {{visit.checkOutDate}}
+            </span>
+          </div>
+          <div class="item" *ngIf="visit.waitDuration != null">
+            <span>
+              <strong>{{'patient.checkInOut.totalWaitTime' | translate}}: </strong>
+              {{visit.waitDuration | minutes}}
+            </span>
+          </div>
+          <div class="item" *ngIf="visit.doctorDuration != null">
+            <span>
+              <strong>{{'patient.checkInOut.totalDoctorTime' | translate}}: </strong>
+              {{ visit.doctorDuration | minutes }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <button class="blue circular ui left floated icon button" type="button" *ngIf="visit.visitStatus==1"
+        (click)="$event.stopPropagation();onOperationClick({ 'key': 'withDoctor', 'value': 'With Doctor' }, visit)"
+        suiPopup popupText="with Doctor" popupInverted [popupPlacement]="'top'">
+        <i class="user md icon"></i>
+      </button>
+      <i class="icons blue" *ngIf="visit.visitStatus==2"
+        (click)="$event.stopPropagation();onOperationClick({key: 'checkOut', value: 'Check Out Now'}, visit)" suiPopup
+        popupText="Check Out Now" popupInverted [popupPlacement]="'top'">
+        <i class="circular inverted orange calendar check icon blue"></i>
+        <i class="red small close icon"></i>
+      </i>
+
+    </div>
+  </div>
+
+  <div class="card add-insurance" (click)="onOperationClick({ 'key': 'checkIn', 'value': 'New Check In' }, InputData)">
+    <div class="content">
+      <i class="plus circle orange link icon huge" suiPopup popupText="New Check In" popupInverted
+        [popupPlacement]="'top'"></i>
+    </div>
+  </div>
+
+</div>
+
+<!-- Patient Check In/Out Status Change Modal Starts -->
+<ng-template let-context let-modal="modal" #modalCheckIn>
+  <div class="header">
+    <span>{{'patient.checkInOut.heading' | translate}}</span>
+    <i #closeWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-patient-check-in (OutputData)="outputDataFromCheckInOperation($event)" [InputData]="inputDataForCheckIn">
+    </app-patient-check-in>
+  </div>
+</ng-template>
+<!-- Patient Check In/Out Status Change Modal Ends -->

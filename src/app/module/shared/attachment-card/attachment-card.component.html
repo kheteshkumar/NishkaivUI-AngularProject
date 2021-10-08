@@ -1,0 +1,127 @@
+<app-toaster [toaster]="toastData"></app-toaster>
+
+<div class="ui segment modal-loader" *ngIf="isLoader">
+  <div class="ui active dimmer">
+    <div class="ui medium text loader">Loading</div>
+  </div>
+</div>
+
+<div *ngIf="attachments.length == 0 && !isLoader">
+  <div class="ui cards cards-overflow">
+    <div class="ui card add-insurance" style="min-width: 150px;">
+      <sui-message class="attached warning" [isDismissable]="false">
+        <p>{{ 'attachment.card.noRecordsFound' | translate }}</p>
+      </sui-message>
+    </div>
+    <div class="card add-insurance" (click)="openAddAttachmentModal()"
+      *ngIf="showAddButton && permissions.uploadAttachments">
+      <div class="content">
+        <i class="plus circle orange link icon huge" suiPopup popupText="Upload New Attachment" popupInverted
+          [popupPlacement]="'top'"></i>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="ui cards cards-overflow" style="margin: 0px; margin-bottom: 0.5em;"
+  *ngIf="attachments.length > 0 && !isLoader">
+
+  <div class="card" *ngFor="let attachment of attachments" [ngStyle]="styleCardForDashboard()">
+    <div class="ui active dimmer" *ngIf="attachment.isLoader_AttachmentOperation">
+      <div class="ui small text loader"></div>
+    </div>
+    <div class="content">
+      <div class="header">
+        <span class="ui sub header" style="font-size: 14px">{{
+          attachment.docName != null ? attachment.docName : '--'
+          }}</span>
+      </div>
+      <div style="border-bottom: 1px solid #34a653; margin: 5px 0px"></div>
+      <div>
+        <div class="meta">
+          <div>
+            <strong> {{ 'attachment.card.createdOn' | translate }}: </strong>{{ attachment.createdOn }}
+          </div>
+        </div>
+        <div class="description">
+          <div class="item">
+            <span>
+              <strong>{{ 'File Name' | translate }}: </strong>
+              {{ attachment.docName != '' ? attachment.docName : '--' }}
+            </span>
+          </div>
+        </div>
+        <div class="description">
+          <div class="item">
+            <span>
+              <strong>{{ 'attachment.card.description' | translate }}: </strong>
+              {{ (attachment.description != '' && attachment.description != null) ? attachment.description : '--' }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <button class="orange circular ui left floated icon button" type="button"
+        (click)="$event.stopPropagation();onOperationClick({ 'key': 'viewAttachment', 'value': 'View Attachment' }, attachment)"
+        suiPopup popupText="View Attachment" popupInverted [popupPlacement]="'top'">
+        <i class="eye alternate icon"></i>
+      </button>
+
+      <a [href]="attachment.docPath" download="attachment.docName" target="_blank">
+        <button class="orange circular ui left floated icon button" type="button" autofocus suiPopup
+          popupText="View Attachment in new Window" popupInverted [popupPlacement]="'top'">
+          <i class="eye alternate icon"></i>
+        </button>
+      </a>
+
+      <button class="orange circular ui left floated icon button" type="button"
+        *ngIf="loggedInUserData.userType == userTypeEnum.PATIENT && showAddButton"
+        (click)="$event.stopPropagation();onOperationClick({ 'key': 'linkProvider', 'value': 'Link Provider' }, attachment)"
+        suiPopup popupText="Link Provider" popupInverted [popupPlacement]="'top'">
+        <i class="linkify icon" style="color: #ffffff;"></i>
+      </button>
+
+      <button class="red circular ui left floated icon button" type="button" *ngIf="showAddButton"
+        (click)="$event.stopPropagation();onOperationClick({ 'key': 'deleteAttachment', 'value': 'Delete Attachment' }, attachment)"
+        suiPopup popupText="Delete Attachment" popupInverted [popupPlacement]="'top'">
+        <i class="trash alternate outline sign icon" style="color: #ffffff;"></i>
+      </button>
+
+    </div>
+  </div>
+
+  <div class="card add-insurance" (click)="openAddAttachmentModal()" *ngIf="showAddButton">
+    <div class="content">
+      <i class="plus circle orange link icon huge" suiPopup popupText="Upload New Attachment" popupInverted
+        [popupPlacement]="'top'"></i>
+    </div>
+  </div>
+
+</div>
+
+<!-- Add attachment Starts -->
+<ng-template let-context let-modal="modal" #modalAddAttach>
+  <div class="header">
+    <span>{{ 'attachment.add.heading' | translate }}</span>
+    <i #closeWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-upload-attachment [patientData]="patientData" (OutputData)="outputDataFromOperation($event)">
+    </app-upload-attachment>
+  </div>
+</ng-template>
+<!-- Add attachment Ends -->
+
+<!-- Link attachment Starts -->
+<ng-template let-context let-modal="modal" #modalLinkAttach>
+  <div class="header">
+    <span>{{ 'attachment.link.heading' | translate }}</span>
+    <i #closeWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-link-attachment-to-provider [InputData]="inputDataForLinkAttachment"
+      (OutputData)="outputDataFromLinkOperation($event)">
+    </app-link-attachment-to-provider>
+  </div>
+</ng-template>
+<!-- Link attachment Ends -->

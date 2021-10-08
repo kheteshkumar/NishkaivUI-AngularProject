@@ -1,0 +1,239 @@
+<app-toaster [toaster]="toastData"></app-toaster>
+<div *ngIf="invoiceList.length == 0 && !isLoader">
+  <sui-message class="attached warning" [isDismissable]="false">
+    <p>{{'transaction.add.noRecordsFound' | translate}}</p>
+  </sui-message>
+</div>
+
+
+<div class="ui segment modal-loader" *ngIf="isLoader">
+  <div class="ui active dimmer">
+    <div class="ui medium text loader">Loading</div>
+  </div>
+</div>
+
+<div class="ui cards cards-overflow" style="margin: 0px; margin-bottom: 0.5em;" *ngIf="invoiceList.length>0">
+  <div class="card" *ngFor="let invoice of invoiceList">
+    <div class="ui active dimmer" *ngIf="invoice.invoiceOperation">
+      <div class="ui small text loader"></div>
+    </div>
+    <div class="content">
+
+      <!-- operation control will come here -->
+      <div class="ui right floated pointing dropdown mr0" suiDropdown (click)="$event.stopPropagation()">
+        <i class="ellipsis horizontal icon"></i>
+        <div class="menu" suiDropdownMenu>
+          <div class="item" *ngFor="let operation of invoice.operations"
+            (click)="onInvoiceOperationClick(operation, invoice)">
+            <div class="w100">{{operation.value}}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ui mini green bottom right attached label" style="background-color: #F47A37 !important;"
+        *ngIf="invoice.displayInvoiceStatus=='Ready To Send'">
+        {{invoice.displayInvoiceStatus}}
+      </div>
+
+      <div
+        [ngClass]="checkDueDate(invoice) ? 'ui mini red bottom right attached label' : 'ui mini blue bottom right attached label blue'"
+        *ngIf="invoice.displayInvoiceStatus=='Awaiting Payment'">
+        {{invoice.displayInvoiceStatus}}
+      </div>
+
+      <div class="ui mini green bottom right attached label" *ngIf="invoice.displayInvoiceStatus=='Paid'||
+      invoice.displayInvoiceStatus=='Payment Scheduled'||
+      invoice.displayInvoiceStatus=='Payment Plan Created'||
+      invoice.displayInvoiceStatus=='Subscription Plan Created'||
+      invoice.displayInvoiceStatus=='Payment Created'||
+      invoice.displayInvoiceStatus=='In Progress'">
+        {{invoice.displayInvoiceStatus}}
+      </div>
+
+      <div class="ui mini red bottom right attached label" *ngIf="invoice.displayInvoiceStatus=='Expired'||invoice.displayInvoiceStatus=='Cancelled'||
+      invoice.displayInvoiceStatus=='Unpaid'||
+      invoice.displayInvoiceStatus=='Unsubscribed'">
+        {{invoice.displayInvoiceStatus}}
+      </div>
+
+      <div class="header">
+        <span class="ui sub header" style="font-size: 18px;">{{invoice.finalAmount | CustomFormatCurrency}}</span>
+        <span class="separator">|</span>
+        <span class="ui sub header">{{invoice.invoiceNumber}}</span>
+      </div>
+      <div style="border-bottom: 1px solid #34a653; margin: 5px 0px;"></div>
+      <div>
+        <div class="meta">
+          <div><strong> {{'invoice.find.invoiceDate' | translate}}: </strong>{{invoice.displayInvoiceDate}}</div>
+          <div><strong> {{'invoice.find.serviceDate' | translate}}: </strong>{{invoice.serviceDate?
+            invoice.displayServiceDate:'-'}}</div>
+          <div *ngIf="invoice.displayInvoiceStatus!='Ready To Send'"
+            [ngClass]="{'text_red': checkDueDate(invoice)}">
+            <strong>{{'invoice.find.dueDate' | translate}}: </strong>
+            <span>{{getFormattedDate(invoice.dueDate)}}</span>
+          </div>
+          <div *ngIf="invoice.displayInvoiceStatus=='Ready To Send'"
+            [ngClass]="{'text_red': checkDueDate(invoice)}">
+            <strong>{{'invoice.find.dueDate' | translate}}: </strong>
+            <span>{{getFormattedDate(invoice.dueDate)}}</span>
+          </div>
+          <div *ngIf="invoice.displayInvoiceStatus=='Paid'">
+            <strong> {{'invoice.find.paidOn' | translate}}: </strong>{{invoice.paymentDate}}
+          </div>
+
+        </div>
+        <br>
+        <div class="description">
+          <div class="item">
+            <span>
+              <strong>{{'invoice.find.doctorName' | translate}}: </strong>
+              {{(invoice.doctorName !== null && invoice.doctorName != '')? invoice.doctorName: '-'}}
+            </span>
+          </div>
+        </div>
+      </div>
+
+
+      <button class="orange circular ui left floated icon button" type="button"
+        (click)="$event.stopPropagation();onInvoiceOperationClick({ 'key': 'previewInvoice', 'value': 'Preview' }, invoice)"
+        suiPopup popupText="Preview" popupInverted [popupPlacement]="'top'">
+        <i class="arrow eye icon" style="color: #ffffff;"></i>
+      </button>
+
+      <ng-container
+        *ngIf="invoice.invoiceStatus === InvoiceStatusEnum['Unpaid'] && invoice.invoiceType == InvoiceTypeEnum['OneTime']">
+        <button class="orange circular ui left floated icon button" type="button"
+          (click)="$event.stopPropagation();onInvoiceOperationClick({ 'key': 'payInFull', 'value': 'Retry' }, invoice)"
+          suiPopup popupText="Pay in Full" popupInverted [popupPlacement]="'top'">
+          <i class="dollar sign icon"></i>
+        </button>
+      </ng-container>
+      <ng-container *ngIf="invoice.invoiceStatus === InvoiceStatusEnum['Finalize']">
+
+        <button class="orange circular ui left floated icon button" type="button"
+          (click)="$event.stopPropagation();onInvoiceOperationClick({ 'key': 'payInFull', 'value': 'Pay in Full' }, invoice)"
+          suiPopup popupText="Pay In Full" popupInverted [popupPlacement]="'top'">
+          <i class="dollar sign icon"></i>
+        </button>
+
+        <button class="orange circular ui left floated icon button" type="button"
+          (click)="$event.stopPropagation();onInvoiceOperationClick({ 'key': 'resendInvoice', 'value': 'Resend' }, invoice)"
+          suiPopup popupText="Resend" popupInverted [popupPlacement]="'top'">
+          <i class="paper plane outline icon"></i>
+        </button>
+
+      </ng-container>
+
+
+    </div>
+  </div>
+</div>
+
+
+<!-- Preview Invoice Template Starts -->
+<ng-template let-context let-modal="modal" #modalPreviewInvoice>
+  <div class="header">
+    <ng-container *ngIf="inputDataForPreview.isResend">{{'invoice.find.invoiceResendHeader' | translate}}</ng-container>
+    <ng-container *ngIf="!inputDataForPreview.isResend">{{'invoice.find.invoicePreviewHeader' | translate}}
+    </ng-container>
+    <i #closeWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-invoice-template [InputData]="inputDataForPreview" (OutputData)="outputDataFromPreviewOperation($event)">
+    </app-invoice-template>
+  </div>
+</ng-template>
+<!-- Preview Invoice Template Ends -->
+
+<!-- Pay In Full Transaction Operation Starts -->
+<ng-template let-context let-modal="modal" #modalTransactionOperations>
+  <div class="header">
+    <i #closeWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-transaction-operations [InputData]="inputDataForOperation"
+      (OutputData)="outputDataFromTransactionOperation($event)"></app-transaction-operations>
+  </div>
+  <div class="actions">
+    <div class="ui tiny">
+      <button class="tiny ui orange button" autofocus *ngIf="typeOfOperationHeading=='Adjust'"
+        (click)='onPerformOperationClick()'>{{'transaction.find.adjust' | translate}}</button>
+      <button class="tiny ui orange button" autofocus *ngIf="typeOfOperationHeading=='Refund'"
+        (click)='onPerformOperationClick()'>{{'transaction.find.refund' | translate}}</button>
+      <button class="tiny ui orange button" autofocus *ngIf="typeOfOperationHeading=='Force Auth'"
+        (click)='onPerformOperationClick()'>{{'transaction.find.forceAuth' | translate}}</button>
+      <button class="tiny ui orange button" autofocus *ngIf="typeOfOperationHeading=='Reprocess'"
+        (click)='onPerformOperationClick()'>{{'transaction.find.reprocess' | translate}}</button>
+      <button class="ui tiny button" (click)="modal.deny()"
+        *ngIf="typeOfOperationHeading=='Receipt'">{{'transaction.find.close' | translate}}</button>
+      <button class="ui tiny button" (click)="modal.deny()"
+        *ngIf="typeOfOperationHeading!='Receipt'">{{'transaction.find.cancel' | translate}}</button>
+    </div>
+  </div>
+</ng-template>
+<!-- Pay In Full Transaction Operation Ends -->
+
+<!-- Recurring Transaction Operation Starts -->
+<ng-template let-context let-modal="modal" #modalRecurringOperations>
+  <div class="header">{{typeOfOperationHeading}}
+    <i #closeWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-recurring-operations [InputData]="inputDataForOperation" (OutputData)="outputDataFromRecurrOperation($event)">
+    </app-recurring-operations>
+  </div>
+  <div class="actions">
+    <div class="ui tiny">
+      <button class="ui tiny button" (click)="modal.deny()">{{'recurringPayments.find.close' | translate}}</button>
+    </div>
+  </div>
+</ng-template>
+<!-- Recurring Transaction Operation Ends -->
+
+<!-- Add Transaction Start -->
+<ng-template let-context let-modal="modal" #modalAddTransaction>
+  <div class="header">{{'transaction.add.acceptPayment' | translate}}
+    <i #closeWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-add-transaction [InputData]="inputDataOneTimePayment" (OutputData)="outputDataFromCreateTransaction($event)">
+    </app-add-transaction>
+  </div>
+</ng-template>
+<!-- Add Transaction End -->
+
+<!-- Recurring Payment Start -->
+<ng-template let-context let-modal="modal" #modalAddRecurringPayments>
+  <div class="header">{{'recurringPayments.add.heading' | translate}}
+    <i #closeWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-add-recurring (cancel)='closeRecurringModal($event)' [InputData]="inputDataPaymentPlan"
+      (OutputData)="outputDataFromAddRecurring($event)"></app-add-recurring>
+  </div>
+</ng-template>
+<!-- Recurring Payment Start -->
+
+<!-- Add Patient Account Starts -->
+<ng-template let-context let-modal="modal" #modalAddPatientAccount>
+  <div class="header">
+    <span *ngIf="!inputDataForAccountOperation.isEdit">{{'patientAccount.add.heading' | translate}}</span>
+    <span *ngIf="inputDataForAccountOperation.isEdit">{{'patientAccount.edit.heading' | translate}}</span>
+    <i #closeAccountModal (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+
+    <app-add-patient-account [InputData]="inputDataForAccountOperation" (OutputData)="outputDataFromAccount($event)">
+    </app-add-patient-account>
+  </div>
+  <div class="actions">
+    <div class="ui tiny">
+      <button class="tiny ui orange button" autofocus (click)='onAddPatientAccountClick()'
+        *ngIf="!inputDataForAccountOperation.isEdit">{{'patient.add.save' | translate}}</button>
+      <button class="tiny ui orange button" autofocus (click)='onEditPatientAccountClick()'
+        *ngIf="inputDataForAccountOperation.isEdit">{{'patient.add.save' | translate}}</button>
+      <button class="tiny ui button" (click)="modal.deny()">{{'transaction.find.cancel' | translate}}</button>
+    </div>
+  </div>
+</ng-template>
+<!-- Add Patient Account Ends -->

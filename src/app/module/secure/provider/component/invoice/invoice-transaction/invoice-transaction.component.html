@@ -1,0 +1,149 @@
+<app-toaster [toaster]="toastData"></app-toaster>
+<div class="ui divided list">
+  <div class="ui segment modal-loader" *ngIf="isLoader">
+    <div class="ui active dimmer">
+      <div class="ui medium text loader">Loading</div>
+    </div>
+  </div>
+
+  <ng-container *ngIf="!isLoader">
+
+    <div *ngIf="transactionList.length>0 else noRecordsFound">
+      <div *ngFor="let transaction of transactionList" class="ui segment results">
+
+        <div class="ui active dimmer" *ngIf="transaction.isLoader_transactionOperation">
+          <div class="ui small text loader"></div>
+        </div>
+
+        <div class="ui right floated header">
+          <button class="ui mini right floated button status green"
+            *ngIf="transaction.transactionStatus=='Success' ||transaction.transactionStatus=='Refund Success'">{{transaction.transactionStatus}}</button>
+          <button class="ui mini right floated button status red"
+            *ngIf="transaction.transactionStatus=='Denied'||transaction.transactionStatus=='Failed'">{{transaction.transactionStatus}}</button>
+          <button class="ui mini right floated button status blue"
+            *ngIf="transaction.transactionStatus!='Success' && transaction.transactionStatus!='Denied' && transaction.transactionStatus!='Failed' && transaction.transactionStatus!='Refund Success'">{{transaction.transactionStatus}}</button>
+          <!-- <div class="ui right pointing dropdown" suiDropdown (click)="$event.stopPropagation()"
+            *ngIf="!(transaction.recurringId!=null && transaction.operationType=='Auth Only') && transaction.operations.length > 0">
+            <i class="ellipsis horizontal icon"></i>
+            <div class="menu" suiDropdownMenu>
+              <div class="item" *ngFor="let operation of transaction.operations"
+                (click)="onTransactionOperationClick(operation, transaction)">
+                <div class="w100">{{operation.value}}</div>
+              </div>
+
+            </div>
+          </div> -->
+        </div>
+        <ng-container *ngIf="!(transaction.recurringId!=null && transaction.operationType=='Auth Only')">
+          <button class="orange circular ui right floated icon button" type="button"
+            *ngIf="(transaction.allowedOperations.indexOf('receipt') > -1) && permissions.transactionReceipt"
+            (click)="$event.stopPropagation();onTransactionOperationClick({ 'key': 'receipt', 'value': 'Receipt' }, transaction)"
+            suiPopup popupText="Receipt" popupInverted [popupPlacement]="'top'">
+            <i class="eye icon"></i>
+          </button>
+          <button class="orange circular ui right floated icon button" type="button"
+            *ngIf="(transaction.allowedOperations.indexOf('void') > -1) && permissions.voidTransaction"
+            (click)="$event.stopPropagation();onTransactionOperationClick({ 'key': 'void', 'value': 'Void' }, transaction)"
+            suiPopup popupText="Void" popupInverted [popupPlacement]="'top'">
+            <i class="close icon"></i>
+          </button>
+          <button class="orange circular ui right floated icon button" type="button"
+            *ngIf="(transaction.allowedOperations.indexOf('edit') > -1) && permissions.updateCashAndCheckPayments"
+            (click)="$event.stopPropagation();onTransactionOperationClick({ 'key': 'edit', 'value': 'Edit' }, transaction)"
+            suiPopup popupText="Edit" popupInverted [popupPlacement]="'top'">
+            <i class="pencil icon"></i>
+          </button>
+          <button class="orange circular ui right floated icon button" type="button"
+            *ngIf="(transaction.allowedOperations.indexOf('refund') > -1) && permissions.refundTransaction"
+            (click)="$event.stopPropagation();onTransactionOperationClick({ 'key': 'refund', 'value': 'Refund' }, transaction)"
+            suiPopup popupText="Refund" popupInverted [popupPlacement]="'top'">
+            <i class="reply icon"></i>
+          </button>
+
+        </ng-container>
+
+        <div class="content" style="padding: 0px;">
+          <span><strong>{{'Payment Type: '}}</strong>{{transaction.operationType}}</span>
+          <span class="separator">|</span>
+          <span><strong>Transaction Date: </strong>{{getFormattedDate(transaction.transactionDate)}}</span>
+          <span class="separator">|</span>
+          <span><strong>Transaction Amount: </strong>${{transaction.tenderInfo.totalAmount.toFixed(2)}}</span>
+        </div>
+
+        <div style="margin-top: 5px;"></div>
+
+        <div class="content">
+          <ng-container *ngIf="transaction.operationType == 'Cash' || transaction.operationType == 'Check'">
+            <span><strong>Card Type: </strong> {{transaction.operationType}}</span>
+            <span class="separator">|</span>
+            <span><strong>Account Name: </strong>{{transaction.fullName}}</span>
+          </ng-container>
+          <ng-container
+            *ngIf="(transaction.operationType == 'Sale' || transaction.operationType == 'Refund') && transaction.tenderInfo.channelType != 2">
+            <span><strong>Card Type:
+              </strong>{{transaction.tenderInfo.cardType==null?'NA':transaction.tenderInfo.cardType}}</span>
+            <span class="separator">|</span>
+            <span>
+              <strong>Name on Card: </strong>
+              {{transaction.tenderInfo.nameOnCheckOrCard==null?'NA':transaction.tenderInfo.nameOnCheckOrCard}}
+            </span>
+            <span class="separator">|</span>
+            <span><strong>Card Number:</strong>
+              {{transaction.tenderInfo.maskCardNumber}}
+              ({{transaction.tenderInfo.cardType}})</span>
+          </ng-container>
+          <ng-container
+            *ngIf="(transaction.operationType == 'Sale' || transaction.operationType == 'Refund') && transaction.tenderInfo.channelType == 2">
+            <span>
+              <strong>Account Name: </strong>
+              {{transaction.tenderInfo.nameOnCheckOrCard==null?'NA':transaction.tenderInfo.nameOnCheckOrCard}}
+            </span>
+            <span class="separator">|</span>
+            <span><strong>Account Number:</strong>
+              {{transaction.tenderInfo.maskAccount}}
+              ({{transaction.tenderInfo.routingNumber}})</span>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+    <ng-template #noRecordsFound>
+      <sui-message class="attached warning" [isDismissable]="false">
+        <p>No Records Found</p>
+      </sui-message>
+    </ng-template>
+  </ng-container>
+</div>
+
+<!-- Add Transaction Modal starts -->
+<ng-template let-context let-modal="modal" #modalAddTransaction>
+  <div class="header">{{'transaction.add.acceptPayment' | translate}}
+    <i #closeModal (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-add-transaction [InputData]="inputDataForOperation" (OutputData)="outputDataFromOperation($event)">
+    </app-add-transaction>
+  </div>
+</ng-template>
+<!-- Add Transaction Modal ends -->
+
+<!-- Transaction Operation Modal starts -->
+<ng-template let-context let-modal="modal" #modalTransactionOperations>
+  <div class="header">{{typeOfOperationHeading}}
+    <i #closeModal (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-transaction-operations [InputData]="inputDataForOperation"
+      (OutputData)="outputDataFromTransactionOperation($event)"></app-transaction-operations>
+  </div>
+  <div class="actions">
+    <div class="ui tiny">
+      <button class="tiny ui orange button" autofocus *ngIf="typeOfOperationHeading=='Refund'"
+        (click)='onPerformOperationClick()'>{{'transaction.find.refund' | translate}}</button>
+      <button class="ui tiny button" (click)="modal.deny()"
+        *ngIf="typeOfOperationHeading=='Receipt'">{{'transaction.find.close' | translate}}</button>
+      <button class="ui tiny button" (click)="modal.deny()"
+        *ngIf="typeOfOperationHeading!='Receipt'">{{'transaction.find.cancel' | translate}}</button>
+    </div>
+  </div>
+</ng-template>
+<!-- Transaction Operation Modal starts -->

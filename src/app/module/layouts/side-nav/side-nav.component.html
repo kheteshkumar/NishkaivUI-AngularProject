@@ -1,0 +1,450 @@
+<!-- <div class="side-nav" > -->
+<app-toaster [toaster]="toastData"></app-toaster>
+<div href="javascript:void(0)" [ngClass]="(sideNavVisible===true) ? 'side-nav side-nav-open' : 'side-nav'">
+
+  <div class="logo">
+
+    <a [routerLink]="rootRoute" class='open' (click)="onTabSelection($event)">
+      <img *ngIf="(settingsData.logo !== '' && settingsData.logo !== null)" class="logo-centerX"
+        src="{{settingsData.logo}}" />
+      <img *ngIf="(settingsData.logo === '' || settingsData.logo === null)" class="logo-centerX"
+        src="../../../../assets/images/logo_login.png" />
+    </a>
+
+  </div>
+  <a id="nav-icon1" href="javascript:void(0)" [ngClass]="(sideNavVisible===true) ? 'open' : ''"
+    (click)="onTabSelection($event)">
+
+    <span></span>
+    <span></span>
+    <span></span>
+  </a>
+
+  <sui-accordion [closeOthers]="true">
+
+    <ng-container *ngIf="isAdmin()">
+      <sui-accordion-panel [isOpen]="false" [isDisabled]="true">
+        <div title>
+          <i class="orange hospital outline icon"></i>
+          <a class="open" routerLinkActive="activenav" [routerLinkActiveOptions]="{exact: true}"
+            (click)="onTabSelection($event)" routerLink="/facility/facility">
+            <span class="side-nav-color">{{'sideNav.facilityManagement' | translate}}</span>
+          </a>
+        </div>
+      </sui-accordion-panel>
+      <sui-accordion-panel [isOpen]="false" [isDisabled]="true">
+        <div title>
+          <i class="orange user plus icon"></i>
+          <a class="open" routerLinkActive="activenav" [routerLinkActiveOptions]="{exact: true}"
+            (click)="onTabSelection($event)" routerLink="/provider/provider">
+            <span class="side-nav-color">{{'sideNav.providerManagement' | translate}}</span>
+          </a>
+        </div>
+      </sui-accordion-panel>
+      <sui-accordion-panel [isOpen]="false" [isDisabled]="true">
+        <div title>
+          <i class="orange chart bar icon"></i>
+          <a class="open" routerLinkActive="activenav" [routerLinkActiveOptions]="{exact: true}"
+            (click)="onTabSelection($event)" routerLink="/admin/reports">
+            <span class="side-nav-color">{{'sideNav.reportAdmin' | translate}}</span>
+          </a>
+        </div>
+      </sui-accordion-panel>
+      <sui-accordion-panel [isOpen]="false" [isDisabled]="true">
+        <div title>
+          <i class="orange pencil alternate icon"></i>
+          <a class="open" routerLinkActive="activenav" [routerLinkActiveOptions]="{exact: true}"
+            (click)="onTabSelection($event)" routerLink="/forms">
+            <span class="side-nav-color">{{'sideNav.formsManagement' | translate}}</span>
+          </a>
+        </div>
+      </sui-accordion-panel>
+    </ng-container>
+
+    <ng-container *ngIf="isProvider()">
+      <sui-accordion-panel [isOpen]="rla.isActive ? 'true' : false" [isDisabled]="rla.isActive ? 'true' : false"
+        routerLinkActive #rla="routerLinkActive"
+        *ngIf="(hasModuleAccess(1) && permissions.viewAllPatient); else patientManagementWithoutRouting">
+        <div title>
+          <i class="orange plus icon"></i>
+          <a class="open" routerLinkActive="activenav" [routerLinkActiveOptions]="{exact: true}"
+            (click)="onTabSelection($event)" routerLink="/provider/patient">
+            <span class="side-nav-color">{{'sideNav.patientManagement' | translate}}</span>
+          </a>
+        </div>
+        <div content>
+          <ul>
+            <li *ngIf="permissions.bulkUploadPatients">
+              <a class="open" routerLinkActive="activenav" [routerLinkActiveOptions]="{exact: true}"
+                (click)="onTabSelection($event)" routerLink="/provider/upload-patients">
+                <span class="side-nav-color">{{'sideNav.uploadPatient' | translate}}</span>
+              </a>
+            </li>
+            <li *ngIf="hasModuleAccess(14) && permissions.viewAllAppointment">
+              <a class="open" routerLinkActive="activenav" [routerLinkActiveOptions]="{exact: true}"
+                (click)="onTabSelection($event)" routerLink="/provider/appointment">
+                <span class="side-nav-color">{{'sideNav.appointments' | translate}}</span>
+              </a>
+            </li>
+            <li *ngIf="permissions.viewNotes">
+              <a class="open" routerLinkActive="activenav" [routerLinkActiveOptions]="{exact: true}"
+                (click)="onTabSelection($event)" routerLink="/provider/note">
+                <span class="side-nav-color">{{'note.find.heading' | translate}}</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </sui-accordion-panel>
+      <ng-template #patientManagementWithoutRouting>
+        <sui-accordion-panel [isOpen]="rla.isActive ? 'true' : false" [isDisabled]="rla.isActive ? 'true' : false"
+          routerLinkActive #rla="routerLinkActive" *ngIf="
+          permissions.bulkUploadPatients ||
+          permissions.viewNotes ||
+          (hasModuleAccess(14) && permissions.viewAllAppointment)
+          ">
+          <div title>
+            <i class="orange plus icon"></i>
+            <a class="open" (click)="onTabSelection($event)">
+              <span class="side-nav-color">{{'sideNav.patientManagement' | translate}}</span>
+            </a>
+          </div>
+          <div content>
+            <ul>
+              <li *ngIf="permissions.bulkUploadPatients">
+                <a class="open" routerLinkActive="activenav" [routerLinkActiveOptions]="{exact: true}"
+                  (click)="onTabSelection($event)" routerLink="/provider/upload-patients">
+                  <span class="side-nav-color">{{'sideNav.uploadPatient' | translate}}</span>
+                </a>
+              </li>
+              <li *ngIf="hasModuleAccess(14) && permissions.viewAllAppointment">
+                <a class="open" routerLinkActive="activenav" [routerLinkActiveOptions]="{exact: true}"
+                  (click)="onTabSelection($event)" routerLink="/provider/appointment">
+                  <span class="side-nav-color">{{'sideNav.appointments' | translate}}</span>
+                </a>
+              </li>
+              <li *ngIf="permissions.viewNotes">
+                <a class="open" routerLinkActive="activenav" [routerLinkActiveOptions]="{exact: true}"
+                  (click)="onTabSelection($event)" routerLink="/provider/note">
+                  <span class="side-nav-color">{{'note.find.heading' | translate}}</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </sui-accordion-panel>
+      </ng-template>
+
+      <sui-accordion-panel [isOpen]="rla.isActive ? 'true' : false" [isDisabled]="rla.isActive ? 'true' : false"
+        routerLinkActive #rla="routerLinkActive"
+        *ngIf="(hasModuleAccess(2) && permissions.viewAllInvoices); else paymentActivityWithoutRouting">
+        <div title>
+          <i class="icons">
+            <i class="orange shopping cart icon"></i>
+            <i class="inverted mini dollar sign icon" style="text-shadow: none !important"></i>
+          </i>
+          <a class="open" routerLinkActive="activenav" (click)="onTabSelection($event)"
+            routerLink="/provider/patientcheckout">
+            <span class="side-nav-color">{{'invoice.find.header' | translate}}</span>
+          </a>
+        </div>
+        <div content>
+          <ul *ngIf="permissions.productServicesManagement">
+            <li>
+              <a class="open" routerLinkActive="activenav" [routerLinkActiveOptions]="{exact: true}"
+                (click)="onTabSelection($event)" routerLink="/provider/products-services">
+                <span class="side-nav-color">{{'sideNav.productServices' | translate}}</span>
+              </a>
+            </li>
+            <li>
+              <a class="open" routerLinkActive="activenav" [routerLinkActiveOptions]="{exact: true}"
+                (click)="onTabSelection($event)" routerLink="/provider/upload-products-services">
+                <span class="side-nav-color">{{'sideNav.uploadProductsServices' | translate}}</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </sui-accordion-panel>
+      <ng-template #paymentActivityWithoutRouting>
+        <sui-accordion-panel [isOpen]="rla.isActive ? 'true' : false" [isDisabled]="rla.isActive ? 'true' : false"
+          routerLinkActive #rla="routerLinkActive" *ngIf="permissions.productServicesManagement">
+          <div title>
+            <i class="icons">
+              <i class="orange shopping cart icon"></i>
+              <i class="inverted mini dollar sign icon" style="text-shadow: none !important"></i>
+            </i>
+            <a class="open" (click)="onTabSelection($event)">
+              <span class="side-nav-color">{{'invoice.find.header' | translate}}</span>
+            </a>
+          </div>
+          <div content>
+            <ul *ngIf="permissions.productServicesManagement">
+              <li>
+                <a class="open" routerLinkActive="activenav" [routerLinkActiveOptions]="{exact: true}"
+                  (click)="onTabSelection($event)" routerLink="/provider/products-services">
+                  <span class="side-nav-color">{{'sideNav.productServices' | translate}}</span>
+                </a>
+              </li>
+              <li>
+                <a class="open" routerLinkActive="activenav" [routerLinkActiveOptions]="{exact: true}"
+                  (click)="onTabSelection($event)" routerLink="/provider/upload-products-services">
+                  <span class="side-nav-color">{{'sideNav.uploadProductsServices' | translate}}</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </sui-accordion-panel>
+      </ng-template>
+
+      <sui-accordion-panel [isOpen]="false" [isDisabled]="true" *ngIf="hasModuleAccess(3) && permissions.viewAllClaims">
+        <div title>
+          <i class="orange heartbeat sign icon"></i>
+          <a class="open" routerLinkActive="activenav" [routerLinkActiveOptions]="{exact: true}"
+            (click)="onTabSelection($event)" routerLink="/provider/claims">
+            <span class="side-nav-color"> {{'sideNav.claims' | translate}}</span>
+          </a>
+        </div>
+      </sui-accordion-panel>
+
+      <sui-accordion-panel [isOpen]="rla.isActive ? 'true' : false" [isDisabled]="rla.isActive ? 'true' : false"
+        routerLinkActive #rla="routerLinkActive"
+        *ngIf="(hasModuleAccess(15) && (permissions.transactionDashboardReports || permissions.patientReports || permissions.appointmentReports)); else reportsWithoutRouting">
+        <div title>
+          <i class="orange chart bar icon"></i>
+          <a class="open" routerLinkActive="activenav" [routerLinkActiveOptions]="{exact: true}"
+            (click)="onTabSelection($event)" routerLink="/provider/report">
+            <span class="side-nav-color"> {{'sideNav.report' | translate}}</span>
+          </a>
+        </div>
+        <div content>
+          <ul>
+            <li *ngIf="hasModuleAccess(4) && permissions.viewAllTransaction">
+              <a class="open" routerLinkActive="activenav" [routerLinkActiveOptions]="{exact: true}"
+                (click)="onTabSelection($event)" routerLink="/provider/transaction">
+                <span class="side-nav-color">{{'sideNav.transactionManagement' | translate}}</span>
+              </a>
+            </li>
+            <li *ngIf="(hasModuleAccess(2) && permissions.viewAllInvoices)">
+              <a class="open" routerLinkActive="activenav" [routerLinkActiveOptions]="{exact: true}"
+                (click)="onTabSelection($event)" routerLink="/provider/paymentplan">
+                <span class="side-nav-color">{{'recurringPayments.find.heading' | translate}}</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </sui-accordion-panel>
+      <ng-template #reportsWithoutRouting>
+        <sui-accordion-panel [isOpen]="rla.isActive ? 'true' : false" [isDisabled]="rla.isActive ? 'true' : false"
+          routerLinkActive #rla="routerLinkActive" *ngIf="
+          (hasModuleAccess(4) && permissions.viewAllTransaction) ||
+          (hasModuleAccess(2) && permissions.viewAllInvoices)
+          ">
+          <div title>
+            <i class="orange chart bar icon"></i>
+            <a class="open" (click)="onTabSelection($event)">
+              <span class="side-nav-color"> {{'sideNav.report' | translate}}</span>
+            </a>
+          </div>
+          <div content>
+            <ul>
+              <li *ngIf="hasModuleAccess(4) && permissions.viewAllTransaction">
+                <a class="open" routerLinkActive="activenav" [routerLinkActiveOptions]="{exact: true}"
+                  (click)="onTabSelection($event)" routerLink="/provider/transaction">
+                  <span class="side-nav-color">{{'sideNav.transactionManagement' | translate}}</span>
+                </a>
+              </li>
+              <li *ngIf="(hasModuleAccess(2) && permissions.viewAllInvoices)">
+                <a class="open" routerLinkActive="activenav" [routerLinkActiveOptions]="{exact: true}"
+                  (click)="onTabSelection($event)" routerLink="/provider/paymentplan">
+                  <span class="side-nav-color">{{'recurringPayments.find.heading' | translate}}</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </sui-accordion-panel>
+      </ng-template>
+
+      <sui-accordion-panel [isOpen]="rla.isActive ? 'true' : false" [isDisabled]="rla.isActive ? 'true' : false"
+        routerLinkActive #rla="routerLinkActive"
+        *ngIf="(hasModuleAccess(6) && permissions.viewProviderSettings); else settingWithoutRouting">
+        <div title>
+          <i class="orange wrench icon"></i> <a class="open" routerLinkActive="activenav"
+            [routerLinkActiveOptions]="{exact: true}" (click)="onTabSelection($event)"
+            routerLink="/provider/providersettings">
+            <span class="side-nav-color">{{'settings.provider.settings' | translate}}</span>
+          </a>
+
+        </div>
+        <div content>
+          <ul>
+            <li *ngIf="permissions.viewPublicSubmissions">
+              <a class="open" routerLinkActive="activenav" [routerLinkActiveOptions]="{exact: true}"
+                (click)="onTabSelection($event)" routerLink="/provider/notifications">
+                <span class="side-nav-color">{{'sideNav.notifications' | translate}}</span>
+              </a>
+            </li>
+            <li *ngIf="hasModuleAccess(7) && permissions.viewAllInsurance">
+              <a class="open" routerLinkActive="activenav" [routerLinkActiveOptions]="{exact: true}"
+                (click)="onTabSelection($event)" routerLink="/provider/insurance">
+                <span class="side-nav-color">{{'insurance.find.heading' | translate}}</span>
+              </a>
+            </li>
+            <li *ngIf="hasModuleAccess(8) && permissions.viewAllUsers">
+              <a class="open" routerLinkActive="activenav" [routerLinkActiveOptions]="{exact: true}"
+                (click)="onTabSelection($event)" routerLink="/provider/user">
+                <span class="side-nav-color">{{'user.find.heading' | translate}}</span>
+              </a>
+            </li>
+            <li *ngIf="hasModuleAccess(9) && permissions.viewAllPractitioner">
+              <a class="open" routerLinkActive="activenav" [routerLinkActiveOptions]="{exact: true}"
+                (click)="onTabSelection($event)" routerLink="/provider/practitioners">
+                <span class="side-nav-color">{{'practitioner.find.heading' | translate}}</span>
+              </a>
+            </li>
+            <li *ngIf="hasModuleAccess(10) && permissions.viewAllForms">
+              <a class="open" routerLinkActive="activenav" [routerLinkActiveOptions]="{exact: true}"
+                (click)="onTabSelection($event)" routerLink="/provider/form">
+                <span class="side-nav-color">{{'sideNav.formsManagement' | translate}}</span>
+              </a>
+            </li>
+            <li *ngIf="hasModuleAccess(17) && permissions.viewRoles">
+              <a class="open" routerLinkActive="activenav" [routerLinkActiveOptions]="{exact: true}"
+                (click)="onTabSelection($event)" routerLink="/provider/roles">
+                <span class="side-nav-color">{{'sideNav.rolesManagement' | translate}}</span>
+              </a>
+            </li>
+            <li *ngIf="hasModuleAccess(11) && permissions.viewTrainingVideos">
+              <a class="open" routerLinkActive="activenav" [routerLinkActiveOptions]="{exact: true}"
+                (click)="onTabSelection($event)" routerLink="/provider/training">
+                <span class="side-nav-color">{{'sideNav.training' | translate}}</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </sui-accordion-panel>
+      <ng-template #settingWithoutRouting>
+        <sui-accordion-panel [isOpen]="rla.isActive ? 'true' : false" [isDisabled]="rla.isActive ? 'true' : false"
+          routerLinkActive #rla="routerLinkActive" *ngIf="
+          permissions.viewPublicSubmissions ||
+          (hasModuleAccess(7) && permissions.viewAllInsurance) ||
+          (hasModuleAccess(8) && permissions.viewAllUsers) ||
+          (hasModuleAccess(9) && permissions.viewAllPractitioner) ||
+          (hasModuleAccess(10) && permissions.viewAllForms) ||
+          (hasModuleAccess(11) && permissions.viewTrainingVideos) ||
+          (hasModuleAccess(17) && permissions.viewRoles)
+          ">
+          <div title>
+            <i class="orange wrench icon"></i>
+            <a class="open" (click)="onTabSelection($event)">
+              <span class="side-nav-color">{{'settings.provider.settings' | translate}}</span>
+            </a>
+          </div>
+          <div content>
+            <ul>
+              <li *ngIf="permissions.viewPublicSubmissions">
+                <a class="open" routerLinkActive="activenav" [routerLinkActiveOptions]="{exact: true}"
+                  (click)="onTabSelection($event)" routerLink="/provider/notifications">
+                  <span class="side-nav-color">{{'sideNav.notifications' | translate}}</span>
+                </a>
+              </li>
+              <li *ngIf="hasModuleAccess(7) && permissions.viewAllInsurance">
+                <a class="open" routerLinkActive="activenav" [routerLinkActiveOptions]="{exact: true}"
+                  (click)="onTabSelection($event)" routerLink="/provider/insurance">
+                  <span class="side-nav-color">{{'insurance.find.heading' | translate}}</span>
+                </a>
+              </li>
+              <li *ngIf="hasModuleAccess(8) && permissions.viewAllUsers">
+                <a class="open" routerLinkActive="activenav" [routerLinkActiveOptions]="{exact: true}"
+                  (click)="onTabSelection($event)" routerLink="/provider/user">
+                  <span class="side-nav-color">{{'user.find.heading' | translate}}</span>
+                </a>
+              </li>
+              <li *ngIf="hasModuleAccess(9) && permissions.viewAllPractitioner">
+                <a class="open" routerLinkActive="activenav" [routerLinkActiveOptions]="{exact: true}"
+                  (click)="onTabSelection($event)" routerLink="/provider/practitioners">
+                  <span class="side-nav-color">{{'practitioner.find.heading' | translate}}</span>
+                </a>
+              </li>
+              <li *ngIf="hasModuleAccess(10) && permissions.viewAllForms">
+                <a class="open" routerLinkActive="activenav" [routerLinkActiveOptions]="{exact: true}"
+                  (click)="onTabSelection($event)" routerLink="/provider/form">
+                  <span class="side-nav-color">{{'sideNav.formsManagement' | translate}}</span>
+                </a>
+              </li>
+              <li *ngIf="hasModuleAccess(17) && permissions.viewRoles">
+                <a class="open" routerLinkActive="activenav" [routerLinkActiveOptions]="{exact: true}"
+                  (click)="onTabSelection($event)" routerLink="/provider/roles">
+                  <span class="side-nav-color">{{'sideNav.rolesManagement' | translate}}</span>
+                </a>
+              </li>
+              <li *ngIf="hasModuleAccess(11) && permissions.viewTrainingVideos">
+                <a class="open" routerLinkActive="activenav" [routerLinkActiveOptions]="{exact: true}"
+                  (click)="onTabSelection($event)" routerLink="/provider/training">
+                  <span class="side-nav-color">{{'sideNav.training' | translate}}</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </sui-accordion-panel>
+      </ng-template>
+
+    </ng-container>
+
+    <ng-container *ngIf="isPatient()">
+      <sui-accordion-panel [isOpen]="false" [isDisabled]="true">
+        <div title>
+          <i class="orange calendar plus outline icon"></i>
+          <a class="open" routerLinkActive="activenav" [routerLinkActiveOptions]="{exact: true}"
+            (click)="onTabSelection($event)" routerLink="/patient/appointment">
+            <span class="side-nav-color">{{'sideNav.appointments' | translate}}</span>
+          </a>
+        </div>
+      </sui-accordion-panel>
+      <sui-accordion-panel [isOpen]="false" [isDisabled]="true">
+        <div title>
+          <i class="orange handshake icon"></i>
+          <a class="open" routerLinkActive="activenav" [routerLinkActiveOptions]="{exact: true}"
+            (click)="onTabSelection($event)" routerLink="/patient/financialprofile">
+            <span class="side-nav-color">{{'sideNav.financialProfile' | translate}}</span>
+          </a>
+        </div>
+      </sui-accordion-panel>
+      <sui-accordion-panel [isOpen]="false" [isDisabled]="true">
+        <div title>
+          <i class="orange wrench icon"></i>
+          <a class="open" routerLinkActive="activenav" [routerLinkActiveOptions]="{exact: true}"
+            (click)="onTabSelection($event)" routerLink="/patient/patientsettings">
+            <span class="side-nav-color">{{'settings.patient.settings' | translate}}</span></a>
+        </div>
+      </sui-accordion-panel>
+    </ng-container>
+
+  </sui-accordion>
+
+</div>
+<!-- <ng-template let-context let-modal="modal" #modalSessionExpiringAlert>
+  <div class="ui" *ngIf="isRefreshLoader">
+    <div class="ui active dimmer">
+      <div class="ui indeterminate text loader">{{'common.processing' | translate}}</div>
+    </div>
+  </div>
+
+  <div class="header"><i class="exclamation red triangle icon"></i>Session Expiring!!
+    <i #closeResetSession (click)="modal.deny()"></i>
+  </div>
+  <div class="content">
+    <div class="ui large icon message">
+      <div class="content">
+        <p>Action Required! Your session will expire in
+          {{ storageService.remainSeconds$ | async | time}} seconds.</p>
+      </div>
+    </div>
+  </div>
+  <div class="actions">
+    <div class="ui tiny">-->
+<!-- <button class="tiny ui orange button" (click)="modal.approve(undefined)" autofocus>Continue</button>
+      <button class="ui tiny button" (click)="modal.deny(undefined)">Logout</button> -->
+<!--<button [ngClass]="isLoader ? 'ui tiny orange primary button loading' : 'ui orange tiny primary button'"
+        (click)="refreshToken()">Continue</button>
+      <button class="ui tiny button" (click)="logOut()">Logout</button>
+    </div>
+  </div>
+</ng-template> -->

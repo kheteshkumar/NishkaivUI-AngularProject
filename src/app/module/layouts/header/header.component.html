@@ -1,0 +1,37 @@
+<div [class]="loggedInUserData.userType==0?'header-main patient': 'header-main'">
+    <div class="header-controll">
+        <div class="ui dropdown" suiDropdown>
+
+            <div class="text" *ngIf="!authData.isEmulated">Welcome {{userName}}</div>
+            <div class="text" *ngIf="authData.isEmulated">{{parentUserName}} logged in as {{userName}}</div>
+            <i class="dropdown icon"></i>
+            <div class="menu" suiDropdownMenu>
+                <div class="item" (click)="$event.stopPropagation();logOut()">Logout</div>
+                <div class="divider"></div>
+
+            </div>
+        </div>
+        
+    </div>
+    <!-- <div class="header-controll">
+        <div style="color: black;">
+            <i class="black hourglass half icon"></i>{{storageService.remainSeconds$ | async | time }}
+          </div>
+    </div> -->
+    <div class="header-controll new" *ngIf="loggedInUserData.userType==0">
+        <div content class="ui tiny form" >
+            <form [formGroup]="headerForm">
+                <div class="inline field">
+                    <label>Provider Selected: </label>
+                    <sui-select class="inline" [options]="providerList" formControlName="ProviderName" labelField="name"
+                        valueField="id" #ProviderName>
+                        <sui-select-option *ngFor="let o of ProviderName.filteredOptions" [value]="o">
+                        </sui-select-option>
+                    </sui-select>
+                    <span>{{headerFormErrors.ProviderName}}</span>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>

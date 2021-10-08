@@ -1,0 +1,73 @@
+<form [formGroup]="addFormForm" class="ui form">
+  <!-- <sui-message class="error" *ngIf="isError" [isDismissable]="false"> -->
+  <!--   <div class="header">{{ errorMessage }}</div> -->
+  <!-- </sui-message> -->
+  <div class="toaster-static toaster-e" *ngIf="showErrorMessage">
+    <span
+      ><a href="javascript:void(0)" (click)="showErrorMessage = !showErrorMessage"><i class="close icon"></i></a
+    ></span>
+    <p>{{ errorMessage }}</p>
+  </div>
+  <br />
+
+  <div class="required field">
+    <label> {{ 'plforms.link.form' | translate }}</label>
+    <sui-select
+      class="selection"
+      formControlName="formId"
+      #Status
+      labelField="formTitle"
+      valueField="id"
+      (selectedOptionChange)="fetchForm()"
+      [isSearchable]="true"
+      [options]="lookupList"
+      icon="search"
+    >
+      <sui-select-option *ngFor="let o of Status.filteredOptions" [value]="o"></sui-select-option>
+    </sui-select>
+    <span>{{ addFormFormErrors.formId }}</span>
+  </div>
+  <div class="field">
+    <label> {{ 'plforms.link.aliasName' | translate }}</label>
+    <input placeholder="Alias Name" type="text" formControlName="aliasName" />
+    <span>{{ addFormFormErrors.aliasName }}</span>
+  </div>
+  <!-- <div class="field"> -->
+  <!--   <label> {{ 'plforms.link.description' | translate }}</label> -->
+  <!--   <input placeholder="{{ 'plforms.link.description' | translate }}" type="text" formControlName="formDescription" /> -->
+  <!--   <span>{{ addFormFormErrors.formDescription }}</span> -->
+  <!-- </div> -->
+  <div class="field">
+    <label> {{ 'plforms.link.preview' | translate }}</label>
+    <div class="ui segment" *ngIf="showFormPreview">
+      <app-formio-renderer [form]="formJson">
+      </app-formio-renderer>
+    </div>
+    <!-- <app-formio-builder -->
+    <!--   [form]="InputData.form ? InputData.form.fields : null" -->
+    <!--   (formChanged)="onFormChange($event)" -->
+    <!-- ></app-formio-builder> -->
+  </div>
+</form>
+<div class="ui fitted divider"></div>
+<br />
+<button
+  class="tiny ui orange button"
+  autofocus
+  [ngClass]="{ loading: isLoading_Btn }"
+  (click)="onAddForm()"
+  [disabled]="!addFormForm.dirty"
+  *ngIf="!InputData.isEdit"
+>
+  {{ 'plforms.link.link' | translate }}
+</button>
+<button
+  class="tiny ui orange button"
+  autofocus
+  (click)="onEditForm()"
+  [ngClass]="{ loading: isLoading_Btn }"
+  [disabled]="addFormForm.invalid || !addFormForm.dirty"
+  *ngIf="InputData.isEdit"
+>
+  {{ 'plforms.edit.save' | translate }}
+</button>

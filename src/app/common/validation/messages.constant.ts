@@ -1,0 +1,33 @@
+export namespace Messages {
+    export const required = 'Please enter {name}.';
+    export const requiredImage = 'Please upload {name}.';
+    export const minlength = 'Min {min} digits/characters required.';
+    export const maxlength = 'Max {max} digits/characters allowed.';
+    export const email = '{name} is not valid.';
+    export const pattern = '{name} is not valid.';
+    export const amountpattern = '{name} should be in the range of 0-999999999.99 with max. of 2 decimals';
+    export const matchPassword = '{name} is not matched.';
+    export const invalidmobile = 'Only number is allowed.';
+    export const isNumberOnly = 'Only number is allowed.';
+    export const blankPassword = '{name} should not be blank.';
+    export const cardNumber = '{name} not valid.';
+    export const amount = 'Please enter {name} greater than 0';
+    export const expiryDate = '{name} not valid';
+    export const buyRate = '{name} should be greater than or equal to 0';
+    export const emailWithMergeFields = `{name} is not valid (multiple values should be seperated with ; )`;
+    export const numberLimitPattern = '{name} should be in the range of 1-60';
+    export const DiscountAmount = '{name} should be less than Amount';
+    export const DownPayment = '{name} should be less than Total Amount';
+    export const Discount = '{name} should be less than Amount';
+    export const MinDuration = 'Length of appointment must be at least 15 minutes';
+    export const MaxDuration = 'Length of appointment must be less than or equal to 480 minutes';
+    export const transactionDate = 'Schedule transaction date exceeds card expiry date.';
+    export const doctorSlotNotAvaliable = 'Timeslot is not available for selected practitioner.';
+    export const outsideWorkingHours = 'Time selected is outside practitioner working hours';
+    export const isActiveDoctor = '{name} is not Active';
+    export const isValidDate = '{name} is not Valid';
+    export const isValidTime = '{name} is not Valid';
+    export const validWorkingHours = 'Start time must be less than End time';
+    export const slotUnAvailable = 'Slot not available';
+    export const workingHoursAlreadyAdded = 'This doctor is scheduled at another practice for times selected.';
+}

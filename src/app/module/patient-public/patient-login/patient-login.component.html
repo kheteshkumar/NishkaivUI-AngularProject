@@ -1,0 +1,124 @@
+<app-toaster [toaster]="toastData"></app-toaster>
+<div class="limiter">
+  <div class="container-login100 img-bg">
+    <div class="wrap-login100">
+      <div class="ui active inverted dimmer" *ngIf="isloggingin"></div>
+      <!-- <img class="logo-center" src="../../../../assets/images/logo_login.png" /> -->
+      <img *ngIf="logo!=='' && logo!==null && !this.isLoaderLogo" class="logo-center" src="{{logo}}" />
+      <br />
+      <form novalidate [formGroup]="loginForm"
+        (ngSubmit)="loginMethod == 'password'?login():loginMethod == 'authcode'?loginViaOTP():''">
+        <sui-dimmer class="inverted" [(isDimmed)]="isLoaderTheme">
+          <div class="ui text loader">Loading..</div>
+        </sui-dimmer>
+        <div class="ui segment" *ngIf="!isLoaderTheme">
+
+          <!-- <h2>{{ 'login.loginHeading' | translate}}</h2>-->
+          <h2>Login</h2>
+          <div class="ui form">
+            <div class="required inline field">
+              <label>Email/Phone</label>
+              <div class="ui left icon input">
+                <i class="user icon"></i>
+                <input type="text" placeholder="Email or Phone Number" formControlName="userName"
+                  [ngClass]="{'is-invalid': (loginForm.get('userName').touched || loginForm.get('userName').dirty) && !loginForm.get('userName').valid }" />
+              </div>
+              <span class="invalid-feedback">
+                <span class="error-msg">
+                  {{formErrors.userName}}
+                </span>
+              </span>
+            </div>
+            <div class="field" *ngIf="loginMethod == 'none'" style="text-align: center;">
+              <div class="ui small buttons center">
+                <button type="button" [ngClass]="otpLoader ? 'ui orange button loading' : 'ui orange button'"
+                  (click)="changeLoginMethod('authcode')">{{ 'login.useAuthCode' | translate}}</button>
+                <div class="or"></div>
+                <button type="button" class="small ui orange button"
+                  (click)="changeLoginMethod('password')">{{ 'login.usePassword' | translate}}</button>
+              </div>
+            </div>
+            <!-- <ng-container *ngIf="loginMethod == 'none'">
+              <label>&nbsp;</label>
+              <button type="button" [ngClass]="otpLoader ? 'small ui orange button loading' : 'small ui orange button'"
+                (click)="changeLoginMethod('authcode')">
+                {{ 'login.useAuthCode' | translate}}
+              </button>
+              &nbsp;&nbsp;&nbsp;&nbsp;or&nbsp;&nbsp;&nbsp;
+              <button type="button" class="small ui orange button" (click)="changeLoginMethod('password')">
+                {{ 'login.usePassword' | translate}}
+              </button>
+            </ng-container> -->
+
+
+
+
+            <div class="required inline field" *ngIf="loginMethod=='password'">
+              <label>{{ 'login.password' | translate}}</label>
+              <div class="ui left icon input">
+                <i class="lock icon"></i>
+                <input type="text" placeholder="password" formControlName="password" #password
+                  [type]="showPassword ? 'text' : 'password'" />
+                <a class="ui icon view-pw" suiPopup popupInverted
+                  popupText="{{ this.showPassword ?  'Hide password' : 'Show password' }}" popupPlacement="right"
+                  (click)="toggleShow()">
+                  <i [ngClass]="showPassword ? 'eye icon' : 'low vision icon'"></i>
+                </a>
+                <!-- <a class="ui icon view-pw" suiPopup popupInverted popupText="{{ this.showPassword ?  'Hide password' : 'Show password' }}" popupPlacement="right" class="showon2" (click)="toggleShow()"><i class="eye icon"></i></a>  -->
+              </div>
+              <span class="error-msg">
+                {{formErrors.password}}
+              </span>
+            </div>
+            <div class="required inline field" *ngIf="loginMethod=='authcode'">
+              <label>{{ 'login.authCode' | translate}}</label>
+              <div class="ui left icon input">
+                <i class="lock icon"></i>
+                <input type="text" placeholder="Auth Code" formControlName="authCode" #authcode />
+              </div>
+              <span class="error-msg">
+                {{formErrors.authCode}}
+              </span>
+            </div>
+            <div class="inline field" *ngIf="loginMethod=='authcode'">
+              <label>&nbsp;</label>
+              <div class="ui left icon input">
+                <p>{{ 'login.authCodeMessage' | translate}}</p>
+              </div>
+            </div>
+
+            <!-- <div class="field login-ckeck">
+              <sui-checkbox>
+                {{ 'login.remeberMe' | translate}}
+              </sui-checkbox>
+            </div> -->
+            <button [ngClass]="isloggingin ? 'tiny ui orange button loading' : 'tiny ui orange button'"
+              *ngIf="loginMethod!='none'">
+              {{ 'login.submit' | translate}}
+            </button>
+            <button type="button" class="tiny ui orange button" *ngIf="loginMethod!='none'"
+              (click)="changeLoginMethod('none')">
+              {{ 'login.back' | translate}}
+            </button>
+            <!-- <a routerLink="/forgot-username"> &nbsp; &nbsp; {{ 'login.forgotUsername' | translate}} </a><span class="separator">|</span> -->
+            <!-- <a routerLink="/forgot-password" *ngIf="loginMethod=='password'">&nbsp;
+              &nbsp;{{ 'login.forgotPassword' | translate}} </a> -->
+            <a [routerLink]="forgotPasswordLink" *ngIf="loginMethod=='password'">&nbsp;
+              &nbsp;{{ 'login.forgotPassword' | translate}} </a>
+          </div>
+        </div>
+      </form>
+
+      <div style="text-align: center;margin-top: 15%;">
+        <span><a href="https://hellopatients.com/privacy-policy/"
+            target="_blank">{{ 'login.privacyPolicy' | translate}}</a></span>
+        <span class="divider"> | </span>
+        <span><a href="https://hellopatients.com/terms-and-conditions/"
+            target="_blank">{{ 'login.termsAndConditions' | translate}}</a></span>
+        <span class="divider"> | </span>
+        <span><a href="https://hellopatients.com/hipaa-authorization/"
+            target="_blank">{{ 'login.hipaaPolicy' | translate}}</a></span>
+      </div>
+    </div>
+  </div>
+</div>

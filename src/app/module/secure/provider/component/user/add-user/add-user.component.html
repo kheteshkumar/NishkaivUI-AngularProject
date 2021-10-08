@@ -1,0 +1,158 @@
+<div class="ui" *ngIf="isLoader || isLoader_roleLookup">
+  <div class="ui active dimmer">
+    <div class="ui indeterminate text loader">{{'common.processing' | translate}}</div>
+  </div>
+</div>
+<form [formGroup]="addUserForm" class="ui form">
+  <sui-accordion [closeOthers]="true">
+    <div class="toaster-static toaster-s" *ngIf="showSuccessMessage">
+      <span><a href="javascript:void(0)" (click)="showSuccessMessage=!showSuccessMessage"><i
+            class="close icon"></i></a></span>
+      <p>{{successMessage}}</p>
+    </div>
+    <div class="toaster-static toaster-e" *ngIf="showErrorMessage">
+      <span><a href="javascript:void(0)" (click)="showErrorMessage=!showErrorMessage"><i
+            class="close icon"></i></a></span>
+      <p>{{errorMessage}}</p>
+    </div>
+    <sui-accordion-panel [(isOpen)]="accordian.primaryDetails">
+      <div title>
+        <i class="dropdown icon"></i>
+        {{'user.add.primaryDetails' | translate}}
+      </div>
+      <div content (click)="$event.stopPropagation()">
+        <div class="ui tiny form">
+          <div class="two fields">
+            <div class="required field">
+              <label> {{'user.add.firstName' | translate}}</label>
+              <input placeholder="First Name" type="text" formControlName="FirstName">
+              <span>{{addUserFormErrors.FirstName}}</span>
+            </div>
+            <div class="required field">
+              <label> {{'user.add.lastName' | translate}}</label>
+              <input placeholder="Last Name" type="text" formControlName="LastName">
+              <span>{{addUserFormErrors.LastName}}</span>
+            </div>
+          </div>
+          <div class="two fields">
+            <div class="required field">
+              <label> {{'user.add.phone' | translate}}</label>
+              <input placeholder="Phone" type="text" mask="000-000-0000" unmask=true [validation]="false"
+                formControlName="Phone">
+              <span>{{addUserFormErrors.Phone}}</span>
+            </div>
+            <div class="field">
+              <label> {{'user.add.url' | translate}}</label>
+              <input placeholder="Url" type="text" formControlName="Url">
+              <span>{{addUserFormErrors.Url}}</span>
+            </div>
+
+          </div>
+
+          <div class="two fields">
+            <div class="required field">
+              <label> {{'user.add.userAdminUserName' | translate}}</label>
+              <input placeholder="Username" type="text" formControlName="UserAdminUserName"
+                [readonly]="InputData.isEdit">
+              <span>{{addUserFormErrors.UserAdminUserName}}</span>
+            </div>
+            <div class="required field">
+              <label> {{'user.add.email' | translate}}</label>
+              <input placeholder="Email" type="text" formControlName="Email">
+              <span>{{addUserFormErrors.Email}}</span>
+            </div>
+          </div>
+
+
+        </div>
+      </div>
+    </sui-accordion-panel>
+    <div class="ui fitted divider"></div>
+    <sui-accordion-panel [(isOpen)]="accordian.addressDetails">
+      <div title>
+        <i class="dropdown icon"></i>
+        {{'user.add.addressDetails' | translate}}
+      </div>
+
+      <div content (click)="$event.stopPropagation()">
+        <div class="ui tiny form">
+          <div class="field">
+            <label>{{'user.add.addressLine1' | translate}}</label>
+            <input placeholder="Address Line 1" type="text" formControlName="AddressLine1">
+            <span>{{addUserFormErrors.AddressLine1}}</span>
+          </div>
+          <div class="field">
+            <label>{{'user.add.addressLine2' | translate}}</label>
+            <input placeholder="Address Line 2" type="text" formControlName="AddressLine2">
+            <span>{{addUserFormErrors.AddressLine2}}</span>
+          </div>
+          <div class="two fields">
+            <div class="field">
+              <label>{{'user.add.city' | translate}}</label>
+              <input placeholder="City" type="text" formControlName="City">
+              <span>{{addUserFormErrors.City}}</span>
+            </div>
+            <div class="field">
+              <label>{{'user.add.country' | translate}}</label>
+              <sui-select class="selection" [options]="countryList" formControlName="Country"
+                (selectedOptionChange)="populateState($event)" labelField="name" valueField="countryId" #country>
+                <sui-select-option *ngFor="let o of country.filteredOptions" [value]="o"></sui-select-option>
+              </sui-select>
+              <span>{{addUserFormErrors.Country}}</span>
+            </div>
+          </div>
+          <div class="two fields">
+            <div class="field">
+              <label>{{'user.add.state' | translate}}</label>
+              <sui-select class="selection" [options]="stateList" formControlName="State" labelField="name"
+                valueField="abbreviation" #state>
+                <div class="ui icon search input">
+                  <i class="search icon"></i>
+                  <input suiSelectSearch type="text" placeholder="Search options...">
+                </div>
+                <div class="divider"></div>
+                <sui-select-option *ngFor="let o of state.filteredOptions" [value]="o"></sui-select-option>
+              </sui-select>
+              <span>{{addUserFormErrors.State}}</span>
+            </div>
+            <div class="field">
+              <label>{{'user.add.postalCode' | translate}}</label>
+              <input placeholder="Postal (Zip) Code" type="text" mask="00000-0000" unmask=true [validation]="false"
+                formControlName="PostalCode">
+              <span>{{addUserFormErrors.PostalCode}}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </sui-accordion-panel>
+    <div class="ui fitted divider"></div>
+    <sui-accordion-panel [(isOpen)]="accordian.roleDetails">
+      <div title>
+        <i class="dropdown icon"></i>
+        {{'user.add.roleDetails' | translate}}
+      </div>
+      <div content (click)="$event.stopPropagation()">
+        <div class="ui tiny form">
+          <div class="required field">
+            <label>{{'user.add.role' | translate}}</label>
+            <sui-select class="selection" icon="search" [options]="roleLookupList" formControlName="RoleId"
+              labelField="roleName" valueField="id" [isSearchable]="true" placeholder="Search Name.." #searchInput>
+              <sui-select-option *ngFor="let o of searchInput.filteredOptions" [value]="o"></sui-select-option>
+            </sui-select>
+            <span>{{addUserFormErrors.RoleId}}</span>
+          </div>
+        </div>
+      </div>
+    </sui-accordion-panel>
+  </sui-accordion>
+</form>
+<div class="ui fitted divider wizard-footer"></div>
+<div class="actions">
+  <div class="ui tiny">
+    <button class="tiny ui orange button" autofocus (click)='addUser()' [disabled]="!addUserForm.dirty"
+      *ngIf="!InputData.isEdit">{{'user.add.save' | translate}}</button>
+    <button class="tiny ui orange button" autofocus (click)='takeConfirmation()' [disabled]="!addUserForm.dirty"
+      *ngIf="InputData.isEdit">{{'user.edit.save' | translate}}</button>
+    <button class="ui tiny button" (click)="cancel()">{{'user.add.cancel' | translate}}</button>
+  </div>
+</div>

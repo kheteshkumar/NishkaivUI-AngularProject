@@ -1,0 +1,9 @@
+<div>
+  <ng-container *ngIf="uploadLog$ | async as ul">
+    <sui-progress class="indicating" [value]="ul.totalProcessed" [maximum]="ul.totalCount === 0 ? 1 : ul.totalCount">
+      <ng-container *ngIf="ul.totalCount > 0">Processed {{ ul.totalProcessed }} of {{ ul.totalCount }} Records
+      </ng-container>
+    </sui-progress>
+    <p>Note: You can close this window upload process will continue.</p>
+  </ng-container>
+</div>

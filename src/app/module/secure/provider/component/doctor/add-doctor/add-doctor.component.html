@@ -1,0 +1,261 @@
+<ng-template let-result let-query="query" #template>
+  {{ result.displayName}}
+</ng-template>
+<div class="ui" *ngIf="isLoader_processing">
+  <div class="ui active dimmer">
+    <div class="ui indeterminate text loader">{{'common.processing' | translate}}</div>
+  </div>
+</div>
+<div class="ui" *ngIf="isLoader_Doctor || isLoader_DoctorType">
+  <div class="ui active dimmer">
+    <div class="ui indeterminate text loader">{{'common.loading' | translate}}</div>
+  </div>
+</div>
+<form [formGroup]="addDoctorForm" class="ui form">
+
+  <div class="ui tiny form">
+
+    <sui-accordion [closeOthers]="true">
+      <div class="toaster-static toaster-s" *ngIf="showSuccessMessage">
+        <span><a href="javascript:void(0)" (click)="showSuccessMessage=!showSuccessMessage"><i
+              class="close icon"></i></a></span>
+        <p>{{successMessage}}</p>
+      </div>
+      <div class="toaster-static toaster-e" *ngIf="showErrorMessage">
+        <span><a href="javascript:void(0)" (click)="showErrorMessage=!showErrorMessage"><i
+              class="close icon"></i></a></span>
+        <p>{{errorMessage}}</p>
+      </div>
+      <sui-accordion-panel [(isOpen)]="accordian.primaryDetails">
+        <div title>
+          <i class="dropdown icon"></i>
+          {{'practitioner.add.primaryDetails' | translate}}
+        </div>
+        <div content (click)="$event.stopPropagation()">
+          <div class="ui tiny form">
+            <div class="two fields">
+              <div class="required field">
+                <label> {{'practitioner.add.firstName' | translate}}</label>
+                <input placeholder="{{'practitioner.add.firstName' | translate}}" type="text"
+                  *ngIf="isEditDoctor || isPractitionerSelectedFromNpi" formControlName="FirstName" #FirstName>
+                <sui-select class="selection" icon="search" [options]="doctorList"
+                  [optionsFilter]="updateFirstName(searchInput)" *ngIf="!isEditDoctor && !isPractitionerSelectedFromNpi"
+                  labelField="displayName" valueField="id" [isSearchable]="true"
+                  placeholder="{{'practitioner.add.searchDoctor' | translate}}"
+                  (selectedOptionChange)="selectDoctor(searchInput)" #searchInput>
+                  <sui-select-option *ngFor="let o of searchInput.filteredOptions" [value]="o"></sui-select-option>
+                </sui-select>
+
+                <span>{{addDoctorFormErrors.FirstName}}</span>
+              </div>
+              <div class="required field">
+                <label> {{'practitioner.add.lastName' | translate}}</label>
+                <input placeholder="{{'practitioner.add.lastName' | translate}}" type="text" formControlName="LastName"
+                  #LastName>
+                <span>{{addDoctorFormErrors.LastName}}</span>
+              </div>
+            </div>
+            <div class="two fields">
+              <div class="field required">
+                <label>{{'practitioner.add.npiNumber' | translate}}</label>
+                <input placeholder="{{'practitioner.add.npiNumber' | translate}}" type="text"
+                  formControlName="NpiNumber" #NpiNumber>
+                <span>{{addDoctorFormErrors.NpiNumber}}</span>
+              </div>
+              <div class="required field">
+                <label> {{'practitioner.add.type' | translate}}</label>
+                <sui-select class="selection" icon="search" [options]="doctorTypeList" labelField="doctorTypeTitle"
+                  valueField="doctorTypeCode" [isSearchable]="true"
+                  placeholder="{{'practitioner.add.searchDoctorType' | translate}}" formControlName="DoctorTypeCode"
+                  #DoctorTypeCode [isDisabled]="isDisabled_DoctorTypeCode">
+                  <sui-select-option *ngFor="let o of DoctorTypeCode.filteredOptions" [value]="o"></sui-select-option>
+                </sui-select>
+                <span>{{addDoctorFormErrors.DoctorTypeCode}}</span>
+                <span>{{addDoctorFormErrors.DoctorTypeTitle}}</span>
+              </div>
+            </div>
+            <div class="two fields">
+              <div class="required field">
+                <label> {{'practitioner.add.phone' | translate}}</label>
+                <input placeholder="Phone" type="text" formControlName="Phone" mask="000-000-0000" unmask=true
+                  [validation]="false" #phone>
+                <span>{{addDoctorFormErrors.Phone}}</span>
+              </div>
+              <div class="field">
+                <label> {{'practitioner.add.email' | translate}}</label>
+                <input placeholder="Email" type="text" formControlName="Email" #email>
+                <span>{{addDoctorFormErrors.Email}}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </sui-accordion-panel>
+      <div class="ui fitted divider"></div>
+      <sui-accordion-panel [(isOpen)]="accordian.addressDetails">
+        <div title>
+          <i class="dropdown icon"></i>
+          {{'practitioner.add.addressDetails' | translate}}
+        </div>
+        <div content (click)="$event.stopPropagation()">
+          <div class="ui tiny form">
+            <div class="field">
+              <label>{{'practitioner.add.addressLine1' | translate}}</label>
+              <input placeholder="{{'practitioner.add.addressLine1' | translate}}" type="text"
+                formControlName="AddressLine1">
+              <span>{{addDoctorFormErrors.AddressLine1}}</span>
+            </div>
+            <div class="field">
+              <label>{{'practitioner.add.addressLine2' | translate}}</label>
+              <input placeholder="{{'practitioner.add.addressLine2' | translate}}" type="text"
+                formControlName="AddressLine2">
+              <span>{{addDoctorFormErrors.AddressLine2}}</span>
+            </div>
+            <div class="two fields">
+              <div class="field">
+                <label>{{'practitioner.add.city' | translate}}</label>
+                <input placeholder="{{'practitioner.add.city' | translate}}" type="text" formControlName="City">
+                <span>{{addDoctorFormErrors.City}}</span>
+              </div>
+              <div class="field">
+                <label>{{'practitioner.add.country' | translate}}</label>
+                <sui-select class="selection" [options]="countryList" formControlName="Country"
+                  (selectedOptionChange)="populateState($event)" labelField="name" valueField="countryId" #country>
+                  <div class="ui icon search input">
+                    <i class="search icon"></i>
+                    <input suiSelectSearch type="text" placeholder="Search options...">
+                  </div>
+                  <div class="divider"></div>
+                  <sui-select-option *ngFor="let o of country.filteredOptions" [value]="o"></sui-select-option>
+                </sui-select>
+                <span>{{addDoctorFormErrors.Country}}</span>
+              </div>
+            </div>
+            <div class="two fields">
+              <div class="field">
+                <label>{{'practitioner.add.state' | translate}}</label>
+                <sui-select class="selection" [options]="stateList" formControlName="State" labelField="name"
+                  valueField="abbreviation" #state>
+                  <div class="ui icon search input">
+                    <i class="search icon"></i>
+                    <input suiSelectSearch type="text" placeholder="Search options...">
+                  </div>
+                  <div class="divider"></div>
+                  <sui-select-option *ngFor="let o of state.filteredOptions" [value]="o"></sui-select-option>
+                </sui-select>
+                <span>{{addDoctorFormErrors.State}}</span>
+              </div>
+              <div class="field">
+                <label>{{'practitioner.add.postalCode' | translate}}</label>
+                <input placeholder="{{'practitioner.add.postalCode' | translate}}" type="text" mask="00000-0000"
+                  unmask=true [validation]="false" formControlName="PostalCode">
+                <span>{{addDoctorFormErrors.PostalCode}}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sui-accordion-panel>
+      <div class="ui fitted divider"></div>
+      <sui-accordion-panel [(isOpen)]="accordian.workingHoursDetails">
+        <div title>
+          <i class="dropdown icon"></i>
+          {{'practitioner.add.workingHoursDetails' | translate}}
+        </div>
+        <div content (click)="$event.stopPropagation()">
+          <div class="ui tiny form">
+            <div class="ui grid">
+              <div class="three wide column"></div>
+              <div class="four wide column">{{'practitioner.add.workingHours.start' | translate}}</div>
+              <div class="four wide column">{{'practitioner.add.workingHours.end' | translate}}</div>
+              <div class="two wide column">{{'practitioner.add.workingHours.isAvailable' | translate}}</div>
+            </div>
+            <div *ngFor="let group of workingHoursArray.controls; let i = index;" formArrayName="WorkingHours">
+              <div [formGroupName]='i'>
+                <div class="ui grid">
+                  <div class="three wide column">
+                    <label>{{weekDays[i].name}}<span *ngIf="group.value.IsAvailable" style="color: #D94235;"> *</span></label>
+                    <input type="hidden" formControlName="WeekDay" #WeekDay>
+                    <br><span style="color: #D94235;">{{(addDoctorFormErrors[i] !== undefined)?addDoctorFormErrors[i].WeekDay:''}}</span>
+                  </div>
+                  <div class="four wide column">
+                    <!-- <div [ngClass]="Start.value ? 'ui input' : 'ui left icon input'">
+                      <i class="clock outline icon" *ngIf="!Start.value"></i> -->
+                      <div class="ui left icon input">
+                        <i class="clock outline icon"></i>
+                      <input suiDatepicker [attr.disabled]="(group.value.IsAvailable)?null:true" [pickerMode]="dateMode"
+                        [pickerFirstDayOfWeek]="firstDayOfWeek" [pickerUseNativeOnMobile]="false"
+                        [pickerMinDate]="minDate" [pickerMaxDate]="maxDate" formControlName="Start" #Start readonly>
+                    </div>
+                    <br><span style="color: #D94235;">{{(addDoctorFormErrors[i] !== undefined)?addDoctorFormErrors[i].Start:''}}</span>
+                  </div>
+                  <div class="four wide column">
+                    <!-- <div [ngClass]="End.value ? 'ui input' : 'ui left icon input'">
+                      <i class="clock outline icon" *ngIf="!End.value"></i> -->
+                      <div class="ui left icon input">
+                        <i class="clock outline icon"></i>
+                      <input suiDatepicker [attr.disabled]="(group.value.IsAvailable)?null:true" [pickerMode]="dateMode"
+                        [pickerFirstDayOfWeek]="firstDayOfWeek" [pickerUseNativeOnMobile]="false"
+                        [pickerMinDate]="minDate" [pickerMaxDate]="maxDate" formControlName="End" #End readonly>
+                    </div>
+                    <br><span style="color: #D94235;">{{(addDoctorFormErrors[i] !== undefined)?addDoctorFormErrors[i].End:''}}</span>
+                  </div>
+                  <div class="two wide column">
+                    <sui-checkbox formControlName="IsAvailable" (checkChange)="availabilityCheckChange($event, group)"
+                      #IsAvailable>
+                    </sui-checkbox>
+                    <br><span style="color: #D94235;">{{(addDoctorFormErrors[i] !== undefined)?addDoctorFormErrors[i].IsAvailable:''}}</span>
+                  </div>
+                </div>
+                <!-- <div class="four fields">
+                  <div class="inline field">
+                    <label>{{weekDays[i].name}}</label>
+                    <sui-select class="selection" [options]="weekDays" formControlName="WeekDay" labelField="name"
+                      valueField="id" [isDisabled]="true" #WeekDay >
+                      <sui-select-option *ngFor="let o of WeekDay.filteredOptions" [value]="o">
+                      </sui-select-option>
+                    </sui-select>
+                    <input type="hidden" formControlName="WeekDay" #WeekDay>
+                    <span>{{(addDoctorFormErrors[i] !== undefined)?addDoctorFormErrors[i].WeekDay:''}}</span>
+                  </div>
+                  <div class="inline field" [ngClass]="group.value.IsAvailable ? 'field required' : 'field'">
+                    <label>{{'practitioner.add.workingHours.start' | translate}}</label>
+                    <div class="ui left icon input">
+                      <i class="clock outline icon"></i>
+                      <input suiDatepicker [attr.disabled]="(group.value.IsAvailable)?null:true" [pickerMode]="dateMode"
+                        [pickerFirstDayOfWeek]="firstDayOfWeek" [pickerUseNativeOnMobile]="false"
+                        [pickerMinDate]="minDate" [pickerMaxDate]="maxDate" formControlName="Start" #Start readonly>
+                    </div>
+                    <span>{{(addDoctorFormErrors[i] !== undefined)?addDoctorFormErrors[i].Start:''}}</span>
+                  </div>
+                  <div class="inline field" [ngClass]="group.value.IsAvailable ? 'field required' : 'field'">
+                    <label>{{'practitioner.add.workingHours.end' | translate}}</label>
+                    <div class="ui left icon input">
+                      <i class="clock outline icon"></i>
+                      <input suiDatepicker [attr.disabled]="(group.value.IsAvailable)?null:true" [pickerMode]="dateMode"
+                        [pickerFirstDayOfWeek]="firstDayOfWeek" [pickerUseNativeOnMobile]="false"
+                        [pickerMinDate]="minDate" [pickerMaxDate]="maxDate" formControlName="End" #End readonly>
+                    </div>
+                    <span>{{(addDoctorFormErrors[i] !== undefined)?addDoctorFormErrors[i].End:''}}</span>
+                  </div>
+                  <div class="inline field">
+                    <label>&nbsp;</label>
+                    <sui-checkbox formControlName="IsAvailable" (checkChange)="availabilityCheckChange($event, group)"
+                      #IsAvailable>
+                      {{'practitioner.add.workingHours.isAvailable' | translate}}
+                    </sui-checkbox>
+                    <span>{{(addDoctorFormErrors[i] !== undefined)?addDoctorFormErrors[i].IsAvailable:''}}</span>
+                  </div>
+                </div> -->
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </sui-accordion-panel>
+
+    </sui-accordion>
+
+
+
+  </div>
+</form>

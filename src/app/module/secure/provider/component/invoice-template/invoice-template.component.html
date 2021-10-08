@@ -1,0 +1,338 @@
+<div class="ui segment modal-loader-small" *ngIf="isLoader">
+  <div class="ui active dimmer">
+    <div class="ui medium text loader">Loading</div>
+  </div>
+</div>
+<div class="ui" *ngIf="isLoader_processMail">
+  <div class="ui active dimmer">
+    <div class="ui indeterminate text loader">{{'common.loading' | translate}}</div>
+  </div>
+</div>
+
+<div class="toaster-static toaster-s" *ngIf="showSuccessMessage">
+  <span><a href="javascript:void(0)" (click)="showSuccessMessage=!showSuccessMessage"><i
+        class="close icon"></i></a></span>
+  <p>{{successMessage}}</p>
+</div>
+<div class="toaster-static toaster-e" *ngIf="showErrorMessage">
+  <span><a href="javascript:void(0)" (click)="showErrorMessage=!showErrorMessage"><i class="close icon"></i></a></span>
+  <p>{{errorMessage}}</p>
+</div>
+
+
+<div *ngIf="!isLoader">
+
+  <ng-container *ngIf="InputData.isResend">
+
+    <div class="ui two column stackable padded grid">
+      <div class="four wide column pymnt-sumry">
+        <div class="ui form p15">
+
+          <div class="ui segment">
+            <form [formGroup]="resendInvoiceForm" class="ui tiny form">
+
+              <div class="field required">
+                <label>{{'invoice.add.toEmail' | translate}}</label>
+                <input placeholder="{{'invoice.add.toEmail' | translate}}" type="text" formControlName="ToEmail">
+                <span>{{resendInvoiceFormErrors.ToEmail}}</span>
+              </div>
+            </form>
+          </div>
+
+          <div class="ui segment">
+            <form [formGroup]="resendInvoiceForm" class="ui tiny form">
+              <div class="field">
+                <label>{{'invoice.add.phone' | translate}}</label>
+                <input placeholder="{{'invoice.add.phone' | translate}}" type="text" formControlName="Phone"
+                  mask="000-000-0000" unmask=true>
+                <span>{{resendInvoiceFormErrors.Phone}}</span>
+              </div>
+            </form>
+          </div>
+
+        </div>
+      </div>
+      <div class="twelve wide column pymnt-ctrl">
+        <div content>
+          <div
+            style="max-width: 800px; margin: auto; padding-top: 15px; font-size: 14px; line-height: 24px;  font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif; color: #555;">
+
+            <div class="ui container">
+              <div class="ui segments">
+                <div class="ui segment">
+                  <table class="ui table" width="100%" cellspacing="0" cellpadding="0"
+                    style="border: none; background: inherit;">
+                    <tr>
+                      <td style="padding: 10px; vertical-align: middle; text-align: center;">
+                        <img src="{{settingsData.logo}}" style="max-width:190px; max-height: 60px">
+                      </td>
+                      <td style="text-align: right;padding: 10px;">
+                        <p style="font-size: 21px;margin: 0; line-height: 1.2"><b> {{'invoice.add.invoicehash' |
+                            translate}}
+                            {{InputData.invoiceNumber}}</b></p>
+                        <p style="font-size: 14px;margin: 0; line-height: 1.2">{{'invoice.add.invoiceDate' |
+                          translate}}:
+                          {{getFormattedDate(InputData.invoiceDate)}}</p>
+                        <p style="font-size: 14px;margin: 0; line-height: 1.2">Due Date:
+                          {{getFormattedDueDate(InputData.dueDate)}}</p>
+                        <p style="font-size: 14px;margin: 0; line-height: 1.2" *ngIf="InputData.serviceDate">Service
+                          Date:
+                          {{getFormattedDate(InputData.serviceDate)}}</p>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <div class="ui segment">
+                  <table class="ui table" cellpadding="0" cellspacing="0"
+                    style="width: 100%; line-height: inherit; text-align: left;border: none; background: inherit;">
+                    <tbody>
+                      <tr>
+                        <td style="background:rgba(255, 255, 255, 0.5); padding:10px; vertical-align: top;width: 50%">
+                          <span style="color:#000; opacity:1">
+                            <p style="font-size: 14px;margin: 0; line-height: 1.2"><b>Patient</b></p>
+                            <p style="font-size: 14px;margin: 0; line-height: 1.2">{{InputData.patientDetails.fullName}}
+                            </p>
+                            <p style="font-size: 14px;margin: 0; line-height: 1.2">{{InputData.patientDetails.email}}
+                            </p>
+                          </span>
+                        </td>
+                        <td style="background:rgba(255, 255, 255, 0.5); padding:10px; vertical-align: top;width: 50%">
+                          <span style="color:#000; opacity:1">
+                            <p style="font-size: 14px;margin: 0; line-height: 1.2"><b>Practitioner</b></p>
+                            <p style="font-size: 14px;margin: 0; line-height: 1.2">
+                              {{(InputData.doctorName != '' && InputData.doctorName != null) ? InputData.doctorName :
+                              '--'}}
+                            </p>
+                          </span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="ui segment" style="overflow-x: auto;background-color: #dddddd;">
+                  <table cellpadding="0" cellspacing="10" class="product-list"
+                    style="width: 100%; line-height: inherit; text-align: left;border: none; background: inherit;">
+                    <tbody>
+                      <tr class="heading">
+                        <td style="padding-top: 10px;padding-bottom: 10px;"><b>Products/Services</b></td>
+                        <td style="padding-top: 10px;padding-bottom: 10px;"><b>Unit Rate</b></td>
+                        <td style="padding-top: 10px;padding-bottom: 10px;"><b>Quantity</b></td>
+                        <td style="padding-top: 10px;padding-bottom: 10px"><b>Discount</b></td>
+                        <td style="padding-top: 10px;padding-bottom: 10px;"><b>Tax(%)</b></td>
+                        <td style="padding-top: 10px;padding-bottom: 10px;"><b>Amount</b></td>
+                      </tr>
+                      <tr class="details" *ngFor="let product of InputData.items">
+                        <td>
+                          <p style="font-size: 14px;margin: 0; line-height: 1.2">{{product.productName}}</p>
+                        </td>
+                        <td>{{product.rate | CustomFormatCurrency}}</td>
+                        <td>{{product.quantity}}</td>
+                        <td *ngIf="product.discountType!=2">{{product.discount | CustomFormatCurrency}}</td>
+                        <td *ngIf="product.discountType==2">{{product.calculatedDiscountAmount | CustomFormatCurrency}}
+                        </td>
+                        <td>{{product.taxPercent | CustomFormatPercentage}}</td>
+                        <td>{{product.calculatedTotalPrice | CustomFormatCurrency}}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="ui segment">
+                  <table cellpadding="6" cellspacing="0" style="width: 100%; line-height: inherit; text-align: left;">
+                    <tbody>
+
+                      <tr class="total">
+                        <td width="80%" style="padding-top: 10px;padding-bottom: 10px;text-align: right">Sub Total</td>
+                        <td width="20%" style="padding-top: 10px;padding-bottom: 10px;text-align: right">
+                          <b>{{InputData.subTotalAmount | CustomFormatCurrency}}</b>
+                        </td>
+                      </tr>
+                      <tr class="discount">
+
+                        <td width="80%" style="padding-top: 10px;padding-bottom: 10px;text-align: right">
+                          {{'invoice.add.discount' | translate}}</td>
+                        <td width="20%" style="padding-top: 10px;padding-bottom: 10px;text-align: right">
+                          <b>{{InputData.totalDiscountAmount | CustomFormatCurrency}}</b>
+                        </td>
+
+                      </tr>
+                      <tr class="tax">
+
+                        <td width="80%" style="padding-top: 10px;padding-bottom: 10px;text-align: right">
+                          {{'invoice.add.tax' | translate}}</td>
+                        <td width="20%" style="padding-top: 10px;padding-bottom: 10px;text-align: right">
+                          <b>{{InputData.totalTaxAmount | CustomFormatCurrency}}</b>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="ui segment"
+                  style="padding:10px; padding-bottom:10px; border-bottom: 1px solid #DEDEDF; text-align: right;font-weight: 100">
+                  <span style="text-transform: uppercase; line-height: 2"></span><span
+                    style="font-size: 20px;">{{InputData.totalAmount | CustomFormatCurrency}}</span>
+                </div>
+                <div class="ui segment">
+                  <span>
+                    Note: {{InputData.description}}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <ng-container *ngIf="!InputData.isResend">
+    <div
+      style="max-width: 800px; margin: auto; padding-top: 15px; font-size: 14px; line-height: 24px;  font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif; color: #555;">
+
+      <div class="ui container">
+        <div class="ui segments">
+          <div class="ui segment">
+            <table class="ui table" width="100%" cellspacing="0" cellpadding="0"
+              style="border: none; background: inherit;">
+              <tr>
+                <td style="padding: 10px; vertical-align: middle; text-align: center;">
+                  <img src="{{settingsData.logo}}" style="max-width:190px; max-height: 60px">
+                </td>
+                <td style="text-align: right;padding: 10px;">
+                  <p style="font-size: 21px;margin: 0; line-height: 1.2"><b> {{'invoice.add.invoicehash' | translate}}
+                      {{InputData.invoiceNumber}}</b></p>
+                  <p style="font-size: 14px;margin: 0; line-height: 1.2">{{'invoice.add.invoiceDate' | translate}}:
+                    {{getFormattedDate(InputData.invoiceDate)}}</p>
+                  <p style="font-size: 14px;margin: 0; line-height: 1.2">Due Date:
+                    {{getFormattedDueDate(InputData.dueDate)}}</p>
+                  <p style="font-size: 14px;margin: 0; line-height: 1.2" *ngIf="InputData.serviceDate">Service Date:
+                    {{getFormattedDate(InputData.serviceDate)}}</p>
+                </td>
+              </tr>
+            </table>
+          </div>
+          <div class="ui segment">
+            <table class="ui table" cellpadding="0" cellspacing="0"
+              style="width: 100%; line-height: inherit; text-align: left;border: none; background: inherit;">
+              <tbody>
+                <tr>
+                  <td style="background:rgba(255, 255, 255, 0.5); padding:10px; vertical-align: top;width: 50%">
+                    <span style="color:#000; opacity:1">
+                      <p style="font-size: 14px;margin: 0; line-height: 1.2"><b>Patient</b></p>
+                      <p style="font-size: 14px;margin: 0; line-height: 1.2">{{InputData.patientDetails.fullName}}</p>
+                      <p style="font-size: 14px;margin: 0; line-height: 1.2">{{InputData.patientDetails.email}}</p>
+                    </span>
+                  </td>
+                  <td style="background:rgba(255, 255, 255, 0.5); padding:10px; vertical-align: top;width: 50%">
+                    <span style="color:#000; opacity:1">
+                      <p style="font-size: 14px;margin: 0; line-height: 1.2"><b>Practitioner</b></p>
+                      <p style="font-size: 14px;margin: 0; line-height: 1.2">
+                        {{(InputData.doctorName != '' && InputData.doctorName != null) ? InputData.doctorName : '--'}}
+                      </p>
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="ui segment" style="overflow-x: auto;background-color: #dddddd;">
+            <table cellpadding="0" cellspacing="10" class="product-list"
+              style="width: 100%; line-height: inherit; text-align: left;border: none; background: inherit;">
+              <tbody>
+                <tr class="heading">
+                  <td style="padding-top: 10px;padding-bottom: 10px;"><b>Products/Services</b></td>
+                  <td style="padding-top: 10px;padding-bottom: 10px;"><b>Unit Rate</b></td>
+                  <td style="padding-top: 10px;padding-bottom: 10px;"><b>Quantity</b></td>
+                  <td style="padding-top: 10px;padding-bottom: 10px"><b>Discount</b></td>
+                  <td style="padding-top: 10px;padding-bottom: 10px;"><b>Tax(%)</b></td>
+                  <td style="padding-top: 10px;padding-bottom: 10px;"><b>Amount</b></td>
+                </tr>
+                <tr class="details" *ngFor="let product of InputData.items">
+                  <td>
+                    <p style="font-size: 14px;margin: 0; line-height: 1.2">{{product.productName}}</p>
+                  </td>
+                  <td>{{product.rate | CustomFormatCurrency}}</td>
+                  <td>{{product.quantity}}</td>
+                  <td *ngIf="product.discountType!=2">{{product.discount | CustomFormatCurrency}}</td>
+                  <td *ngIf="product.discountType==2">{{product.calculatedDiscountAmount | CustomFormatCurrency}}</td>
+                  <td>{{product.taxPercent | CustomFormatPercentage}}</td>
+                  <td>{{product.calculatedTotalPrice | CustomFormatCurrency}}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="ui segment">
+            <table cellpadding="6" cellspacing="0" style="width: 100%; line-height: inherit; text-align: left;">
+              <tbody>
+
+                <tr class="total">
+                  <td width="80%" style="padding-top: 10px;padding-bottom: 10px;text-align: right">Sub Total</td>
+                  <td width="20%" style="padding-top: 10px;padding-bottom: 10px;text-align: right">
+                    <b>{{InputData.subTotalAmount | CustomFormatCurrency}}</b>
+                  </td>
+                </tr>
+                <tr class="discount">
+
+                  <td width="80%" style="padding-top: 10px;padding-bottom: 10px;text-align: right">
+                    {{'invoice.add.discount' | translate}}</td>
+                  <td width="20%" style="padding-top: 10px;padding-bottom: 10px;text-align: right">
+                    <b>{{InputData.totalDiscountAmount | CustomFormatCurrency}}</b>
+                  </td>
+
+                </tr>
+                <tr class="tax">
+
+                  <td width="80%" style="padding-top: 10px;padding-bottom: 10px;text-align: right">
+                    {{'invoice.add.tax' | translate}}</td>
+                  <td width="20%" style="padding-top: 10px;padding-bottom: 10px;text-align: right">
+                    <b>{{InputData.totalTaxAmount | CustomFormatCurrency}}</b>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <!-- <div class="ui segment"
+            style="padding:10px; padding-bottom:10px; border-bottom: 1px solid #DEDEDF; text-align: right;font-weight: 100">
+            <span style="text-transform: uppercase; line-height: 2"></span><span
+              style="font-size: 20px;">{{InputData.totalAmount | CustomFormatCurrency}}</span>
+          </div> -->
+          <div class="ui segment">
+            <table cellpadding="6" cellspacing="0" style="width: 100%; line-height: inherit; text-align: left;">
+              <tbody>
+                <tr class="total">
+                  <td width="80%" style="padding-top: 10px;padding-bottom: 10px;text-align: right">
+                    {{'invoice.add.totalAmount' | translate}}</td>
+                  <td width="20%" style="padding-top: 10px;padding-bottom: 10px;text-align: right">
+                    <b>{{InputData.totalAmount | CustomFormatCurrency}}</b>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="ui segment">
+            <span>
+              Note: {{InputData.description}}
+            </span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </ng-container>
+
+  <!-- Preview Footer Actions Starts -->
+  <div class="ui fitted divider wizard-footer"></div>
+  <div class="actions">
+    <div class="ui tiny">
+      <button class="ui primary orange tiny button" (click)='onSendClick()'
+        *ngIf="InputData.isResend">{{'invoice.add.send' |
+        translate}}</button>
+      <button class="ui tiny button" (click)="cancel();" *ngIf="InputData.isResend">{{'invoice.add.cancel' |
+        translate}}</button>
+      <!-- <button class="ui tiny button" (click)="cancel();" *ngIf="!InputData.isResend">{{'invoice.add.close' |
+        translate}}</button> -->
+    </div>
+  </div>
+  <!-- Preview Footer Actions Ends -->
+
+</div>

@@ -1,0 +1,300 @@
+<app-toaster [toaster]="toastData"></app-toaster>
+<div id="initialLoad">
+  <div class="main-content">
+
+    <form novalidate [formGroup]="findDoctorForm" *ngIf="!isSearchFormOpen && !isAddDcotorFormOpen">
+      <h1 class="ui header">{{'practitioner.find.heading' | translate}}</h1>
+      <div class="ui segment apf-search">
+        <button class="ui orange tiny teal right floated button" type="button" *ngIf="permissions.addPractitioner"
+          (click)="advanceSearch()"><i class="user outline icon"></i>{{'practitioner.find.addDoctor' |
+          translate}}</button>
+        <div class="u-cf-m"></div>
+        <sui-tabset>
+          <div class="ui tiny secondary menu">
+            <a class="item" suiTabHeader="1">{{'practitioner.find.doctorName' | translate}}</a>
+            <a class="item" suiTabHeader="2">{{'practitioner.find.email' | translate}}</a>
+            <a class="item" suiTabHeader="3">{{'practitioner.find.phone' | translate}}</a>
+          </div>
+
+          <div class="ui segment selection-area">
+            <a class="ui label"
+              *ngIf="findDoctorForm.value.DoctorName!=null && findDoctorForm.value.DoctorName.length>0">
+              {{'practitioner.find.doctorName' | translate}}: {{displayFilter}}
+              <i class="delete icon" (click)="clear('DoctorName')"></i>
+            </a>
+            <a class="ui label" *ngIf="findDoctorForm.value.Email">
+              {{'practitioner.find.email' | translate}}: {{findDoctorForm.value.Email}}
+              <i class="delete icon" (click)="clear('Email')"></i>
+            </a>
+            <a class="ui label" *ngIf="findDoctorForm.value.Phone">
+              {{'practitioner.find.phone' | translate}}: {{findDoctorForm.value.Phone}}
+              <i class="delete icon" (click)="clear('Phone')"></i>
+            </a>
+          </div>
+
+          <!-- Practitioner Name/Id -->
+          <div class="ui" suiTabContent="1">
+            <div class="ui tiny form">
+              <div class="two fields mb0">
+                <div class="field">
+                  <!-- <input placeholder="{{'practitioner.find.doctorName' | translate}}" type="text"
+                    formControlName="DoctorName"> -->
+
+                  <sui-multi-select class="selection" formControlName="DoctorName" #DoctorName
+                    (selectedOptionsChange)="onMultiSelectClick(DoctorName)" [hasLabels]="true" [maxSelected]="5"
+                    labelField="displayName" valueField="id" [isSearchable]="true" [options]="searchDoctorList"
+                    icon="search">
+                    <sui-select-option *ngFor="let o of DoctorName.filteredOptions" [value]="o"></sui-select-option>
+                  </sui-multi-select>
+
+                  <span>{{formErrors.DoctorName}}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Email -->
+          <div class="ui" suiTabContent="2">
+            <div class="ui tiny form">
+              <div class="five fields mb0">
+                <div class="field">
+                  <input placeholder="Email" type="text" formControlName="Email">
+                  <span>{{formErrors.Email}}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Phone -->
+          <div class="ui" suiTabContent="3">
+            <div class="ui tiny form">
+              <div class="five fields mb0">
+                <div class="field">
+                  <input placeholder="Phone" type="text" formControlName="Phone" mask="000-000-0000" unmask=true
+                    [validation]="false" #phone>
+                  <span>{{formErrors.Phone}}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+          <div class="ui clearing divider"></div>
+          <button
+            [ngClass]="isLoader_FindDoctor ? 'ui orange tiny primary button loading' : 'ui orange tiny primary button'"
+            class="normal ui primary button" type="submit" (click)="find(true)">{{'practitioner.find.find' |
+            translate}}</button>
+          <button class="ui tiny button" (click)="clearForm()">{{'practitioner.find.clear' | translate}}</button>
+        </sui-tabset>
+
+      </div>
+      <sui-message class="attached warning" [isDismissable]="false" *ngIf="noRecordsFound_DoctorList">
+        <p>{{noResultsMessage}}</p>
+      </sui-message>
+      <div *ngIf="doctorList.length>0">
+        <form novalidate [formGroup]="doctorResultsForm">
+          <div class="ui grid">
+            <div class="eight wide column">
+              <div class="ui mini compact segment sort">
+                <div class="inline field sort-dd">
+                  <label>Sort by: </label>
+                  <sui-select class="selection" [options]="sortingItemsList" formControlName="Sorting"
+                    labelField="label" valueField="label" (selectedOptionChange)="sortItems(Sorting)" #Sorting>
+                    <sui-select-option *ngFor="let option of sortingItemsList" [value]="option"></sui-select-option>
+                  </sui-select>
+                </div>
+              </div>
+            </div>
+            <div class="right aligned eight wide column btn-export">
+              <sui-select class="ui mini floating labeled basic icon button" icon="download"
+                (selectedOptionChange)="download($event)" [isSearchable]="false" placeholder="Export" #filterSelect>
+                <sui-select-option value="PDF"></sui-select-option>
+                <sui-select-option value="CSV"></sui-select-option>
+              </sui-select>
+            </div>
+          </div>
+        </form>
+        <!-- Practitioner List -->
+        <div>
+          <div *ngFor="let doctor of doctorList" class="ui segment results">
+            <div class="ui active dimmer" *ngIf="doctor.isLoader_DoctorOperation">
+              <div class="ui small text loader"></div>
+            </div>
+            <div class="results-crsr" (click)="showDoctorDetails(doctor)">
+              <div class="ui right floated header">
+                <button class="ui mini right floated button status green"
+                  *ngIf="doctor.isActiveDoctor=='1'">{{'Active'}}</button>
+                <button class="ui mini right floated button status red"
+                  *ngIf="doctor.isActiveDoctor=='0'">{{'InActive'}}</button>
+                <div class="ui right pointing dropdown" suiPopup popupText="Actions" popupInverted suiDropdown
+                  (click)="$event.stopPropagation()">
+                  <i class="ellipsis horizontal icon"></i>
+                  <div class="menu" suiDropdownMenu>
+                    <div class="item" *ngFor="let operation of doctor.operations">
+                      <div class="w100" (click)="onDoctorOperationClick(operation, doctor)">{{operation.value}}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+
+              <div class="ui horizontal list">
+                <div class="item">
+                  <div class="content">
+                    <div class="ui sub header">{{doctor.fullName}}
+                      <span>&nbsp;&nbsp;{{'practitioner.find.type' | translate}} :
+                        {{doctor.doctorType!=null && doctor.doctorType!='' ? doctor.doctorTypeText : '--'}}</span>
+                    </div>
+                    <div class="item">
+                      <strong> {{'practitioner.find.email' | translate}}:
+                      </strong>{{(doctor.email!=null && doctor.email!='')? doctor.email : '--'}}<span
+                        class="separator">|</span>
+                      <strong> {{'practitioner.find.phone' | translate}}:
+                      </strong>{{doctor.mobile!=null ? (doctor.mobile | mask: '000-000-0000') : '--'}}<span
+                        class="separator">|</span>
+                      <strong> {{'practitioner.find.createdOn' | translate}}: </strong>{{doctor.createdOn}}<span
+                        class="separator">|</span>
+                      <strong> {{'practitioner.find.npiNumber' | translate}}:
+                      </strong>{{(doctor.npi != null && doctor.npi != '')?doctor.npi: '--'}}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="ui divided list" [suiTransition]="transitionController" *ngIf="doctor.showDetails"
+              style="cursor: default">
+              <div class="item">
+                <i class="map marker icon"></i>
+                <div class="content">
+                  <!-- <i class="map marker icon"></i> -->
+                  <strong> {{'practitioner.find.address' | translate}}:
+                  </strong>{{doctor.address.addressLine1!='' ? doctor.address.addressLine1 + ',' : ''}}
+                  {{doctor.address.addressLine2!='' ? doctor.address.addressLine2 : ''}}
+                  <span class="separator">|</span>
+                  <strong> {{'practitioner.find.city' | translate}}:
+                  </strong>{{doctor.address.city!='' ? doctor.address.city : '--'}}
+                  <span class="separator">|</span>
+                  <strong> {{'practitioner.find.state' | translate}}:
+                  </strong>{{(doctor.address.state!='' && doctor.address.state!= null) ? doctor.address.state : '--'}}
+                  <span class="separator">|</span>
+                  <strong> {{'practitioner.find.country' | translate}}:
+                  </strong>{{(doctor.address.country!='' && doctor.address.country !== null) ? doctor.countryText :
+                  '--'}}
+                  <span class="separator">|</span>
+                  <strong> {{'practitioner.find.postalCode' | translate}}:
+                  </strong>{{doctor.address.postalCode!='' ? doctor.address.postalCode : '--'}}
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+        <app-pagination [pager]="pager" (OutputData)="fetchDoctor($event)"></app-pagination>
+      </div>
+    </form>
+
+    <ng-container *ngIf="isSearchFormOpen">
+      <h1 class="ui header">{{'practitioner.searchNpiRegistry.heading' | translate}}</h1>
+      <div class="ui segment">
+        <app-search-npi-registry (OutputData)="outputDataSearchFromOperation($event)">
+        </app-search-npi-registry>
+        <div class="ui fitted divider wizard-footer"></div>
+        <div class="actions">
+          <div class="ui tiny">
+            <button class="tiny ui button" (click)="closeAdvanceSearch()">{{'claims.add.cancel' | translate}}</button>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="isAddDcotorFormOpen">
+      <h1 class="ui header" *ngIf="inputDataForOperation.isEdit">{{'practitioner.edit.heading' | translate}}</h1>
+      <h1 class="ui header" *ngIf="!inputDataForOperation.isEdit">{{'practitioner.add.heading' | translate}}</h1>
+      <div class="ui segment">
+        <app-add-doctor (OutputData)="outputDataFromOperation($event)" [InputData]="inputDataForOperation">
+        </app-add-doctor>
+        <div class="ui fitted divider wizard-footer"></div>
+
+        <div class="actions">
+          <div class="ui tiny">
+            <button class="tiny ui orange button" autofocus (click)="onAddDoctorClick({'saveAndContinue': true})"
+              *ngIf="!inputDataForOperation.isEdit && isLinked==undefined">{{'practitioner.add.save' |
+              translate}}</button>
+            <button class="tiny ui orange button" autofocus (click)='onEditDoctorClick()'
+              *ngIf="inputDataForOperation.isEdit && isLinked==undefined">{{'practitioner.add.save' |
+              translate}}</button>
+            <button class="tiny ui orange button" autofocus (click)='linkDoctor(doctorData)'
+              *ngIf="isLinked!=undefined && !isLinked">{{'practitioner.add.link' | translate}}</button>
+            <button class="tiny ui orange button" autofocus (click)='confirmAppointmentModal(doctorData)'
+              *ngIf="isLinked!=undefined && isLinked">{{'practitioner.add.continue' | translate}}</button>
+            <button class="tiny ui button" *ngIf="!inputDataForOperation.isEdit"
+              (click)="clearAddDoctorForm(); advanceSearch();">{{'practitioner.add.reset' |
+              translate}}</button>
+            <button class="tiny ui button" (click)="closeAddDoctor()">{{'practitioner.add.cancel' | translate}}</button>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+  </div>
+</div>
+
+<!-- Add Practitioner Modal starts -->
+<!-- <ng-template let-context let-modal="modal" #modalAddDoctor>
+  <div class="header">
+    <span *ngIf="inputDataForOperation.isEdit">{{'practitioner.edit.heading' | translate}}</span>
+    <span *ngIf="!inputDataForOperation.isEdit">{{'practitioner.add.heading' | translate}}</span>
+    <i #closeWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-add-doctor (OutputData)="outputDataFromOperation($event)" [InputData]="inputDataForOperation"></app-add-doctor>
+  </div>
+  <div class="actions">
+    <div class="ui tiny">
+      <button class="tiny ui orange button" autofocus (click)="onAddDoctorClick({'saveAndContinue': true})"
+        *ngIf="!inputDataForOperation.isEdit && isLinked==undefined">{{'practitioner.add.save' | translate}}</button>
+      <button class="tiny ui orange button" autofocus (click)='onEditDoctorClick()'
+        *ngIf="inputDataForOperation.isEdit && isLinked==undefined">{{'practitioner.add.save' | translate}}</button>
+      <button class="tiny ui orange button" autofocus (click)='linkDoctor(doctorData)'
+        *ngIf="isLinked!=undefined && !isLinked">{{'practitioner.add.link' | translate}}</button>
+      <button class="tiny ui orange button" autofocus (click)='confirmAppointmentModal(doctorData)'
+        *ngIf="isLinked!=undefined && isLinked">{{'practitioner.add.continue' | translate}}</button>
+      <button class="tiny ui button" *ngIf="!inputDataForOperation.isEdit"
+        (click)="clearAddDoctorForm(); modal.deny(); advanceSearch();">{{'practitioner.add.reset' | translate}}</button>
+      <button class="tiny ui button" (click)="modal.deny()">{{'practitioner.add.cancel' | translate}}</button>
+    </div>
+  </div>
+</ng-template> -->
+<!-- Add Practitioner Modal ends -->
+
+
+<ng-template let-context let-modal="modal" #modalAddAppointment let-eventTimesChanged="eventTimesChanged">
+  <div class="header">
+    <span *ngIf="inputDataForOperation.isEdited">{{'appointment.edit.heading' | translate}}</span>
+    <span *ngIf="!inputDataForOperation.isEdited">{{'appointment.add.heading' | translate}}</span>
+    <i #closeWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-add-appointment (OutputData)="outputDataFromAppoitmentOperation($event)" [InputData]="inputDataForOperation">
+    </app-add-appointment>
+  </div>
+</ng-template>
+
+<!-- Add Practitioner Modal starts -->
+<!-- <ng-template let-context let-modal="modal" #modalSearchPopup>
+  <div class="header">
+    <span>{{'practitioner.searchNpiRegistry.heading' | translate}}</span>
+    <i #closeWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-search-npi-registry (OutputData)="outputDataSearchFromOperation($event)">
+    </app-search-npi-registry>
+  </div>
+  <div class="actions">
+    <div class="ui tiny">
+      <button class="tiny ui button" (click)="modal.deny()">{{'practitioner.searchNpiRegistry.cancel' |
+        translate}}</button>
+    </div>
+  </div>
+</ng-template> -->
+<!-- Add Practitioner Modal ends -->

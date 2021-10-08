@@ -1,0 +1,396 @@
+<app-toaster [toaster]="toastData"></app-toaster>
+<form novalidate [formGroup]="transactionResultsForm">
+  <div *ngIf="isLoader" class="ui bottom attached loading tab segment"></div>
+  <div *ngIf="!isLoader">
+    <div class="ui three column stackable grid">
+      <div class="three column row">
+        <div class="column">
+          <div class="ui mini compact segment sort">
+            <div class="inline field sort-dd">
+              <label>Sort by: </label>
+              <sui-select class="selection" [options]="sortingItemsList" formControlName="Sorting" labelField="label"
+                valueField="label" (selectedOptionChange)="sortTransactions(Sorting,ChannelType)" #Sorting>
+                <sui-select-option *ngFor="let option of sortingItemsList" [value]="option"></sui-select-option>
+              </sui-select>
+            </div>
+          </div>
+        </div>
+        <div class="column" *ngIf="displayCardNumberFilter">
+          <div class="ui mini compact segment sort">
+            <div class="inline field sort-dd">
+              <a class="ui label">
+                {{'transaction.find.account' | translate}}: {{displayCardNumberFilter}}
+                <i class="delete icon" (click)="clearFilter()"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="column">
+          <div class="ui mini compact segment sort">
+            <div class="inline field sort-dd">
+              <label>Select : </label>
+              <sui-select class="selection" [options]="channelTypeList" formControlName="ChannelType"
+                labelField="channelName" valueField="channelType"
+                (selectedOptionChange)="sortTransactions(Sorting,ChannelType)" #ChannelType>
+                <sui-select-option *ngFor="let option of channelTypeList" [value]="option"></sui-select-option>
+              </sui-select>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <sui-message class="attached warning" [isDismissable]="false" *ngIf="!searchResultFlag && !isLoader">
+      <p>{{noResultsMessage}}</p>
+    </sui-message>
+
+    <div *ngIf="searchResultFlag">
+
+      <div *ngIf="channelType!='Onetime'">
+        <!-- Credit/Debit -->
+        <div *ngIf="channelType!='Ach'">
+          <div *ngFor="let transaction of transactionList" class="ui segment results">
+            <div class="ui active  dimmer"
+              *ngIf="transaction.isLoader_transactionOperation || transaction.isLoader_TransactionDetails">
+              <div class="ui small text loader"></div>
+            </div>
+            <div (click)="getTransactionDetails(transaction)">
+              <div class="ui right floated header">
+                <!-- [ngClass]= "transaction.isLoader_TransactionDetails ? 'mini ui right floated button status green loading' : 'mini ui right floated button status green'" -->
+                <button class="ui mini right floated button status green"
+                  *ngIf="transaction.transactionStatus=='Success' ||transaction.transactionStatus=='Refund Success'">{{transaction.transactionStatus}}</button>
+                <button class="ui mini right floated button status red"
+                  *ngIf="transaction.transactionStatus=='Denied'||transaction.transactionStatus=='Failed'|| transaction.transactionStatus=='Closed'">{{transaction.transactionStatus}}</button>
+                <button class="ui mini right floated button status blue"
+                  *ngIf="transaction.transactionStatus!='Success' && transaction.transactionStatus!='Denied' && transaction.transactionStatus!='Failed' && transaction.transactionStatus!='Refund Success' && transaction.transactionStatus!='Closed'">{{transaction.transactionStatus}}</button>
+                <div class="ui right pointing dropdown" suiDropdown (click)="$event.stopPropagation()"
+                  *ngIf="!(transaction.recurringId!=null && transaction.operationType=='Auth Only')">
+                  <i class="ellipsis horizontal icon"></i>
+                  <div class="menu" suiDropdownMenu>
+                    <div class="item" *ngFor="let operation of transaction.operations"
+                      (click)="onTransactionOperationClick(operation, transaction)">
+                      <div class="w100">{{operation.value}}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="ui horizontal list">
+                <div class="item">
+                  <div class="content">
+                    <div class="ui sub header">{{transaction.fullName}}
+                      <span>&nbsp;&nbsp;$ {{transaction.tenderInfo.totalAmount.toFixed(2)}} </span>
+                      <span *ngIf="transaction.recurringId!=null">
+                        <!-- should be displayed only for recurring transactions -->
+                        <span class="small-text">&nbsp;&nbsp; <b>{{'transaction.find.recurringId' | translate}}:</b>
+                          {{transaction.recurringId}}</span>
+                      </span>
+                    </div>
+
+                    <strong> {{'transaction.find.txnDateTime' | translate}}:
+                    </strong>{{getFormattedDate(transaction.transactionDate)}}
+                    <span class="separator">|</span>
+
+                    <ng-container
+                      *ngIf="transaction.tenderInfo.channelType !== 10 && transaction.tenderInfo.channelType !== 9">
+                      {{transaction.tenderInfo.cardType}}:****{{transaction.tenderInfo.maskCardNumber}}<span
+                        class="separator">|</span>
+                    </ng-container>
+                    <strong>{{'transaction.find.type' | translate}}: </strong>
+                    {{transaction.operationType}}<span class="separator"
+                      *ngIf="transaction.tenderInfo.channelType !== 9">|</span>
+
+                    <ng-container *ngIf="transaction.tenderInfo.channelType === 10">
+                      <strong>{{'transaction.find.chequeNumber' | translate}}:
+                      </strong>{{transaction.tenderInfo.checkNumber}}
+                    </ng-container>
+
+                    <ng-container
+                      *ngIf="transaction.tenderInfo.channelType !== 10 && transaction.tenderInfo.channelType !== 9">
+                      <strong>{{'transaction.find.nameOnCard' | translate}}:
+                      </strong>{{transaction.tenderInfo.nameOnCheckOrCard}}
+                    </ng-container>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="ui divided list" [suiTransition]="transitionController" *ngIf="transaction.showDetails">
+              <div class="item">
+                <i class="info circle icon"></i>
+                <div class="content">
+                  <strong>{{'transaction.find.totalAmount' | translate}}:
+                  </strong>{{transaction.tenderInfo.totalAmount.toFixed(2)}}
+                  <span class="separator">|</span>
+                  {{'transaction.find.amount' | translate}}: {{transaction.tenderInfo.amount.toFixed(2)}}<span
+                    class="separator">|</span>
+                  <span><strong>{{'customPlans.find.discount' | translate}}</strong>:
+                    {{transaction.tenderInfo.discountAmount | CustomFormatCurrency}}</span><span
+                    class="separator">|</span>
+                  {{'transaction.find.taxAmount' | translate}}:
+                  {{transaction.tenderInfo.taxAmount.toFixed(2)}}
+                </div>
+              </div>
+              <div class="item">
+                <i class="building icon"></i>
+                <div class="content">
+                  <strong>{{'transaction.find.email' | translate}}:
+                  </strong>{{transaction.email != null ? transaction.email : '--'}}
+                </div>
+              </div>
+              <div class="item">
+                <i class="map marker icon"></i>
+                <div class="content">
+                  <strong>{{'transaction.find.address' | translate}}:
+                  </strong>{{transaction.fullAddress != '' ? transaction.fullAddress : '--'}}
+                </div>
+              </div>
+              <div class="item"
+                *ngIf="transaction.transactionStatus=='Failed' || transaction.transactionStatus=='Denied' || transaction.transactionStatus=='Hold' || transaction.transactionStatus=='Closed'">
+                <i class="info circle icon"></i>
+                <div class="content">
+                  <strong class="negative"
+                    *ngIf="transaction.transactionStatus=='Failed'">{{'transaction.find.reasonForFailure' | translate}}:
+                  </strong>
+                  <strong class="negative"
+                    *ngIf="transaction.transactionStatus=='Denied'">{{'transaction.find.reasonForDeny' | translate}}:
+                  </strong>
+                  <strong class="negative"
+                    *ngIf="transaction.transactionStatus=='Hold'">{{'transaction.find.reasonForHold' | translate}}:
+                  </strong>
+                  <strong class="negative"
+                    *ngIf="transaction.transactionStatus=='Closed'">{{'transaction.find.reasonForClose' | translate}}:
+                  </strong>{{transaction.reasonStatus}}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- ACH -->
+        <div *ngIf="channelType=='Ach'">
+          <div *ngFor="let transaction of transactionList" class="ui segment results">
+            <div class="ui active dimmer"
+              *ngIf="transaction.isLoader_transactionOperation || transaction.isLoader_TransactionDetails">
+              <div class="ui small text loader"></div>
+            </div>
+            <div (click)="getTransactionDetails(transaction)">
+              <div class="ui right floated header">
+                <button class="mini ui right floated button status green"
+                  *ngIf="transaction.transactionStatus=='Success'">{{transaction.transactionStatus}}</button>
+                <button class="mini ui right floated button status red"
+                  *ngIf="transaction.transactionStatus=='Denied'||transaction.transactionStatus=='Failed' || transaction.transactionStatus=='Closed'">{{transaction.transactionStatus}}</button>
+                <button class="mini ui right floated button status blue"
+                  *ngIf="transaction.transactionStatus!='Success' && transaction.transactionStatus!='Denied' && transaction.transactionStatus!='Failed' && transaction.transactionStatus!='Closed'">{{transaction.transactionStatus}}</button>
+                <div class="ui right pointing dropdown" suiDropdown (click)="$event.stopPropagation()">
+                  <i class="ellipsis horizontal icon"></i>
+                  <div class="menu" suiDropdownMenu>
+                    <div class="item" *ngFor="let operation of transaction.operations">
+                      <div class="w100" (click)="onTransactionOperationClick(operation, transaction)">
+                        {{operation.value}}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="ui horizontal list">
+                <div class="item">
+                  <div class="content">
+                    <div class="ui sub header">{{transaction.fullName}}
+                      <span>&nbsp;&nbsp;$ {{transaction.tenderInfo.totalAmount.toFixed(2)}}</span>
+                      <span *ngIf="transaction.recurringId!=null">
+                        <!-- should be displayed only for recurring transactions -->
+                        <span class="small-text">&nbsp;&nbsp; <b>{{'transaction.find.recurringId' | translate}}:</b>
+                          {{transaction.recurringId}}</span>
+                      </span>
+                    </div>
+                    <strong>{{'transaction.find.txnDateTime' | translate}}:
+                    </strong>{{getFormattedDate(transaction.transactionDate)}}
+                    <!--<span class="separator">|</span>
+              <strong>{{'transaction.find.authCode' | translate}}: </strong>{{transaction.authCode != null ? transaction.authCode : '--'}}--><span
+                      class="separator">|</span>
+                    <strong>{{'transaction.find.type' | translate}}: </strong>{{transaction.operationType}}<span
+                      class="separator">|</span>
+                    <strong>{{'transaction.find.routingOrTransitNo' | translate}}:
+                    </strong>{{transaction.tenderInfo.routingNumber != null ? transaction.tenderInfo.routingNumber: '--' }}<span
+                      class="separator">|</span>
+                    <strong>{{'transaction.find.accountNo' | translate}}:
+                    </strong>{{transaction.tenderInfo.maskAccount != null ? '****'+transaction.tenderInfo.maskAccount: '--' }}
+                    <!-- <span class="separator">|</span>
+              <strong>{{'transaction.find.checkNo' | translate}}: </strong>{{transaction.chequeNumber != null ? transaction.chequeNumber : '--'}} -->
+                  </div>
+                </div>
+              </div>
+
+            </div>
+            <div class="ui divided list" [suiTransition]="transitionController" *ngIf="transaction.showDetails">
+              <div class="item">
+                <i class="info circle icon"></i>
+                <div class="content">
+                  <strong>{{'transaction.find.totalAmount' | translate}}:
+                  </strong>{{transaction.tenderInfo.totalAmount}}<span class="separator">|</span>
+                  {{'transaction.find.amount' | translate}}: {{transaction.tenderInfo.amount.toFixed(2)}}<span
+                    class="separator">|</span>
+                  <span><strong>{{'customPlans.find.discount' | translate}}</strong>:
+                    {{transaction.tenderInfo.discountAmount | CustomFormatCurrency}}</span><span
+                    class="separator">|</span>
+                  {{'transaction.find.taxAmount' | translate}}:
+                  {{transaction.tenderInfo.taxAmount.toFixed(2)}}
+                </div>
+              </div>
+              <div class="item">
+                <i class="building icon"></i>
+                <div class="content">
+                  <strong>{{'transaction.find.email' | translate}}:
+                  </strong>{{transaction.email != null ? transaction.email : '--'}}
+                </div>
+              </div>
+              <div class="item">
+                <i class="map marker icon"></i>
+                <div class="content">
+                  <strong>{{'transaction.find.address' | translate}}:
+                  </strong>{{transaction.fullAddress != '' ? transaction.fullAddress : '--'}}
+                </div>
+              </div>
+              <div class="item"
+                *ngIf="transaction.transactionStatus=='Failed' || transaction.transactionStatus=='Denied' || transaction.transactionStatus=='Hold'|| transaction.transactionStatus=='Closed'">
+                <i class="info circle icon"></i>
+                <div class="content">
+                  <strong class="negative"
+                    *ngIf="transaction.transactionStatus=='Failed'">{{'transaction.find.reasonForFailure' | translate}}:
+                  </strong>
+                  <strong class="negative"
+                    *ngIf="transaction.transactionStatus=='Denied'">{{'transaction.find.reasonForDeny' | translate}}:
+                  </strong>
+                  <strong class="negative"
+                    *ngIf="transaction.transactionStatus=='Hold'">{{'transaction.find.reasonForHold' | translate}}:
+                  </strong>
+                  <strong class="negative"
+                    *ngIf="transaction.transactionStatus=='Closed'">{{'transaction.find.reasonForClose' | translate}}:
+                  </strong>{{transaction.reasonStatus}}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <app-pagination [pager]="pager" (OutputData)="findTransaction($event)"></app-pagination>
+      </div>
+      <div *ngIf="channelType==='Onetime'">
+        <!-- Find Recurring Payments Results -->
+        <div *ngFor="let recurringPayment of recurringPaymentsList" class="ui segment results">
+          <div class="ui active dimmer" *ngIf="recurringPayment.isLoader_recurringOperation">
+            <div class="ui small text loader"></div>
+          </div>
+          <div (click)="getRecurringTransactionById(recurringPayment)">
+            <!---->
+            <div class="ui right floated header">
+              <button class="ui mini right floated button status green"
+                *ngIf="recurringPayment.status==2">{{'recurringPayments.find.active' | translate}}</button>
+              <button class="ui mini right floated button status blue"
+                *ngIf="recurringPayment.status==3">{{'recurringPayments.find.paid' | translate}}</button>
+              <button class="ui mini right floated button status red"
+                *ngIf="recurringPayment.status==8">{{'recurringPayments.find.cancelled' | translate}}</button>
+                <button class="ui mini right floated button status red"
+                *ngIf="recurringPayment.status==30">{{'recurringPayments.find.closed' | translate}}</button>
+              <button class="ui mini right floated button status orange"
+                *ngIf="recurringPayment.status==1">{{'recurringPayments.find.pendingForActivation' | translate}}</button>
+              <button class="ui mini right floated button status red"
+                *ngIf="recurringPayment.status==5">{{'recurringPayments.find.failed' | translate}}</button>
+              <div class="ui right pointing dropdown" suiDropdown (click)="$event.stopPropagation()"
+                *ngIf="recurringPayment.operations.length>0">
+                <i class="ellipsis horizontal icon"></i>
+                <div class="menu" suiDropdownMenu>
+                  <div class="item" *ngFor="let operation of recurringPayment.operations"
+                    (click)="onRecurringOperationClick(operation, recurringPayment)">
+                    <div class="w100">{{operation.value}}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="ui horizontal list">
+              <div class="item">
+                <div class="content">
+                  <div class="ui sub header">{{recurringPayment.firstName}} {{recurringPayment.lastName}}
+                    <span>&nbsp;&nbsp;{{recurringPayment.paymentAmount | CustomFormatCurrency}} </span>
+                    <span>
+                      <span class="small-text">&nbsp;&nbsp; <b>{{'transaction.find.recurringId' | translate}}:</b>
+                        {{recurringPayment.id}}</span>
+                    </span>
+                  </div>
+
+                  <strong> {{'transaction.find.OneTimetxnDate' | translate}}: </strong>
+                  {{recurringPayment.startDate != null ? getFormattedDate(recurringPayment.startDate) : '--'}}<span
+                    class="separator">|</span>
+                  {{recurringPayment.cardType}}: ****{{recurringPayment.maskedCardNumber}}<span
+                    class="separator">|</span>
+                  <strong>{{'transaction.find.type' | translate}}: </strong>Schedule Payment
+                  <span class="separator">|</span>
+                  <strong>{{'transaction.find.createdOn' | translate}}:
+                  </strong>{{getFormattedDate(recurringPayment.createdOn)}}
+                  <!--<strong>{{'transaction.find.nameOnCard' | translate}}: </strong>{{recurringPayment.nameOnCheckOrCard}} -->
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ui divided list" [suiTransition]="transitionController" *ngIf="recurringPayment.showDetails">
+            <div class="item">
+              <i class="info circle icon"></i>
+              <div class="content">
+                <strong>{{'transaction.find.totalAmount' | translate}}:
+                </strong>{{recurringPayment.totalAmount.toFixed(2)}}
+                <span class="separator">|</span>
+                {{'transaction.find.amount' | translate}}: {{recurringPayment.amount.toFixed(2)}}<span
+                  class="separator">|</span>
+                <span *ngIf="recurringPayment.discountType=='1'"> <strong>
+                    {{'customPlans.find.discount' | translate}}</strong>:
+                  {{recurringPayment.discountAmount | CustomFormatCurrency}}</span>
+                <span *ngIf="recurringPayment.discountType=='2'"> <strong>
+                    {{'customPlans.find.discount' | translate}}</strong>:
+                  {{recurringPayment.discountRate}}%</span><span class="separator">|</span>
+                {{'transaction.find.taxAmount' | translate}}:
+                {{recurringPayment.taxAmount.toFixed(2)}}
+              </div>
+            </div>
+            <div class="item">
+              <i class="building icon"></i>
+              <div class="content">
+                <strong>{{'transaction.find.email' | translate}}:
+                </strong>{{recurringPayment.email != null ? recurringPayment.email : '--'}}
+              </div>
+            </div>
+          </div>
+        </div>
+        <app-pagination [pager]="pager" (OutputData)="findRecurring($event)"></app-pagination>
+      </div>
+    </div>
+  </div>
+  <!-- </div>
+  </form>
+</div> -->
+</form>
+
+<ng-template let-context let-modal="modal" #modalTransactionOperations>
+  <div class="header">{{typeOfOperationHeading}}
+    <i #closeModal (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-transaction-operations [InputData]="inputDataForOperation"
+      (OutputData)="outputDataFromTransactionOperation($event)"></app-transaction-operations>
+  </div>
+  <div class="actions">
+    <div class="ui tiny">
+      <button class="ui tiny button" (click)="modal.deny()">{{'transaction.find.close' | translate}}</button>
+    </div>
+  </div>
+</ng-template>
+<ng-template let-context let-modal="modal" #modalUpdatePlan>
+  <div class="header">
+    <span>{{(inputDataForUpdatePlan.hideSchedulePlan)!=true?('recurringPayments.update.heading' | translate):'Update Account'}}</span>
+    <i #closePlanWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-update-recurring (OutputData)="outputDataFromUpdatePlan($event)" [InputData]="inputDataForUpdatePlan">
+    </app-update-recurring>
+    <button class="tiny ui button" (click)="modal.deny()">{{'facility.add.cancel' | translate}}</button>
+  </div>
+
+</ng-template>

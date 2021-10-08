@@ -1,0 +1,586 @@
+<app-toaster [toaster]="toastData"></app-toaster>
+<div id="initialLoad">
+  <div class="main-content">
+
+    <form novalidate [formGroup]="findClaimForm" *ngIf="!isFormOpen">
+      <h1 class="ui header">{{'claims.find.heading' | translate}}</h1>
+      <div class="ui segment apf-search">
+        <button class="tiny ui orange right floated button" type="button" *ngIf="permissions.addNewClaim"
+          (click)="openAddClaims()">
+          <i class="cube icon"></i>{{'claims.find.addClaims' | translate}}
+        </button>
+        <div class="u-cf-m"></div>
+        <sui-tabset>
+          <div class="tiny ui secondary menu">
+            <a class="item" suiTabHeader="1">{{'claims.find.patientName' | translate}}</a>
+          </div>
+          <div class="ui segment selection-area">
+            <a class="ui label" *ngIf="findClaimForm.value.PatientName">
+              {{'claims.find.patientName' | translate}}: {{displayFilter}}
+              <i class="delete icon" (click)="clear('PatientName');"></i>
+            </a>
+          </div>
+          <!-- Patient Name -->
+          <div class="ui" suiTabContent="1">
+            <div class="ui tiny form">
+              <div class="three fields mb0">
+                <div class="field">
+
+                  <sui-multi-select class="selection" formControlName="PatientName" #PatientName
+                    (selectedOptionsChange)="onMultiSelectClick(PatientName)" [hasLabels]="true" [maxSelected]="5"
+                    labelField="name" valueField="id" [isSearchable]="true" [options]="searchPatientList" icon="search">
+                    <sui-select-option *ngFor="let o of PatientName.filteredOptions" [value]="o"></sui-select-option>
+                  </sui-multi-select>
+
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ui clearing divider"></div>
+          <button [ngClass]="isLoader_FindClaim ? 'tiny ui orange button loading' : 'tiny ui orange button'"
+            class="tiny ui orange button" type="submit"
+            (click)="showLoader = true;getCounts();find(true)">{{'claims.find.find' | translate}}</button>
+          <button class="tiny ui button" (click)="clearForm()">{{'claims.find.clear' | translate}}</button>
+        </sui-tabset>
+
+      </div>
+
+      <!-- Sorting and Export/Download control -->
+      <form novalidate [formGroup]="claimResultsForm">
+        <div class="ui grid">
+          <div class="eight wide column">
+            <div class="ui mini compact segment sort">
+              <div class="inline field sort-dd">
+                <label>Sort by: </label>
+                <sui-select class="selection" [options]="sortingItemsList" formControlName="Sorting" labelField="label"
+                  valueField="label" (selectedOptionChange)="sortClaims(Sorting)" #Sorting>
+                  <sui-select-option *ngFor="let option of sortingItemsList" [value]="option"></sui-select-option>
+                </sui-select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+
+      <sui-tabset>
+        <div class="ui mini top attached tabular menu" style="flex-wrap: wrap;font-size: 1rem;">
+          <ng-container *ngFor="let tab of tabList">
+            <a class="item" [isActive]="tab.isActive" (click)="changeTab(tab);" suiTabHeader="{{tab.name}}">
+              {{tab.name}} {{tab.totalCount}}</a>
+          </ng-container>
+        </div>
+
+        <ng-container *ngFor="let tab of tabList">
+          <div class="ui" suiTabContent="{{tab.name}}">
+            <!-- <ng-container *ngTemplateOutlet="claimCards"></ng-container> -->
+          </div>
+        </ng-container>
+      </sui-tabset>
+      <br>
+      <ng-container *ngTemplateOutlet="claimCards"></ng-container>
+    </form>
+
+    <ng-container *ngIf="isFormOpen">
+      <h1 class="ui header" *ngIf="!inputDataForOperation.isEdit">{{'claims.add.header' | translate}}</h1>
+      <h1 class="ui header" *ngIf="inputDataForOperation.isEdit">{{'claims.edit.header' | translate}}</h1>
+      <div class="ui segment">
+        <app-add-claims (OutputData)="outputDataFromOperation($event)" [InputData]="inputDataForOperation">
+        </app-add-claims>
+        <div class="ui fitted divider wizard-footer"></div>
+        <div class="actions">
+          <div class="ui tiny">
+            <button class="tiny ui orange button" autofocus (click)="onAddClaimsClick({'saveAndContinue': true})"
+              *ngIf="!inputDataForOperation.isEdit">{{'claims.add.save' | translate}}</button>
+            <button class="tiny ui orange button" autofocus (click)='onEditClaimsClick()'
+              *ngIf="inputDataForOperation.isEdit">{{'claims.add.save' | translate}}</button>
+            <button class="tiny ui button" *ngIf="!inputDataForOperation.isEdit"
+              (click)="clearAddClaimsForm()">{{'claims.add.reset' | translate}}</button>
+            <button class="tiny ui button" (click)="closeAddClaims()">{{'claims.add.cancel' | translate}}</button>
+          </div>
+        </div>
+      </div>
+
+    </ng-container>
+
+
+  </div>
+</div>
+
+<ng-template let-context let-modal="modal" #claimCards>
+  <sui-message class="attached warning" [isDismissable]="false" *ngIf="noRecordsFound_ClaimsList">
+    <p>{{noResultsMessage}}</p>
+  </sui-message>
+  <div class="ui segment modal-loader" *ngIf="showLoader">
+    <div class="ui active dimmer">
+      <div class="ui medium text loader">Loading</div>
+    </div>
+  </div>
+
+  <div *ngIf="claimList.length>0">
+
+    <!-- Claims List -->
+    <div>
+      <div *ngFor="let claim of claimList" class="ui segment results">
+        <div class="ui active dimmer" *ngIf="claim.isLoader_ClaimOperation">
+          <div class="ui small text loader"></div>
+        </div>
+        <div class="results-crsr" (click)="getClaimById(claim)">
+          <!-- Claims Status Start -->
+          <div class="ui right floated header">
+            <button class="ui tiny right floated button invoicestatus orange"
+              *ngIf="claim.displayStatus=='Open' || claim.displayStatus=='Paid'">{{claim.displayStatus}}</button>
+            <button class="ui tiny right floated button invoicestatus blue"
+              *ngIf="claim.displayStatus=='In Queue' || claim.displayStatus=='Action Required' || claim.displayStatus=='Request Sent'">{{claim.displayStatus}}</button>
+            <button class="ui tiny right floated button invoicestatus red"
+              *ngIf="claim.displayStatus=='Cancelled' || claim.displayStatus=='Denied' || claim.displayStatus=='Closed'">{{claim.displayStatus}}</button>
+            <div class="ui orange tiny right pointing dropdown invoice" suiDropdown (click)="$event.stopPropagation()">
+              <i class="ellipsis horizontal icon"></i>
+              <div class="menu" suiDropdownMenu>
+                <div class="item" *ngFor="let operation of claim.operations"
+                  (click)="onClaimOperationClick(operation, claim)">
+                  <div class="w100">{{operation.value}}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Claims Status End -->
+
+          <div class="ui horizontal list">
+            <div class="item">
+              <div class="content">
+                <div class="ui sub header">
+                  {{claim.fullName}}
+                  <span style="font-size: 14px;">
+                    <!-- <span class="separator">|</span>
+                    <span> {{'claims.find.claimNumber' | translate}}:
+                      {{(claim.claimNumber!=null && claim.claimNumber!='')? claim.claimNumber : '--'}}
+                    </span> -->
+                    <span class="separator">|</span>
+                    <span>&nbsp;&nbsp;{{'claims.find.dob' | translate}}:
+                      {{claim.dob!=null ? getFormattedDateToDisplay(claim.dob) : '--'}}</span>
+                  </span>
+                </div>
+                <div class="item">
+
+                  <strong> {{'claims.find.memberPolicyId' | translate}}:
+                  </strong>{{(claim.subscriberId!=null && claim.subscriberId!='')? claim.subscriberId : '--'}}
+
+                  <span class="separator">|</span>
+                  <strong> {{'claims.find.payerClaimNo' | translate}}:
+                  </strong>{{(claim.payerClaimNo!=null && claim.payerClaimNo!='')? claim.payerClaimNo : '--'}}
+
+                  <span class="separator">|</span>
+                  <strong> {{'claims.find.payerId' | translate}}:
+                  </strong>{{(claim.payerId!=null && claim.payerId!='')? claim.payerId : '--'}}
+
+                  <span class="separator">|</span>
+                  <strong> {{'claims.find.payerName' | translate}}:
+                  </strong>{{(claim.payerName!=null && claim.payerName!='')? claim.payerName : '--'}}
+
+                  <span class="separator">|</span>
+                  <strong> {{'claims.find.payerPhone' | translate}}:
+                  </strong>{{(claim.payerPhone!=null && claim.payerPhone!="") ? (claim.payerPhone | mask:
+                  '000-000-0000') : '--'}}
+
+                </div>
+                <div style="margin: 5px;"></div>
+                <div class="item">
+
+                  <strong> {{'claims.find.subscriberFirstName' | translate}}:
+                  </strong>{{(claim.subscriberFirstName!=null && claim.subscriberFirstName!='')?
+                  claim.subscriberFirstName : '--'}}
+
+                  <span class="separator">|</span>
+                  <strong> {{'claims.find.subscriberLastName' | translate}}:
+                  </strong>{{(claim.subscriberLastName!=null && claim.subscriberLastName!='')? claim.subscriberLastName
+                  : '--'}}
+                </div>
+                <div style="margin: 5px;"></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <!-- Claims Details -->
+        <div class="ui divided list" [suiTransition]="transitionController" *ngIf="claim.showDetails"
+          style="cursor: default">
+
+          <div class="item">
+            <div class="content">
+              <strong> {{'claims.find.responseDate' | translate}}:</strong>
+              {{claim.responseDate!=null ? getFormattedDateToDisplay(claim.responseDate) : '--'}}
+
+              <span class="separator">|</span>
+              <strong> {{'claims.find.dateOfService' | translate}}:</strong>
+              {{claim.serviceDate!=null ? getFormattedDateToDisplay(claim.serviceDate) : '--'}}
+
+              <span class="separator">|</span>
+              <strong> {{'claims.find.claimReceiptDate' | translate}}:</strong>
+              {{claim.claimReceiptDate!=null ? getFormattedDateToDisplay(claim.claimReceiptDate) : '--'}}
+
+              <span class="separator">|</span>
+              <strong> {{'claims.find.adjudicationDate' | translate}}:</strong>
+              {{claim.adjudicationDate!=null ? getFormattedDateToDisplay(claim.adjudicationDate) : '--'}}
+
+            </div>
+          </div>
+          <!-- Claim Details Starts -->
+          <div (click)="$event.stopPropagation()" style="text-align: left"
+            *ngIf="claim.showDetails && claim.claimItems.length > 0">
+            <div style="margin: 5px 0px; border-top: 1px solid #ddd;"></div>
+            <sui-accordion [closeOthers]="true">
+              <sui-accordion-panel *ngFor=" let claimItem of claim.claimItems; index as i">
+                <div title>
+                  <i class="dropdown icon"></i>
+                  {{'Claim ' + (i+1) | translate}}
+                  <span class="separator">|</span>
+                  <span class="separator2" style="font-weight: 200; color: #666666; padding: 0px;">
+                    {{'claims.find.chargeAmt' | translate}}:
+                    <span *ngIf="claimItem.chargeAmt!=null && claimItem.chargeAmt!=''; else blankContent">
+                      {{claimItem.chargeAmt | CustomFormatCurrency}}
+                    </span>
+                  </span>
+                  <span class="separator">|</span>
+                  <span class="separator2" style="font-weight: 200; color: #666666; padding: 0px;">{{'Adjudication Date'
+                    |
+                    translate}}: {{claimItem.adjudicationDate!=null ?
+                    getFormattedDateToDisplay(claimItem.adjudicationDate) :
+                    '--'}}</span>
+                  <span class="separator">|</span>
+                  <span class="separator2" style="font-weight: 200; color: #666666; padding: 0px;">{{'Check Date' |
+                    translate}}:
+                    {{claimItem.checkDate!=null ?
+                    getFormattedDateToDisplay(claimItem.checkDate) :
+                    '--'}}</span>
+                  <span class="separator">|</span>
+                  <span class="separator2"
+                    style="font-weight: 200; color: #666666; padding: 0px;">{{'claims.find.payerClaimNo' |
+                    translate}}: {{(claimItem.payerClaimNo!=null
+                    && claimItem.payerClaimNo!='')? claimItem.payerClaimNo
+                    : '--'}}</span>
+                  <span class="separator">|</span>
+                  <span class="separator2"
+                    style="font-weight: 200; color: #666666; padding: 0px;">{{'claims.find.checkNumber' |
+                    translate}}: {{(claimItem.checkNumber!=null &&
+                    claimItem.checkNumber!='')? claimItem.checkNumber :
+                    '--'}}</span>
+                </div>
+                <div content class="ui segment results" (click)="$event.stopPropagation()">
+
+                  <div class="ui divided list">
+
+                    <div class="item">
+                      <div class="content">
+                        <strong> {{'Benefit Exhaust Date' | translate}}:</strong>
+                        {{claimItem.benefitExhaustDate!=null ? getFormattedDateToDisplay(claimItem.benefitExhaustDate) :
+                        '--'}}
+                        <span class="separator">|</span>
+                        <strong> {{'Claim Receipt Date' | translate}}:</strong>
+                        {{claimItem.claimReceiptDate!=null ? getFormattedDateToDisplay(claimItem.claimReceiptDate) :
+                        '--'}}
+                        <span class="separator">|</span>
+                        <strong> {{'Date Check Cashed' | translate}}:</strong>
+                        {{claimItem.dateCheckCashed!=null ? getFormattedDateToDisplay(claimItem.dateCheckCashed) :
+                        '--'}}
+
+                      </div>
+                    </div>
+
+                    <div style="margin: 5px 0px; border-top: 1px solid #ddd;"></div>
+                    <div class="item">
+                      <div class="content">
+                        <strong> {{'Patient Account Number' | translate}}:
+                        </strong>{{(claimItem.patientAccountNumber!=null && claimItem.patientAccountNumber!='')?
+                        claimItem.patientAccountNumber : '--'}}
+                        <span class="separator">|</span>
+                        <strong> {{'Internal Account Number' | translate}}:
+                        </strong>{{(claimItem.internalAccountNumber!=null && claimItem.internalAccountNumber!='')?
+                        claimItem.internalAccountNumber : '--'}}
+                      </div>
+                    </div>
+
+                    <div style="margin: 5px 0px; border-top: 1px solid #ddd;"></div>
+                    <div class="item">
+                      <div class="content">
+                        <strong> {{'Status Code' | translate}}:
+                        </strong>{{(claimItem.statusCode!=null && claimItem.statusCode!='')? claimItem.statusCode :
+                        '--'}}
+                        <span class="separator">|</span>
+                        <strong> {{'Check Status' | translate}}:
+                        </strong>{{(claimItem.checkStatus!=null && claimItem.checkStatus!='')?
+                        claimItem.checkStatus : '--'}}
+                        <span class="separator">|</span>
+                        <strong> {{'Status Description' | translate}}:
+                        </strong>{{(claimItem.statusDescription!=null && claimItem.statusDescription!='')?
+                        claimItem.statusDescription : '--'}}
+                      </div>
+                    </div>
+
+                    <div style="margin: 5px 0px; border-top: 1px solid #ddd;"></div>
+                    <div class="item">
+                      <div class="content">
+                        <strong> {{'Category Code' | translate}}:
+                        </strong>{{(claimItem.categoryCode!=null && claimItem.categoryCode!='')? claimItem.categoryCode
+                        : '--'}}
+                        <span class="separator">|</span>
+                        <strong> {{'Category Description' | translate}}:
+                        </strong>{{(claimItem.categoryDescription!=null && claimItem.categoryDescription!='')?
+                        claimItem.categoryDescription : '--'}}
+                      </div>
+                    </div>
+
+                    <div style="margin: 5px 0px; border-top: 1px solid #ddd;"></div>
+                    <div class="item">
+                      <div class="content">
+                        <strong> {{'Subscriber Id' | translate}}:
+                        </strong>{{(claimItem.subId!=null && claimItem.subId!='')? claimItem.subId : '--'}}
+                        <span class="separator">|</span>
+                        <strong> {{'Billing Entity Name' | translate}}:
+                        </strong>{{(claimItem.billingEntityName!=null && claimItem.billingEntityName!='')?
+                        claimItem.billingEntityName : '--'}}
+                        <span class="separator">|</span>
+                        <strong> {{'Revenue CD' | translate}}:
+                        </strong>{{(claimItem.revenueCd!=null && claimItem.revenueCd!='')? claimItem.revenueCd : '--'}}
+                      </div>
+                    </div>
+
+                    <div style="margin: 5px 0px; border-top: 1px solid #ddd;"></div>
+                    <div class="item">
+                      <div class="content">
+                        <strong> {{'SVC Line Qty' | translate}}:
+                        </strong>{{(claimItem.svcLnQty!=null && claimItem.svcLnQty!='')? claimItem.svcLnQty : '--'}}
+                        <span class="separator">|</span>
+                        <strong> {{'Authorization Case Id' | translate}}:
+                        </strong>{{(claimItem.authorizationCaseId!=null && claimItem.authorizationCaseId!='')?
+                        claimItem.authorizationCaseId : '--'}}
+                        <span class="separator">|</span>
+                        <strong> {{'Authorization Description' | translate}}:
+                        </strong>{{(claimItem.authorizationDesc!=null && claimItem.authorizationDesc!='')?
+                        claimItem.authorizationDesc : '--'}}
+                        <span class="separator">|</span>
+                        <strong> {{'Discount Days' | translate}}:
+                        </strong>{{(claimItem.discountDays!=null && claimItem.discountDays!='')? claimItem.discountDays
+                        : '--'}}
+                        <span class="separator">|</span>
+                        <strong> {{'Lifetime reserve Days' | translate}}:
+                        </strong>{{(claimItem.lifetimeReserveDays!=null && claimItem.lifetimeReserveDays!='')?
+                        claimItem.lifetimeReserveDays : '--'}}
+                        <span class="separator">|</span>
+                        <strong> {{'Description' | translate}}:
+                        </strong>{{(claimItem.description!=null && claimItem.description!='')? claimItem.description :
+                        '--'}}
+                      </div>
+                    </div>
+
+                    <div style="margin: 5px 0px; border-top: 1px solid #ddd;"></div>
+                    <div class="item">
+                      <div class="content">
+                        <strong> {{'claims.find.chargeAmt' | translate}}: </strong>
+                        <span
+                          *ngIf="claimItem.chargeAmt!=null && claimItem.chargeAmt!=''; else blankContent">{{claimItem.chargeAmt|
+                          CustomFormatCurrency}}</span>
+                        <span class="separator">|</span>
+                        <strong> {{'claims.find.paymentAmt' | translate}}: </strong>
+                        <span *ngIf="claimItem.paymentAmt!=null && claimItem.paymentAmt!=''; else blankContent">
+                          {{claimItem.paymentAmt | CustomFormatCurrency}}
+                        </span>
+                        <span class="separator">|</span>
+                        <strong> {{'claims.find.allowedAmount' | translate}}: </strong>
+                        <span *ngIf="claimItem.allowedAmount!=null && claimItem.allowedAmount!=''; else blankContent">
+                          {{claimItem.allowedAmount| CustomFormatCurrency}}</span>
+                        <span class="separator">|</span>
+                        <strong> {{'claims.find.coInsuranceAmount' | translate}}: </strong>
+                        <span
+                          *ngIf="claimItem.coInsuranceAmount!=null && claimItem.coInsuranceAmount!=''; else blankContent">
+                          {{claimItem.coInsuranceAmount }}
+                        </span>
+                        <span class="separator">|</span>
+                        <strong> {{'claims.find.deductibleAmount' | translate}}: </strong>
+                        <span
+                          *ngIf="claimItem.deductibleAmount!=null && claimItem.deductibleAmount!=''; else blankContent">
+                          {{claimItem.deductibleAmount | CustomFormatCurrency}}
+                        </span>
+                        <span class="separator">|</span>
+                        <strong> {{'claims.find.coPaymentAmount' | translate}}: </strong>
+                        <span
+                          *ngIf="claimItem.coPaymentAmount!=null && claimItem.coPaymentAmount!=''; else blankContent">
+                          {{claimItem.coPaymentAmount | CustomFormatCurrency}}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div style="margin: 5px 0px; border-top: 1px solid #ddd;"></div>
+                    <div class="item">
+                      <div class="content">
+                        <strong> {{'claims.find.nonCoveredAmount' | translate}}: </strong>
+                        <span
+                          *ngIf="claimItem.nonCoveredAmount!=null && claimItem.nonCoveredAmount!=''; else blankContent">
+                          {{claimItem.nonCoveredAmount | CustomFormatCurrency}}
+                        </span>
+                        <span class="separator">|</span>
+                        <strong> {{'Paid Amt by Other Insurance' | translate}}: </strong>
+                        <span
+                          *ngIf="claimItem.paidAmountByOtherInsurance!=null && claimItem.paidAmountByOtherInsurance!=''; else blankContent">
+                          {{claimItem.paidAmountByOtherInsurance | CustomFormatCurrency}}
+                        </span>
+                        <span class="separator">|</span>
+                        <strong> {{'Lifetime reserve Amount' | translate}}: </strong>
+                        <span
+                          *ngIf="claimItem.lifetimeReserveAmount!=null && claimItem.lifetimeReserveAmount!=''; else blankContent">
+                          {{claimItem.lifetimeReserveAmount | CustomFormatCurrency}}
+                        </span>
+                        <span class="separator">|</span>
+                        <strong> {{'Managed Care Panelty Amt' | translate}}: </strong>
+                        <span
+                          *ngIf="claimItem.managedCarePenaltyAmount!=null && claimItem.managedCarePenaltyAmount!=''; else blankContent">
+                          {{claimItem.managedCarePenaltyAmount | CustomFormatCurrency}}
+                        </span>
+                        <span class="separator">|</span>
+                        <strong> {{'Interest Paid' | translate}}: </strong>
+                        <span *ngIf="claimItem.interestPaid!=null && claimItem.interestPaid!=''; else blankContent">
+                          {{claimItem.interestPaid | CustomFormatCurrency}}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div style="margin: 5px 0px; border-top: 1px solid #ddd;"></div>
+                    <div class="item">
+                      <div class="content">
+                        <strong> {{'claims.find.reasonSourceCd1' | translate}}:
+                        </strong>{{(claimItem.reasonSourceCd1!=null && claimItem.reasonSourceCd1!='')?
+                        claimItem.reasonSourceCd1 :
+                        '--'}}
+                        <span class="separator">|</span>
+                        <strong> {{'claims.find.reasonSourceCdDesc1' | translate}}:
+                        </strong>{{(claimItem.reasonSourceCdDesc1!=null && claimItem.reasonSourceCdDesc1!='')?
+                        claimItem.reasonSourceCdDesc1 : '--'}}
+                      </div>
+                    </div>
+
+                    <div style="margin: 5px 0px; border-top: 1px solid #ddd;"></div>
+                    <div class="item">
+                      <div class="content">
+                        <strong> {{'claims.find.reasonSourceCd2' | translate}}:
+                        </strong>{{(claimItem.reasonSourceCd2!=null && claimItem.reasonSourceCd2!='')?
+                        claimItem.reasonSourceCd2 :
+                        '--'}}
+                        <span class="separator">|</span>
+                        <strong> {{'claims.find.reasonSourceCdDesc2' | translate}}:
+                        </strong>{{(claimItem.reasonSourceCdDesc2!=null && claimItem.reasonSourceCdDesc2!='')?
+                        claimItem.reasonSourceCdDesc2 : '--'}}
+                      </div>
+                    </div>
+
+                    <div style="margin: 5px 0px; border-top: 1px solid #ddd;"></div>
+                    <div class="item">
+                      <div class="content">
+                        <strong> {{'claims.find.reasonSourceCd3' | translate}}:
+                        </strong>{{(claimItem.reasonSourceCd3!=null && claimItem.reasonSourceCd3!='')?
+                        claimItem.reasonSourceCd3 :
+                        '--'}}
+                        <span class="separator">|</span>
+                        <strong> {{'claims.find.reasonSourceCdDesc3' | translate}}:
+                        </strong>{{(claimItem.reasonSourceCdDesc3!=null && claimItem.reasonSourceCdDesc3!='')?
+                        claimItem.reasonSourceCdDesc3 : '--'}}
+                      </div>
+                    </div>
+
+                  </div>
+
+                </div>
+              </sui-accordion-panel>
+              <!-- deposit/One Time Transaction End -->
+            </sui-accordion>
+          </div>
+          <!-- Claim Details End -->
+
+        </div>
+      </div>
+    </div>
+    <app-pagination [pager]="pager" (OutputData)="fetchClaims($event)"></app-pagination>
+  </div>
+</ng-template>
+
+<!-- Add Claims Modal starts -->
+<!-- <ng-template let-context let-modal="modal" #modalAddClaims>
+  <div class="header">
+    <span *ngIf="inputDataForOperation.isEdit">{{'claims.edit.header' | translate}}</span>
+    <span *ngIf="!inputDataForOperation.isEdit">{{'claims.add.header' | translate}}</span>
+
+    <i #closeWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-add-claims (OutputData)="outputDataFromOperation($event)" [InputData]="inputDataForOperation"></app-add-claims>
+  </div>
+  <div class="actions">
+    <div class="ui tiny">
+      <button class="tiny ui orange button" autofocus (click)="onAddClaimsClick({'saveAndContinue': true})"
+        *ngIf="!inputDataForOperation.isEdit">{{'claims.add.save' | translate}}</button>
+      <button class="tiny ui orange button" autofocus (click)='onEditClaimsClick()'
+        *ngIf="inputDataForOperation.isEdit">{{'claims.add.save' | translate}}</button>
+      <button class="tiny ui button" *ngIf="!inputDataForOperation.isEdit"
+        (click)="clearAddClaimsForm()">{{'claims.add.reset' | translate}}</button>
+      <button class="tiny ui button" (click)="modal.deny()">{{'claims.add.cancel' | translate}}</button>
+    </div>
+  </div>
+</ng-template> -->
+<!-- Add Claims Modal ends -->
+
+<!-- Edit Patient Modal starts -->
+<ng-template let-context let-modal="modal" #modalAddPatient>
+  <div class="header">
+    <span *ngIf="inputDataForPatientEditOperation.isEdit">{{'patient.edit.heading' | translate}}</span>
+    <span *ngIf="!inputDataForPatientEditOperation.isEdit">{{'patient.add.heading' | translate}}</span>
+    <i #closeWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-add-patient (OutputData)="outputDataFromPatientOperation($event)"
+      [InputData]="inputDataForPatientEditOperation">
+    </app-add-patient>
+  </div>
+  <div class="actions">
+    <div class="ui tiny">
+      <button class="tiny ui orange button" autofocus (click)='onEditPatientClick()'
+        *ngIf="inputDataForPatientEditOperation.isEdit">{{'patient.add.save' | translate}}</button>
+      <button class="tiny ui button" *ngIf="!inputDataForPatientEditOperation.isEdit"
+        (click)="clearAddPatientForm()">{{'patient.add.reset' | translate}}</button>
+      <button class="tiny ui button" (click)="modal.deny()">{{'patient.add.cancel' | translate}}</button>
+    </div>
+  </div>
+</ng-template>
+<!-- Edit Patient Modal ends -->
+
+<!-- View Claims Modal starts -->
+<ng-template let-context let-modal="modal" #modalViewClaims>
+  <div class="header">{{'claims.schedule.header' | translate}}
+    <i #closeWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-view-claim (OutputData)="outputDataFromViewOperation($event)" [InputData]="inputDataForOperation">
+    </app-view-claim>
+  </div>
+  <div class="actions">
+    <div class="ui tiny">
+      <button class="tiny ui button" (click)="modal.deny()">{{'claims.add.close' | translate}}</button>
+    </div>
+  </div>
+</ng-template>
+<!-- View Claims Modal ends -->
+
+<!-- Update Claim Schedule Modal starts -->
+<ng-template let-context let-modal="modal" #modalUpdateClaim>
+  <div class="header">
+    <span>{{'claims.edit.updateScheduleHeader' | translate}}</span>
+    <i #closeWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-update-claim-schedule (OutputData)="outputDataFromUpdateClaim($event)" [InputData]="inputDataForOperation">
+    </app-update-claim-schedule>
+    <button class="tiny ui button" (click)="modal.deny()">{{'facility.add.cancel' | translate}}</button>
+  </div>
+</ng-template>
+<!-- Update Claim Schedule Modal starts -->
+
+<ng-template #blankContent>
+  <span>--</span>
+</ng-template>

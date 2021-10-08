@@ -1,0 +1,54 @@
+@import './color';
+.logo-center {margin:auto; margin-top:-50px; display: block; height: 49px; width: 275px; object-fit: contain}
+.img-bg{background-image:url("assets/images/bg-login.png");background-repeat: repeat-x; background-position: center center; height:65%;padding:0 32vw;
+    .ui .form .inline.field > label{width:20%}
+    .ui.form .inline.field:not(.wide) .ui.input, .ui.form .inline.fields .field:not(.wide) .ui.input{width:76%}
+}
+.reset-pw-label{width:26% !important}
+.reset-pw-input{width:73% !important}
+.change-pw-label {
+  width: 175px !important;
+}
+.error-msg{display:block !important;color:$negative; text-align: right; padding-right: 10px; font-size:.85714286rem;}
+.img-bg .ui.form .inline.field:not(.wide) .ui.input, .img-bg .ui.form .inline.fields .field:not(.wide) .ui.input.reset-pw-input{width:70% !important}
+.limiter {
+  width: 100%;
+  margin: 0 auto;
+}
+*::-ms-backdrop, .limiter {background-color:#F3F4F6; padding-top:10%}
+.container-login100 {
+  width: 100%;
+  min-height: 100vh;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  padding: 15px;
+  // background-color: #ebebeb;
+}
+  //login
+.wrap-login100 {
+  width: 500px;
+  // background: #fff;
+  border-radius: 10px;
+  position: relative;
+.login-ckeck{padding-left: 22.5%;}
+}
+.wrap-password100 {
+  width: 550px;
+  // background: #fff;
+  border-radius: 10px;
+  position: relative;
+.login-ckeck{padding-left: 22.5%;}
+}
+.wrap-termsconditons {
+  width: 800px;
+  // background: #fff;
+  border-radius: 10px;
+  position: relative;
+.login-ckeck{padding-left: 22.5%;}
+}

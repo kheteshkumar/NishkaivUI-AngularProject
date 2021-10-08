@@ -1,0 +1,285 @@
+<app-toaster [toaster]="toastData"></app-toaster>
+<div id="initialLoad">
+  <form novalidate [formGroup]="findProductForm">
+    <div class="main-content">
+      <h1 class="ui header">{{'product.find.heading' | translate}}</h1>
+      <div class="ui segment apf-search">
+        <button class="tiny ui orange right floated button" type="button"
+          (click)="openAddProductModal();showCustomProductTagsFlag=true;"><i
+            class="cube icon"></i>{{'product.find.addProduct' | translate}}</button>
+        <div class="u-cf-m"></div>
+        <sui-tabset>
+          <div class="tiny ui secondary menu">
+            <a class="item" suiTabHeader="1">{{'product.find.productName' | translate}}</a>
+            <a class="item" suiTabHeader="2">{{'product.find.unitPrice' | translate}}</a>
+            <a class="item" suiTabHeader="3">{{'product.add.productTag' | translate}}</a>
+            <!-- <a class="item" suiTabHeader="4">{{'product.find.serviceCode' | translate}}</a> -->
+          </div>
+          <div class="ui segment selection-area">
+
+            <a class="ui label" *ngIf="displayFilter.length > 0">
+              {{'product.find.productName' | translate}}: {{ displayFilter }}
+              <i class="delete icon" (click)="clear('ProductName');"></i>
+            </a>
+            <a class="ui label" *ngIf="findProductForm.value.MinAmount || findProductForm.value.MaxAmount">
+              {{'product.find.amount' | translate}}: {{ findProductForm.value.MinAmount | CustomFormatCurrency }}
+              <span *ngIf="findProductForm.value.MinAmount && findProductForm.value.MaxAmount">-
+                {{ findProductForm.value.MaxAmount | CustomFormatCurrency }}</span>
+
+              <i class="delete icon" (click)="clear('MinAmount'); clear('MaxAmount');"></i>
+            </a>
+            <a class="ui label" *ngIf="displayTagsNameFilter.length>0 && loggedInUserData.userType===4">
+              {{'product.add.productTag' | translate}}: {{displayTagsNameFilter}}
+              <i class="delete icon" (click)="clear('ProductTagName')"></i>
+            </a>
+            <a class="ui label" *ngIf="loggedInUserData.userType===1 && findProductForm.value.ProductTagName">
+              {{'product.add.productTag' | translate}}: {{ findProductForm.value.ProductTagName }}
+              <i class="delete icon" (click)="clear('ProductTagName');"></i>
+            </a>
+            <a class="ui label" *ngIf="displayServiceCodeFilter.length > 0">
+              {{'product.find.serviceCode' | translate}}: {{ displayServiceCodeFilter }}
+              <i class="delete icon" (click)="clear('ServiceCode');"></i>
+            </a>
+          </div>
+          <!-- Product Name -->
+          <div class="ui" suiTabContent="1">
+            <div class="ui tiny form">
+              <div class="five fields mb0">
+                <div class="field">
+                  <sui-multi-select class="selection" formControlName="ProductName" #ProductName
+                    (selectedOptionsChange)="onMultiSelectClick(ProductName, 'ProductName')" [hasLabels]="true"
+                    [maxSelected]="5" labelField="name" valueField="id" [isSearchable]="true"
+                    [options]="searchProductList" icon="search">
+                    <sui-select-option *ngFor="let o of ProductName.filteredOptions" [value]="o"></sui-select-option>
+                  </sui-multi-select>
+                  <span>{{formErrors.ProductName}}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- UnitPrice -->
+          <div class="ui" suiTabContent="2">
+            <div class="ui tiny form">
+              <div class="five fields mb0">
+                <div class="field">
+                  <input placeholder="Min Amount" type="text" formControlName="MinAmount" currencyMask />
+                  <span>{{ formErrors.MinAmount }}</span>
+                </div>
+                <div class="field">
+                  <input placeholder="Max Amount" type="text" formControlName="MaxAmount" currencyMask />
+                  <span>{{ formErrors.MaxAmount }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Product Tags -->
+          <div class="ui" suiTabContent="3">
+            <div class="ui tiny form">
+              <div class="five fields mb0">
+                <div class="field" *ngIf="loggedInUserData.userType===1">
+                  <sui-multi-select class="selection" formControlName="ProductTagName" #ProductTagName
+                    (selectedOptionsChange)="onMultiSelectClick(ProductTagName, 'ProductTagName')" [hasLabels]="true"
+                    [maxSelected]="5" labelField="name" valueField="name" [isSearchable]="true"
+                    [options]="searchProdTagList" icon="search">
+                    <sui-select-option *ngFor="let o of ProductTagName.filteredOptions" [value]="o"></sui-select-option>
+                  </sui-multi-select>
+                  <span>{{formErrors.ProductTagName}}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Service Code -->
+          <div class="ui" suiTabContent="4">
+            <div class="ui tiny form">
+              <div class="five fields mb0">
+                <div class="field">
+                  <sui-multi-select class="selection" [options]="serviceCodesList" formControlName="ServiceCode"
+                    labelField="displayName" valueField="id" #ServiceCode
+                    (selectedOptionsChange)="onMultiSelectClick(ServiceCode, 'ServiceCode')" [hasLabels]="true"
+                    [maxSelected]="5" [isSearchable]="true" icon="search">
+                    <sui-select-option *ngFor="let o of ServiceCode.filteredOptions" [value]="o"></sui-select-option>
+                  </sui-multi-select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ui clearing divider"></div>
+          <button [ngClass]="isLoader_FindProduct ? 'tiny ui orange button loading' : 'tiny ui orange button'"
+            class="tiny ui orange button" type="submit" (click)="find(true)">{{'product.find.find' |
+            translate}}</button>
+          <button class="tiny ui button" (click)="clearForm()">{{'product.find.clear' | translate}}</button>
+        </sui-tabset>
+      </div>
+
+      <form novalidate [formGroup]="productResultsForm">
+        <div class="ui grid">
+          <div class="eight wide column">
+            <div class="ui mini compact segment sort">
+              <div class="inline field">
+                <label>Sort by: </label>
+                <sui-select class="selection" [options]="sortingItemsList" formControlName="Sorting" labelField="label"
+                  valueField="label" (selectedOptionChange)="sortProducts(Sorting)" #Sorting>
+                  <sui-select-option *ngFor="let option of sortingItemsList" [value]="option"></sui-select-option>
+                </sui-select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+
+      <sui-tabset>
+        <div class="ui mini top attached tabular menu" style="flex-wrap: wrap;font-size: 1rem;">
+          <ng-container *ngFor="let tabs of tabList">
+            <a class="item" [isActive]="activeTab=='tabs.id'" (click)="changeTab(tabs.id);"
+              suiTabHeader="{{tabs.id}}">{{tabs.label}}</a>
+          </ng-container>
+        </div>
+        <ng-container *ngFor="let tabs of tabList">
+          <div class="ui" suiTabContent="{{tabs.id}}">
+            <!-- <ng-container *ngTemplateOutlet="productCards"></ng-container> -->
+          </div>
+        </ng-container>
+      </sui-tabset>
+      <br>
+      <ng-container *ngTemplateOutlet="productCards"></ng-container>
+
+    </div>
+  </form>
+</div>
+
+<ng-template let-context let-modal="modal" #productCards>
+
+  <sui-message *ngIf="productList.length==0 && isLoader_FindProduct == false" class="attached warning"
+    [isDismissable]="false">
+    <p>{{noResultsMessage}}</p>
+  </sui-message>
+
+  <div class="ui segment modal-loader" *ngIf="isLoader_FindProduct">
+    <div class="ui active dimmer">
+      <div class="ui medium text loader">Loading</div>
+    </div>
+  </div>
+
+  <div *ngIf="productList.length>0 && !isLoader_FindProduct">
+
+    <div *ngFor="let product of productList" class="ui segment results">
+      <div class="ui active dimmer" *ngIf="product.isLoader_ProductOperation">
+        <div class="ui small text loader"></div>
+      </div>
+      <div class="results-crsr" (click)="getProductById(product)">
+        <div class="ui right floated header" *ngIf="!product.partnerId && loggedInUserData.userType===1">
+          <button class="ui mini right floated button status green" *ngIf="product.status=='1'">{{'Active'}}</button>
+          <button class="ui mini right floated button status red" *ngIf="product.status=='0'">{{'InActive'}}</button>
+          <div class="ui right pointing dropdown" suiDropdown (click)="$event.stopPropagation()">
+            <i class="ellipsis horizontal icon"></i>
+            <div class="menu" suiDropdownMenu>
+              <div class="item" *ngFor="let operation of product.operations"
+                (click)="onProductOperationClick(operation, product)">
+                <div class="w100">{{operation.value}}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ui horizontal list">
+          <div class="item">
+            <div class="content">
+              <div class="ui sub header">
+                <span *ngIf="product.itemType=='1'"><i class="shopping cart icon"></i></span>
+                <span *ngIf="product.itemType=='2'"><i class="handshake icon"></i></span>
+                {{product.name}}
+                <span>&nbsp;&nbsp;{{product.discountedUnitPrice | CustomFormatCurrency}}&nbsp;</span>
+                <span class="separator">|</span>
+                <span>&nbsp;{{'product.find.productType' | translate}} :
+                  {{product.itemType == 1 ? 'Product' : 'Service'}}</span>
+
+              </div>
+              <div class="items" *ngIf="product.tags">
+                <div class="selectionX ui dropdown multiple" style="width: auto;padding:0 0 5px 0;">
+                  <div class="chipX transition visible ui orange tiny label" *ngFor="let item of product.tags">
+                    <span>{{item.name}}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="item">
+                <strong> {{'common.createdOn' | translate}}:
+                </strong>{{getFormattedDateToDisplay(product.createdOn)}}
+
+                <span class="separator">|</span>
+                <strong> {{'product.find.taxPercent' | translate}}:</strong>
+                <ng-container *ngIf="product.taxPercent!= null; else elseBlock">
+                  {{product.taxPercent | CustomFormatPercentage}}
+                </ng-container>
+                <ng-template #elseBlock>--</ng-template>
+
+                <ng-container *ngIf="product.itemType != 2">
+                  <span class="separator">|</span>
+                  <strong [ngClass]="{'text_red': (product.quantity < 0 )}">
+                    {{'product.find.quantity' | translate}}:
+                  </strong>{{(product.quantity!= null? product.quantity: '--')}}
+                </ng-container>
+
+                <ng-container *ngIf="product.itemType == 2 && product.serviceType == 1">
+                  <span class="separator">|</span>
+                  <strong> {{'product.find.cptCode' | translate}}:
+                  </strong>{{(product.serviceCode!= null? product.serviceCode: '--')}}
+                </ng-container>
+                <ng-container *ngIf="product.itemType == 2 && product.serviceType == 2">
+                  <span class="separator">|</span>
+                  <strong> {{'product.find.icd10Code' | translate}}:
+                  </strong>{{(product.serviceCode!= null? product.serviceCode: '--')}}
+                </ng-container>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="ui divided list" [suiTransition]="transitionController" *ngIf="product.showDetails">
+        <div class="item">
+          <i class="list outline icon"></i>
+          <div class="content">
+            <strong> {{'product.find.description' | translate}}:
+            </strong>{{product.description!=null ? product.description : '--'}}
+          </div>
+        </div>
+      </div>
+    </div>
+    <app-pagination [pager]="pager" (OutputData)="fetchProduct($event)"></app-pagination>
+  </div>
+
+</ng-template>
+
+<!-- Add/Edit Product Service Modal Starts here.. -->
+<ng-template let-context let-modal="modal" #modalAddProduct>
+  <div class="header">
+    <span *ngIf="inputDataForOperation.isEdit">{{'product.edit.heading' | translate}}</span>
+    <span *ngIf="!inputDataForOperation.isEdit">{{'product.add.heading' | translate}}</span>
+    <i #cancel (click)="modal.deny();closeTagPopup()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-add-product-service (clickEmitter)="modelClicked($event)"
+      (OutputData)='outputDataFromAddProductOperation($event)' [InputData]="inputDataForOperation">
+    </app-add-product-service>
+    <form class="ui tiny form" *ngIf="showCustomProductTagsFlag">
+      <div class="field">
+        <app-custom-product-tags [(closeFlag)]="modelClickFlag" [InputData]="inputDataForTags"
+          (OutputData)="outputDataFromcustTags($event)"></app-custom-product-tags>
+      </div>
+    </form>
+  </div>
+  <div class="actions">
+    <div class="ui tiny">
+      <button class="ui orange tiny primary button" autofocus (mousedown)='onAddProductClick()'
+        *ngIf="!inputDataForOperation.isEdit">{{'product.add.save' | translate}}</button>
+      <button class="ui tiny orange primary button" autofocus (mousedown)='onEditProductClick()'
+        *ngIf="inputDataForOperation.isEdit">{{'product.edit.save' | translate}}</button>
+      <button class="ui tiny button" (click)="modal.deny();closeTagPopup()">{{'product.add.cancel' |
+        translate}}</button>
+    </div>
+  </div>
+</ng-template>
+<!-- Add/Edit Product Service Modal Ends here.. -->

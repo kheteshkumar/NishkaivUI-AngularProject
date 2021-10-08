@@ -1,0 +1,199 @@
+<div class="ui" *ngIf="isLoader_processing">
+  <div class="ui active dimmer">
+    <div class="ui indeterminate text loader">{{'common.loading' | translate}}</div>
+  </div>
+</div>
+
+<!-- Refund Start -->
+<ng-container *ngIf="InputData.operationName == 'refund'">
+  <form [formGroup]="refundForm">
+    <!-- <div content> -->
+    <div class="toaster-static toaster-s" *ngIf="showSuccessMessage">
+      <span><a href="javascript:void(0)" (click)="showSuccessMessage=!showSuccessMessage"><i
+            class="close icon"></i></a></span>
+      <p>{{successMessage}}</p>
+    </div>
+    <div class="toaster-static toaster-e" *ngIf="showErrorMessage">
+      <span><a href="javascript:void(0)" (click)="showErrorMessage=!showErrorMessage"><i
+            class="close icon"></i></a></span>
+      <p>{{errorMessage}}</p>
+    </div>
+    <div class="ui tiny form">
+      <div class="inline required field">
+        <label>{{'recurringPayments.schedule.reason' | translate}}</label>
+        <textarea rows="2" formControlName="Reason"></textarea>
+        <span>{{refundFormErrors.Reason}}</span>
+      </div>
+    </div>
+    <!-- </div> -->
+  </form>
+</ng-container>
+<!-- Refund End -->
+
+<!-- Adjust Start -->
+<ng-container *ngIf="InputData.operationName == 'adjust'">
+  <form [formGroup]="adjustForm">
+
+    <div class="toaster-static toaster-s" *ngIf="showSuccessMessage">
+      <span><a href="javascript:void(0)" (click)="showSuccessMessage=!showSuccessMessage"><i
+            class="close icon"></i></a></span>
+      <p>{{successMessage}}</p>
+    </div>
+    <div class="toaster-static toaster-e" *ngIf="showErrorMessage">
+      <span><a href="javascript:void(0)" (click)="showErrorMessage=!showErrorMessage"><i
+            class="close icon"></i></a></span>
+      <p>{{errorMessage}}</p>
+    </div>
+
+    <div class="ui tiny form">
+      <div title>{{'recurringPayments.schedule.patientAccount' | translate}}</div>
+      <div class="ui segment results">
+        <div *ngIf="!isLoader_WalletPatient">
+
+          <!-- Account List -->
+          <div class="ui cards cards-overflow" style="margin: 0px; margin-bottom: 0.5em;">
+            <div *ngFor="let custAcc of custAccList">
+              <div class="ui active dimmer" *ngIf="custAcc.isLoader_patientAccountOperation">
+                <div class="ui small text loader"></div>
+              </div>
+              <div class="content" (click)="$event.stopPropagation(); changeAccount(custAcc.id)">
+
+                <div style="margin: 5px" class="ui card card-selectX" *ngIf="custAcc.accountType=='1'">
+                  <div class="content">
+                    <div class="ui mini green left corner label" *ngIf="custAcc.isSelectedAccount==true"><i
+                        class="check icon"></i></div>
+                    <div class="header">&nbsp;&nbsp;{{custAcc.accountHolderName}}</div>
+                    <div class="meta">
+                    </div>
+                  </div>
+                  <div class="content">
+                    <span class="left floated like">
+                      <b>****{{custAcc.maskedCardNumber}}</b><br>
+                      Valid through: {{custAcc.cardExpiry| mask:'00/00'}}
+                    </span>
+                    <span class="right floated star">
+                      <img class="ui image" *ngIf="custAcc.cardType==''||custAcc.cardType==null"
+                        src="../../../../../../../assets/images/cards/BlankCard.png" />
+                      <img class="ui image" *ngIf="custAcc.cardType=='AMEX'"
+                        src="../../../../../../../assets/images/cards/Amex.png" />
+                      <img class="ui image" *ngIf="custAcc.cardType=='DINERS'"
+                        src="../../../../../../../assets/images/cards/Diners.png" />
+                      <img class="ui image" *ngIf="custAcc.cardType=='DISCOVER'"
+                        src="../../../../../../../assets/images/cards/Discover.png" />
+                      <img class="ui image" *ngIf="custAcc.cardType=='JCB'"
+                        src="../../../../../../../assets/images/cards/JCB.png" />
+                      <img class="ui image" *ngIf="custAcc.cardType=='MASTERCARD'"
+                        src="../../../../../../../assets/images/cards/MasterCard.png" />
+                      <img class="ui image" *ngIf="custAcc.cardType=='VISA'"
+                        src="../../../../../../../assets/images/cards/Visa.png" />
+                    </span>
+                  </div>
+                </div>
+                <div style="margin: 5px" class="ui card card-selectX" *ngIf="custAcc.accountType == 2">
+                  <div class="content">
+                    <div class="ui mini green left corner label" *ngIf="custAcc.isSelectedAccount==true"><i
+                        class="check icon"></i></div>
+                    <div class="header">&nbsp;&nbsp;{{custAcc.accountHolderName}}</div>
+                    <div class="meta">
+                    </div>
+                  </div>
+                  <div class="content">
+                    <span class="left floated like">
+                      <b>{{custAcc.maskedAccountNumber}}</b><br>
+                      Bank Name: {{custAcc.bankName}}
+                    </span>
+                    <span class="right floated star">
+                      <img src="../../../../../../../assets/images/cards/ach.png" class="ui image">
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card add-insurance" (click)="openAddAccount()">
+              <div class="content">
+                <i class="plus circle orange link icon huge" suiPopup
+                  popupText="{{'recurringPayments.update.addNew' | translate}}" popupInverted
+                  [popupPlacement]="'top'"></i>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- No Records Found patient Payment Account List -->
+          <div *ngIf="noRecordsFound_CustCreditAccList && !isLoader_WalletPatient">
+            <div class="ui cards cards-overflow">
+              <div class="ui card add-insurance">
+                <sui-message class="attached warning" [isDismissable]="false">
+                  <p>{{'transaction.add.noRecordsFound' | translate}}</p>
+                </sui-message>
+              </div>
+              <div class="card add-insurance" (click)="openAddAccount()">
+                <div class="content">
+                  <i class="plus circle orange link icon huge" suiPopup
+                    popupText="{{'recurringPayments.update.addNew' | translate}}" popupInverted
+                    [popupPlacement]="'top'"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <div class="ui segment modal-loader" *ngIf="isLoader_WalletPatient">
+          <div class="ui active dimmer">
+            <div class="ui medium text loader">Loading</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ui fitted divider" style="margin: 5px 0px;"></div>
+
+      <div class="inline field required">
+        <label class="change-pw-label"><b>{{'recurringPayments.schedule.scheduleDate' | translate}}: </b></label>
+        <div class="ui left icon input">
+          <i class="calendar icon"></i>
+          <input style="width:210px" suiDatepicker [pickerMode]="dateMode" [pickerFirstDayOfWeek]="firstDayOfWeek"
+            [pickerUseNativeOnMobile]="false" [pickerMinDate]="minStartDate" [pickerMaxDate]="maxStartDate"
+            formControlName="ScheduleDate" #ScheduleDate>
+        </div>
+        <span>{{adjustFormErrors.ScheduleDate}}</span>
+        <span>{{adjustFormErrors.PatientAccountId}}</span>
+      </div>
+    </div>
+  </form>
+</ng-container>
+<!-- Adjust End -->
+
+<div class="ui fitted divider wizard-footer"></div>
+<div class="actions">
+  <div class="ui tiny">
+    <button class="tiny ui orange button" (click)='submitAdjustForm()'
+      [disabled]="!(isUpdateAccount) && !(isUpdateSchedule)" *ngIf="InputData.operationName == 'adjust'">
+      {{'transaction.find.adjust' | translate}}
+    </button>
+    <button class="tiny ui orange button" (click)='submit()' *ngIf="InputData.operationName == 'refund'">
+      {{'transaction.find.refund' | translate}}
+    </button>
+    <button class="ui tiny button" (click)="cancel()">{{'transaction.find.cancel' | translate}}</button>
+  </div>
+</div>
+
+
+<ng-template let-context let-modal="modal" #modalAddPatientAccount>
+  <div class="header">
+    <span *ngIf="!inputDataForAccountOperation.isEdit">{{'patientAccount.add.heading' | translate}}</span>
+    <span *ngIf="inputDataForAccountOperation.isEdit">{{'patientAccount.edit.heading' | translate}}</span>
+    <i #closeAccountModal (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-add-patient-account [InputData]="inputDataForAccountOperation" (OutputData)="outputDataFromAccount($event)">
+    </app-add-patient-account>
+  </div>
+  <div class="actions">
+    <div class="ui tiny">
+      <button class="tiny ui orange button" autofocus (click)='onAddPatientAccountClick()'>{{'patient.add.save' |
+        translate}}</button>
+      <button class="tiny ui button" (click)="modal.deny()">{{'transaction.find.cancel' | translate}}</button>
+    </div>
+  </div>
+</ng-template>

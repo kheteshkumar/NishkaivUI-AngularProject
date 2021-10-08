@@ -1,0 +1,187 @@
+<app-toaster [toaster]="toastData"></app-toaster>
+<div *ngIf="patientInsuranceDetails.length == 0 && !isLoader">
+  <div class="ui cards cards-overflow">
+    <div class="ui card add-insurance">
+      <sui-message class="attached warning" [isDismissable]="false">
+        <p>{{'No Insurance Found.' | translate}}
+          <!-- Please add new <a href="javascript:void(0)" (click)="addNewInsurance()">here</a></p> -->
+      </sui-message>
+    </div>
+    <div class="card add-insurance" (click)="addNewInsurance()">
+      <div class="content">
+        <i class="plus circle orange link icon huge" suiPopup popupText="Add Insurance" popupInverted
+          [popupPlacement]="'top'"></i>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="ui segment modal-loader" *ngIf="isLoader">
+  <div class="ui active dimmer">
+    <div class="ui medium text loader">Loading</div>
+  </div>
+</div>
+
+<!-- <button class="ui orange tiny primary button right floated" (click)="addNewInsurance()"
+  *ngIf="loggedInUserData.userType == 00 && !isLoader">{{
+  'Add New Insurance' | translate}}</button> -->
+
+<div class="ui cards cards-overflow" style="margin: 0px; margin-bottom: 0.5em;"
+  *ngIf="patientInsuranceDetails.length > 0 && !isLoader">
+  <div class="card" *ngFor="let details of patientInsuranceDetails">
+    <div class="ui active dimmer" *ngIf="details.isLoader_InsuranceOperation">
+      <div class="ui small text loader"></div>
+    </div>
+    <div class="content">
+
+      <!-- operation control will come here -->
+      <div class="ui right floated pointing dropdown mr0" suiDropdown (click)="$event.stopPropagation()">
+        <i class="ellipsis horizontal icon"></i>
+        <div class="menu" suiDropdownMenu>
+          <div class="item" *ngFor="let operation of details.operations" (click)="onOperationClick(operation, details)">
+            <div class="w100">{{operation.value}}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ui mini green bottom right attached label">
+        {{details.displayType}}
+      </div>
+      <div class="header">
+        {{details.insurancePartner}}
+      </div>
+      <div>
+        <div class="meta">
+          <div><strong>{{'Policy No' | translate}}</strong>: {{details.policyNo}}</div>
+          <div><strong>{{'Group No' | translate}}</strong>: {{details.groupNo !=null && details.groupNo != ""?
+            details.groupNo: '--'}}</div>
+        </div>
+        <br>
+        <div class="description">
+          <div class="item">
+            <span>
+              <strong>Member Relation: </strong>
+              {{relationList[details.relation].title}}
+            </span>
+          </div>
+          <div class="item">
+            <span>
+              <strong>Member: </strong>
+              {{details.firstName + ' ' + details.lastName }}, {{details.mobile | mask: '000-000-0000'}}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <button class="orange circular ui left floated icon button" type="button"
+        *ngIf="(permissions && permissions.viewEligibility && hasModuleAccess(16)) || loggedInUserData.userType == 0"
+        (click)="$event.stopPropagation();onOperationClick({ 'key': 'viewInsuranceEligibility', 'value': 'View Eligibility' }, details)"
+        suiPopup popupText="View Eligibilty" popupInverted [popupPlacement]="'top'">
+        <i class="eye alternate icon"></i>
+      </button>
+      <button class="orange circular ui left floated icon button" type="button"
+        (click)="$event.stopPropagation();onOperationClick({ 'key': 'editPatientInsurance', 'value': 'Edit Insurance' }, details)"
+        suiPopup popupText="Edit Insurance" popupInverted [popupPlacement]="'top'">
+        <i class="pencil sign icon"></i>
+      </button>
+      <button class="orange circular ui left floated icon button" type="button"
+        *ngIf="loggedInUserData.userType != 0 && permissions && permissions.addEligibility && hasModuleAccess(16)"
+        (click)="$event.stopPropagation();onOperationClick({ 'key': 'checkInsuranceEligibility', 'value': 'Check Eligibility' }, details)"
+        suiPopup popupText="Check Eligibility" popupInverted [popupPlacement]="'top'">
+        <i class="heartbeat alternate outline sign icon" style="color: #ffffff;"></i>
+      </button>
+
+    </div>
+  </div>
+
+  <ng-container *ngIf="lessThan(patientInsuranceDetails.length, 5)">
+    <div class="card add-insurance" *ngIf="!isLoader " (click)="addNewInsurance()">
+      <div class="content">
+        <i class="plus circle orange link icon huge" suiPopup popupText="Add New Insurance" popupInverted
+          [popupPlacement]="'top'"></i>
+      </div>
+    </div>
+  </ng-container>
+
+</div>
+
+<!-- Add Patient Additional Insurance Starts -->
+<ng-template let-context let-modal="modal" #modalAddInsurance>
+  <div class="header">
+    <span *ngIf="inputDataForEditOperation.isEdit">{{'patientInsurance.edit.heading' | translate}}</span>
+    <span *ngIf="!inputDataForEditOperation.isEdit">{{'patientInsurance.add.heading' | translate}}</span>
+    <i #closeWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-patient-add-insurance (OutputData)="outputDataFromInsuranceOperation($event)"
+      [InputData]="inputDataForEditOperation">
+    </app-patient-add-insurance>
+  </div>
+</ng-template>
+<!-- Add Patient Additional Insurance Ends -->
+
+<!-- View Patient Eligibility Starts -->
+<ng-template let-context let-modal="modal" #modalViewEligibility>
+  <div class="header">{{'eligibility.view.heading' | translate}}
+    <i #closeWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-view-eligibility [InputData]="inputDataForViewEligibility"></app-view-eligibility>
+  </div>
+</ng-template>
+<!-- View Patient Eligibility Ends -->
+
+<!-- View Patient Eligibility Starts -->
+<ng-template let-context let-modal="modal" #modalCheckEligibility>
+  <div class="header">{{'Check Patient Eligibility' | translate}}
+    <i #closeWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+
+    <div class="ui" *ngIf="isLoader_processing">
+      <div class="ui active dimmer">
+        <div class="ui indeterminate text loader">{{'common.loading' | translate}}</div>
+      </div>
+    </div>
+
+    <form [formGroup]="checkEligibilityForm" class="ui form">
+
+      <div class="ui tiny form">
+
+        <!-- <div class="two fields"> -->
+
+        <div class="required field">
+          <label> {{'Search Practitioner' | translate}}</label>
+          <sui-select class="selection" formControlName="DoctorId" #DoctorId labelField="displayName" valueField="id"
+            [isSearchable]="true" [options]="doctorList" icon="search">
+            <sui-select-option *ngFor="let o of DoctorId.filteredOptions" [value]="o">
+            </sui-select-option>
+          </sui-select>
+          <span>{{checkEligibilityFormErrors.DoctorId}}</span>
+        </div>
+        <!-- <div class="required field">
+            <label>{{'Service Date' | translate}}</label>
+            <div class="ui left icon input">
+              <i class="calendar icon"></i>
+              <input suiDatepicker [pickerMode]="dateMode" [pickerMinDate]="minServiceDate"
+                [pickerMaxDate]="maxServiceDate" [pickerUseNativeOnMobile]="false" formControlName="ServiceDate"
+                readonly>
+            </div>
+            <span>{{checkEligibilityFormErrors.ServiceDate}}</span>
+          </div> -->
+
+        <!-- </div> -->
+
+
+      </div>
+    </form>
+  </div>
+  <div class="actions">
+    <div class="ui tiny">
+      <button class="ui primary orange tiny button" autofocus (click)='submitCheckEligibility()'>{{'Check' |
+        translate}}</button>
+      <button class="tiny ui button" (click)="modal.deny()">{{'patientInsurance.add.cancel' | translate}}</button>
+    </div>
+  </div>
+</ng-template>
+<!-- View Patient Eligibility Ends -->

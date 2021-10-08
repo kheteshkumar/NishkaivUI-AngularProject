@@ -1,0 +1,21 @@
+<div class="header" *ngIf="modal.context.title">{{ modal.context.title }}
+    <i (click)="modal.deny()" class="close link icon item-right"></i>
+</div>
+<div class="content">
+    <div class="ui large icon message">
+        <div class="content">
+            <p>{{ modal.context.question }}</p>
+        </div>
+    </div>
+</div>
+<div class="actions">
+    <div class="ui tiny">
+        <button class="tiny ui orange button" (click)="modal.approve('InPerson')" autofocus
+            *ngIf="loggedInUserData.userType === 1">In Person</button>
+            <button class="tiny ui orange button" (click)="modal.approve('OverPhone')" autofocus
+                *ngIf="loggedInUserData.userType === 1">Over Phone</button>
+        <button class="tiny ui orange button" (click)="modal.approve('confirm')" autofocus
+            *ngIf="loggedInUserData.userType === 0">Confirm</button>
+        <button class="ui tiny button" (click)="modal.deny(undefined)">Cancel</button>
+    </div>
+</div>

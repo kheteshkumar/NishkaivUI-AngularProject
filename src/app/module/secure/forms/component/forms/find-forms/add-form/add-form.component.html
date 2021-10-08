@@ -1,0 +1,40 @@
+<form [formGroup]="addFormForm" class="ui form">
+  <!-- <sui-message class="error" *ngIf="isError" [isDismissable]="false"> -->
+  <!--   <div class="header">{{ errorMessage }}</div> -->
+  <!-- </sui-message> -->
+  <div class="toaster-static toaster-e" *ngIf="showErrorMessage">
+    <span><a href="javascript:void(0)" (click)="showErrorMessage=!showErrorMessage"><i
+          class="close icon"></i></a></span>
+    <p>{{errorMessage}}</p>
+  </div>
+  <br>
+
+  <div class="required field">
+    <label> {{ 'forms.add.title' | translate }}</label>
+    <input placeholder="Form Title" type="text" formControlName="formTitle" />
+    <span>{{ addFormFormErrors.formTitle }}</span>
+  </div>
+  <div class="field">
+    <label> {{ 'forms.add.description' | translate }}</label>
+    <input placeholder="{{ 'forms.add.description' | translate }}" type="text" formControlName="formDescription" />
+    <span>{{ addFormFormErrors.formDescription }}</span>
+  </div>
+  <div class="field">
+    <sui-checkbox formControlName="isEditable">{{ 'forms.add.isEditable' | translate }}</sui-checkbox>
+    <span>{{ addFormFormErrors.isEditable }}</span>
+  </div>
+  <div class="required field">
+    <app-formio-builder [form]="InputData.form ? InputData.form.fields : null" (formChanged)="onFormChange($event)">
+    </app-formio-builder>
+  </div>
+</form>
+<div class="ui fitted divider"></div>
+<br />
+<button class="tiny ui orange button" autofocus [ngClass]="{ loading: isLoader_Processing }" (click)="onAddForm()"
+  [disabled]="!addFormForm.dirty" *ngIf="!InputData.isEdit">
+  {{ 'forms.add.save' | translate }}
+</button>
+<button class="tiny ui orange button" autofocus (click)="onEditForm()" [ngClass]="{ loading: isLoader_Processing }"
+  [disabled]="addFormForm.invalid || !addFormForm.dirty" *ngIf="InputData.isEdit">
+  {{ 'forms.edit.save' | translate }}
+</button>

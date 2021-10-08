@@ -1,0 +1,63 @@
+<div class="ui" *ngIf="isLoader || isLoader_UploadProcessing">
+  <div class="ui active dimmer">
+    <div class="ui indeterminate text loader">{{ 'common.processing' | translate }}</div>
+  </div>
+</div>
+<form class="ui form" [formGroup]="uploadForm" #myform="ngForm">
+  <div class="toaster-static toaster-s" *ngIf="showSuccessMessage">
+    <span><a href="javascript:void(0)" (click)="showSuccessMessage = !showSuccessMessage">
+        <i class="close icon"></i></a></span>
+    <p>{{ successMessage }}</p>
+  </div>
+  <div class="toaster-static toaster-e" *ngIf="showErrorMessage">
+    <span><a href="javascript:void(0)" (click)="showErrorMessage = !showErrorMessage"><i
+          class="close icon"></i></a></span>
+    <p>{{ errorMessage }}</p>
+  </div>
+
+  <div class="fields">
+    <div class="required field sixteen wide column">
+      <label>{{ 'attachment.add.uploadFile' | translate }}</label>
+      <ngx-dropzone style="font-size: 1rem; border: 1px dashed #ddd;" (change)="fileAdded($event)" #dropzone
+        [multiple]="true" [maxFileSize]="'1048576'" [accept]="docTypes">
+        <ngx-dropzone-label>{{ 'attachment.add.browse' | translate }}</ngx-dropzone-label>
+        <ngx-dropzone-preview *ngFor="let f of files" [removable]="true" (removed)="filesRejected(f)">
+          <ngx-dropzone-label>{{ f.name }}</ngx-dropzone-label>
+        </ngx-dropzone-preview>
+      </ngx-dropzone>
+      <span>{{formError.File}}</span>
+    </div>
+  </div>
+
+  <div class="fields">
+    <div class="required field sixteen wide column">
+      <label>{{ 'attachment.add.description' | translate }}</label>
+      <textarea name="{{ 'attachment.add.description' | translate }}" formControlName="Description" rows="3"
+        maxlength="255" cols="40"></textarea>
+      <span>{{formError.Description}}</span>
+    </div>
+  </div>
+
+  <div class="fields" *ngIf="loggedInUserData.userType == userTypeEnum.PATIENT">
+    <div *ngIf="providerList && providerList.length">
+      <div class="field sixteen wide column">
+        <label>{{ 'Select Providers' | translate }}</label>
+        <ng-container class="field" *ngFor="let provider of providerList">
+          <label>
+            <input type="checkbox" [value]="provider.id" (change)="onCheckChange($event)">
+            {{provider.name}}
+          </label>
+        </ng-container>
+      </div>
+      <span>{{formError.Description}}</span>
+    </div>
+  </div>
+
+</form>
+<div class="ui fitted divider wizard-footer"></div>
+<div class="actions">
+  <button type="button" class="tiny ui button orange" autofocus (click)="onUpload()">{{
+    'attachment.add.upload' | translate
+    }}</button>
+  <button type="button" class="tiny ui button" (click)="cancel()">{{ 'plforms.attach.cancel' | translate }}</button>
+</div>

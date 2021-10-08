@@ -1,0 +1,17 @@
+<div class="ui segment modal-loader" style="margin-bottom: 1rem" *ngIf="isLoader; else content">
+  <div class="ui active dimmer">
+    <div class="ui indeterminate text loader">{{ 'common.loading' | translate }}</div>
+  </div>
+</div>
+
+<ng-template #content>
+  <ng-container *ngIf="submissions && submissions.length; else noRecords">
+    <app-formio-view-submission-history [submissions]="submissions" [form]="form"> </app-formio-view-submission-history>
+  </ng-container>
+  <ng-template #noRecords>
+    <sui-message class="attached warning" [isDismissable]="false">
+      <p>{{ 'plforms.viewSubmissions.noSubmissionsFound' | translate }}</p>
+    </sui-message>
+    <br />
+  </ng-template>
+</ng-template>

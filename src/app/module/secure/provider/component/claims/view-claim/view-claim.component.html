@@ -1,0 +1,141 @@
+<form>
+  <div class="ui segment modal-loader" *ngIf="!displayView">
+    <div class="ui active dimmer">
+      <div class="ui medium text loader">Loading</div>
+    </div>
+  </div>
+  <div class="toaster-static toaster-s" *ngIf="showSuccessMessage">
+    <span><a href="javascript:void(0)" (click)="showSuccessMessage=!showSuccessMessage"><i
+          class="close icon"></i></a></span>
+    <p>{{successMessage}}</p>
+  </div>
+  <div class="toaster-static toaster-e" *ngIf="showErrorMessage">
+    <span><a href="javascript:void(0)" (click)="showErrorMessage=!showErrorMessage"><i
+          class="close icon"></i></a></span>
+    <p>{{errorMessage}}</p>
+  </div>
+
+  <!-- Receipt Start -->
+  <div id="demo" class="rcpt" *ngIf="displayView">
+    <div class="sixteen wide column rcpt-dtls">
+      <div class="u-cf"></div>
+      <div class="ui tinyX segments">
+        <div class="ui grey segment">
+          <div class="ui list">
+            <div class="item">
+              <div class="header">
+                <h2>{{this.InputData.claimData.payerName}}</h2>
+              </div>
+              <div class="item" *ngIf="this.InputData.claimData.payerPhone">
+                <i class="phone icon list-icon"></i> {{this.InputData.claimData.payerPhone}}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ui horizontal segments">
+          <div class="ui segment details-cols2">
+            <div class="ui small list">
+              <div class="item">
+                <div class="header">{{'claims.schedule.firstClaimDate' | translate}}:
+                  {{getFormattedDate(this.InputData.claimData.firstClaimDate)}}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ui segment details-cols2">
+            <div class="ui small list">
+              <div class="item">
+                <div class="header">{{'claims.schedule.nextClaimDate' | translate}}:
+                  {{(this.InputData.claimData.nextClaimDate !=
+                  null)?getFormattedDate(this.InputData.claimData.nextClaimDate): 'NA'}}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ui horizontal segments">
+          <div class="ui segment details-cols2">
+            <div class="ui small list">
+              <div class="item">
+                <div class="header">{{'claims.schedule.lastClaimDate' | translate}}:
+                  {{(this.InputData.claimData.lastClaimDate !=
+                  null)?getFormattedDate(this.InputData.claimData.lastClaimDate): 'NA'}}</div>
+              </div>
+            </div>
+          </div>
+          <div class="ui segment details-cols2">
+            <div class="ui small list">
+              <div class="item">
+                <div class="header">{{'claims.schedule.totalClaimsScheduled' | translate}} :
+                  {{this.InputData.claimData.noOfClaims}}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ui horizontal segments">
+          <div class="ui segment details-cols2">
+            <div class="ui small list">
+              <div class="item">
+                <div class="header">{{'claims.schedule.noOfClaimsMade' | translate}} :
+                  {{(this.InputData.claimData.noOfClaimsMade != null &&
+                  this.InputData.claimData.noOfClaimsMade != '')?this.InputData.claimData.noOfClaimsMade: '--'}}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="ui horizontal segments">
+          <div class="ui segment details-cols2X">
+            <div class="ui small list">
+              <div class="item">
+                <div class="ui center aligned header">Claim Schedule</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="ui horizontal segments">
+          <div class="ui segment details-cols2X">
+            <div class="ui list">
+              <div class="item">
+                <div class="content">
+                  <div class="header">
+                    {{dataToShow}}
+                  </div>
+                  <!-- Child schedules -->
+                  <div class="list">
+                    <div class="item" *ngFor="let schedule of claimScheduleList">
+                      <i class="circle icon positive" *ngIf="schedule.executionDate!=null && !schedule.isDeleted"
+                        style="padding-top: 4px;"></i>
+                      <i class="circle icon negative" *ngIf="schedule.isDeleted" style="padding-top: 4px;"></i>
+                      <i class="circle icon blue" *ngIf="schedule.executionDate==null" style="padding-top: 4px;"></i>
+                      <div class="content">
+                        <div class="header"></div>
+                        <div class="description" *ngIf="schedule.executionDate!=null">
+                          <strong>{{'Completed'}}</strong>
+                          {{getFormattedDate(schedule.executionDate)}}
+                        </div>
+                        <div class="description" *ngIf="schedule.executionDate==null">
+                          <strong>{{'Scheduled'}}</strong>
+                          {{getFormattedDate(schedule.scheduleDate)}}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- No Records Found Message -->
+            <!-- <sui-message class="attached warning" [isDismissable]="false" *ngIf="scheduleList.length==0">
+              <p>{{ noResultsMessage }}</p>
+            </sui-message> -->
+          </div>
+        </div>
+      </div><!-- ui segments end -->
+      <div class="u-cf"></div>
+    </div>
+  </div>
+  <!-- Receipt End -->
+</form>

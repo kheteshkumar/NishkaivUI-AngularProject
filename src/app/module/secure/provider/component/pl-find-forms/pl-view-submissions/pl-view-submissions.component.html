@@ -1,0 +1,29 @@
+<div class="ui segment modal-loader" style="margin-bottom: 1rem" *ngIf="isLoader; else content">
+  <div class="ui active dimmer">
+    <div class="ui indeterminate text loader">{{ 'common.loading' | translate }}</div>
+  </div>
+</div>
+<ng-template #content>
+  <ng-container *ngIf="submissions && submissions.length; else noRecords">
+    <app-formio-view-submission-history [submissions]="submissions" [form]="augmentedForm">
+    </app-formio-view-submission-history>
+    <br />
+    <div style="display: flex; justify-content: center">
+      <button
+        [ngClass]="{ loading: isLoader_seeMore }"
+        *ngIf="totalRowCount > this.submissions.length"
+        (click)="onSeeMore()"
+        class="ui button basic tiny"
+      >
+        {{ 'plforms.viewSubmissions.seeMore' | translate }}
+      </button>
+    </div>
+    <br />
+  </ng-container>
+  <ng-template #noRecords>
+    <sui-message class="attached warning" [isDismissable]="false">
+      <p>{{ 'plforms.viewSubmissions.noSubmissionsFound' | translate }}</p>
+    </sui-message>
+    <br />
+  </ng-template>
+</ng-template>

@@ -1,0 +1,499 @@
+<app-toaster [toaster]="toastData"></app-toaster>
+<div id="initialLoad">
+  <form novalidate [formGroup]="">
+    <div class="main-content">
+
+
+      <div class="ui grid dashboard-block">
+
+        <div class="doubling one column row">
+          <div class="column">
+
+            <div class="ui segment" style="min-height: 220px;">
+              <h3 class="ui header">
+                <!-- <button class="fluid ui huge basic button" type="button" (click)="cardTitleClick('dues')"
+                  style=" border: none; box-shadow: none;">
+                  {{'dashboard.patient.paymentDues' | translate}}
+                </button> -->
+                <div class="ui orange ribbon label">
+                  <div (click)="cardTitleClick('dues')" style="cursor: pointer">
+                    <!-- <i class="calendar outline icon"></i><i class="clock outline icon"></i> -->
+                    <i class="icons">
+                      <i class="small calendar outline icon"></i>
+                      <i class="bottom right corner bell icon" style="text-shadow: none !important"></i>
+                    </i>
+                    {{'dashboard.patient.paymentDues' | translate}}
+                  </div>
+                </div>
+              </h3>
+
+              <div id="canvas">
+                <app-dashboard-invoice [InvoiceStatus]="unpaidInvoicesData"></app-dashboard-invoice>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="doubling one column row">
+          <div class="column">
+
+            <div class="ui segment" style="min-height: 220px;">
+              <h3 class="ui header">
+                <div class="ui orange ribbon label">
+                  <!-- <div (click)="cardTitleClick('dues')" style="cursor: pointer"> -->
+                  <div>
+                    <i class="icons">
+                      <i class="small clipboard outline icon"></i>
+                    </i>
+                    {{'dashboard.patient.forms' | translate}}
+                  </div>
+                </div>
+              </h3>
+
+              <div id="canvas">
+                <app-patient-forms></app-patient-forms>
+              </div>
+            </div>
+          </div>
+
+          <!-- <div class="column">
+
+            <div class="ui segment" style="min-height: 220px;">
+              <h3 class="ui header">
+                <div class="ui orange ribbon label">
+
+                  <div>
+                    <i class="icons">
+                      <i class="small clipboard outline icon"></i>
+                    </i>
+                    {{'dashboard.patient.attachments' | translate}}
+                  </div>
+                </div>
+              </h3>
+
+              <div id="canvas" *ngIf="!inPageAttachmentForm">
+                <sui-tabset>
+                  <div class="ui mini top attached tabular menu">
+                    <a class="item" suiTabHeader="1" [(isActive)]="myUploads"
+                      (click)="myUploads=true; providerUploads = false;">My
+                      Uploads</a>
+                    <a class="item" suiTabHeader="2" [(isActive)]="providerUploads"
+                      (click)="myUploads=false; providerUploads = true;">Provider
+                      Uploads</a>
+                  </div>
+                  <div class="ui bottom attached segment" suiTabContent="1">
+                    <ng-container *ngIf="myUploads">
+                      <app-attachment-card [patientData]="loggedInUserData"
+                        (OutputData)="outputDataFromAttachmentCard($event)"></app-attachment-card>
+                    </ng-container>
+                  </div>
+                  <div class="ui bottom attached segment" suiTabContent="2">
+                    <ng-container *ngIf="providerUploads">
+                      <app-attachment-card [patientData]="loggedInUserData" [showAddButton]="false"
+                        [filterByProvider]="true">
+                      </app-attachment-card>
+                    </ng-container>
+                  </div>
+                </sui-tabset>
+              </div>
+
+              <ng-container *ngIf="inPageAttachmentForm">
+                <h1 class="ui header">{{ 'attachment.add.heading' | translate }}</h1>
+                <div class="ui segment">
+                  <app-upload-attachment [patientData]="loggedInUserData"
+                    (OutputData)="outputDataFromOperation($event)">
+                  </app-upload-attachment>
+                </div>
+              </ng-container>
+
+            </div>
+          </div> -->
+        </div>
+
+        <div class="doubling two column row">
+          <div class="column">
+            <div class="ui segment">
+              <h3 class="ui header">
+                <!-- <button class="fluid ui huge basic button" type="button" (click)="cardTitleClick('appointment')"
+                  style=" border: none; box-shadow: none;">
+                  {{'dashboard.patient.appointments' | translate}}
+                </button> -->
+                <div class="ui orange ribbon label">
+                  <div (click)="cardTitleClick('appointment')" style="cursor: pointer">
+                    <i class="calendar plus outline icon"></i>{{'dashboard.patient.appointments' | translate}}
+                  </div>
+                </div>
+              </h3>
+              <div id="canvas" style="min-height: 300px;">
+                <ng-container *ngTemplateOutlet="appointmentTemplate"></ng-container>
+              </div>
+            </div>
+          </div>
+          <div class="column">
+            <div class="ui segment">
+              <h3 class="ui header">
+                <!-- <button class="fluid ui huge basic button" type="button" (click)="cardTitleClick('upcoming')"
+                  style=" border: none; box-shadow: none;">
+                  {{'dashboard.patient.upcomingPayments' | translate}}
+                </button> -->
+                <div class="ui orange ribbon label">
+                  <div (click)="cardTitleClick('upcoming')" style="cursor: pointer">
+                    <i class="calendar check outline icon"></i>{{'dashboard.patient.upcomingPayments' | translate}}
+                  </div>
+                </div>
+              </h3>
+              <div id="canvas" style="min-height: 300px;">
+                <ng-container *ngTemplateOutlet="upcomingPaymentsTemplate"></ng-container>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="doubling two column row">
+          <div class="column">
+            <div class="ui segment">
+              <h3 class="ui header">
+                <!-- <button class="fluid ui huge basic button" type="button" (click)="cardTitleClick('history')"
+                  style=" border: none; box-shadow: none;">
+                  {{'dashboard.patient.paymentHistory' | translate}}
+                </button> -->
+                <div class="ui orange ribbon label">
+                  <div (click)="cardTitleClick('history')" style="cursor: pointer">
+                    <i class="history icon"
+                      style="text-shadow: none !important"></i>{{'dashboard.patient.paymentHistory' | translate}}
+                  </div>
+                </div>
+              </h3>
+              <div id="canvas" style="min-height: 300px;">
+                <ng-container *ngTemplateOutlet="paymentHistoryTemplate"></ng-container>
+              </div>
+            </div>
+          </div>
+          <div class="column">
+            <div class="ui segment">
+              <h3 class="ui header">
+                <!-- <button class="fluid ui huge basic button" type="button" (click)="cardTitleClick('wallet')"
+                  style=" border: none; box-shadow: none;">
+                  {{'dashboard.patient.wallet' | translate}}
+                </button> -->
+                <div class="ui orange ribbon label">
+                  <div (click)="cardTitleClick('wallet')" style="cursor: pointer">
+                    <i class="credit card outline icon"></i>{{'dashboard.patient.wallet' | translate}}
+                  </div>
+                </div>
+              </h3>
+              <div id="canvas" style="min-height: 300px;">
+                <ng-container *ngTemplateOutlet="walletTemplate"></ng-container>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </form>
+</div>
+
+
+<!-- Appointment Template Start -->
+<ng-template #appointmentTemplate>
+
+  <div class="ui segment modal-loader" style=" max-height: 300px; min-height: 300px;" *ngIf="isLoader_FindAppointment">
+    <div class="ui active inverted dimmer">
+      <div class="ui medium text loader"></div>
+    </div>
+  </div>
+  <div style="overflow-y:scroll; max-height: 300px;" *ngIf="appointmentList.length > 0 && !isLoader_FindAppointment">
+    <table style="font-size: .78571429rem;" class="ui unstackable table">
+      <thead>
+        <tr>
+          <th>{{'patient.appointment.providerName' | translate}}</th>
+          <th>{{'patient.appointment.providerPhone' | translate}}</th>
+          <th>{{'patient.appointment.date' | translate}}/{{'patient.appointment.time' | translate}}</th>
+          <th>{{'patient.appointment.providerAddress' | translate}}</th>
+          <th>{{'patient.appointment.action' | translate}}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let appointment of appointmentList">
+          <td>{{appointment.providerName}}</td>
+          <td>{{appointment.providerPhone}}</td>
+          <td>{{appointment.fromDate | date:'MMM d, y'}}
+            {{appointment.fromDate | date:'h:mm a'}}-{{appointment.toDate | date:'h:mm a'}}</td>
+          <td>{{appointment.providerAddress}}</td>
+          <td><i class="trash alternate icon" style="cursor: pointer;"
+              (click)="$event.stopPropagation();deleteAppointmentClick(appointment)" suiPopup popupText="Cancel"
+              popupInverted [popupPlacement]="'top'"></i> </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div *ngIf="noRecordsFound_AppointmentList && !isLoader_FindAppointment">
+    <sui-message class="attached warning" [isDismissable]="false">
+      <p>{{'transaction.add.noRecordsFound' | translate}}</p>
+    </sui-message>
+    <br>
+  </div>
+</ng-template>
+<!-- Appointment Template End -->
+
+<!-- Upcoming Payments Template Start -->
+<ng-template #upcomingPaymentsTemplate>
+  <div class="ui segment modal-loader" style=" max-height: 300px; min-height: 300px;" *ngIf="isLoader_SchedulePayment">
+    <div class="ui active inverted dimmer">
+      <div class="ui medium text loader"></div>
+    </div>
+  </div>
+  <div style="overflow-y:scroll; max-height: 300px; font-size: .78571429rem;"
+    *ngIf="paymentScheduleList.length > 0 && !isLoader_SchedulePayment">
+
+    <div class="list">
+      <div class="item" *ngFor="let transaction of paymentScheduleList">
+        <i class="circle icon positive"
+          *ngIf="transaction.transactionStatus!=null && (transaction.transactionStatus=='Success' || transaction.transactionStatus=='Refund Success')"
+          style="padding-top: 4px;padding-right: 10px; display: table-cell;"></i>
+        <i class="circle icon negative"
+          *ngIf="transaction.transactionStatus!=null && (transaction.transactionStatus=='Failed' || transaction.transactionStatus=='Denied' || transaction.transactionStatus=='Hold'|| transaction.transactionStatus=='Void'|| transaction.transactionStatus=='Closed')"
+          style="padding-top: 4px;padding-right: 10px; display: table-cell;"></i>
+        <i class="circle icon blue" *ngIf="transaction.transactionStatus!=null && transaction.transactionStatus!='Success' && transaction.transactionStatus!='Denied' && transaction.transactionStatus!='Failed' && transaction.transactionStatus!='Refund Success' && transaction.transactionStatus!='Void'
+          && transaction.transactionStatus!='Closed'"
+          style="padding-top: 4px;padding-right: 10px; display: table-cell;"></i>
+        <i class="circle icon" *ngIf="transaction.transactionStatus==null"
+          style="padding-top: 4px;padding-right: 10px; display: table-cell;"></i>
+        <div class="content" style="display: table-cell;">
+          <div class="description" *ngIf="transaction.transactionStatus!=null">
+            <strong>{{transaction.installationType==1?'Down Payment:':'Scheduled:'}}</strong>
+            {{getFormattedDate(transaction.executionDate)}}<span class="separator">|</span>
+            <span><strong>{{transaction.amountDue | CustomFormatCurrency}}</strong></span><span
+              class="separator">|</span>
+            <span><strong>Status:</strong> {{transaction.transactionStatus}}</span><span class="separator"
+              *ngIf="transaction.transactionId!=null">|</span>
+            <span *ngIf="transaction.transactionId!=null"><strong>Paid On:</strong>
+              {{getFormattedDate(transaction.transactionDate)}}</span>
+            <br><span><strong>Payment Plan Id:</strong> {{transaction.recurringPaymentId}}</span>
+            <br><span><strong *ngIf="transaction.transactionId!=null">Transaction Id:</strong>
+              {{transaction.transactionId}}</span>
+          </div>
+          <div class="description" *ngIf="transaction.transactionStatus==null">
+            <strong>{{transaction.installationType==1?'Down Payment:':'Scheduled:'}}</strong>
+            {{getFormattedDate(transaction.executionDate)}}<span class="separator">|</span>
+            <span>{{transaction.amountDue | CustomFormatCurrency}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- No Records Found Message -->
+  <div *ngIf="noRecordsFound_schedulePaymentList && !isLoader_SchedulePayment">
+    <sui-message class="attached warning" [isDismissable]="false">
+      <p>{{'transaction.add.noRecordsFoundForNext90Days' | translate}}</p>
+    </sui-message>
+    <br>
+  </div>
+</ng-template>
+<!-- Upcoming Payments Template End -->
+
+<!-- Payment History Template Start -->
+<ng-template #paymentHistoryTemplate>
+  <div class="ui segment modal-loader" style=" max-height: 300px; min-height: 300px;" *ngIf="isLoader_PaymentHistory">
+    <div class="ui active inverted dimmer">
+      <div class="ui medium text loader"></div>
+    </div>
+  </div>
+  <div style="overflow-y:scroll; max-height: 300px;" *ngIf="paymentHistoryList.length > 0 && !isLoader_PaymentHistory">
+    <table style="font-size: .78571429rem;" class="ui unstackable table">
+      <thead>
+        <tr>
+          <th>{{'transaction.find.txnDate' | translate}}</th>
+          <th class="right aligned" style="min-width: 92px;">{{'transaction.find.amount' | translate}} ($)</th>
+          <th>{{'reports.transaction.cardAccNo' | translate}}</th>
+          <th>{{'reports.transaction.channel' | translate}}</th>
+          <th>{{'transaction.find.status' | translate}}</th>
+          <th>{{'transaction.find.action' | translate}}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let transaction of paymentHistoryList">
+          <td>{{transaction.localTransactionDate}} {{transaction.localTransactionTime}}</td>
+          <td class="right aligned">{{transaction.tenderInfo.totalAmount | CustomFormatCurrency}}</td>
+          <td>
+            {{transaction.tenderInfo.channelType=='10'?
+            transaction.tenderInfo.maskAccount :
+            transaction.tenderInfo.maskCardNumber}}
+          </td>
+          <td>{{transaction.channelTypeValue}}</td>
+          <td>{{transaction.transactionStatus}}</td>
+          <td><a style="cursor: pointer;" hresf="javvascript:void(0)"
+              (click)="receiptClick(transaction)">{{'transaction.find.receipt' | translate}}</a></td>
+        </tr>
+      </tbody>
+    </table>
+
+  </div>
+  <!-- No Records Found patient Payment Account List -->
+  <div *ngIf="noRecordsFound_paymentHistoryList && !isLoader_PaymentHistory">
+    <sui-message class="attached warning" [isDismissable]="false">
+      <p>{{'transaction.add.noRecordsFound' | translate}}</p>
+    </sui-message>
+    <br>
+  </div>
+</ng-template>
+<!-- Payment History Template End -->
+
+<!-- Wallet Template Start -->
+<ng-template #walletTemplate>
+  <div class="ui segment modal-loader" style=" max-height: 300px; min-height: 300px;" *ngIf="isLoader_WalletPatient">
+    <div class="ui active inverted dimmer">
+      <div class="ui medium text loader"></div>
+    </div>
+  </div>
+
+  <div class="ui divided list"
+    style="cursor: default; overflow-y:scroll; overflow-x:hidden; max-height: 300px; min-height: 300px;"
+    *ngIf="custAccList.length > 0 && !isLoader_WalletPatient">
+    <!-- Account List -->
+    <div class="ui cards cards-overflow">
+      <div *ngFor="let custAcc of custAccList">
+        <div class="content" style="margin: 5px; margin-top: 15px;">
+          <!-- operation control will come here -->
+
+          <div style="margin: 5px; max-width: 215px;" class="ui card card-selectX">
+            <div class="ui active dimmer" *ngIf="custAcc.isLoader_patientAccountOperation">
+              <div class="ui small text loader"></div>
+            </div>
+            <div class="content">
+              <div class="ui right floated pointing dropdown mr0" suiDropdown (click)="$event.stopPropagation()">
+                <i class="ellipsis horizontal icon"></i>
+                <div class="menu" suiDropdownMenu>
+                  <div class="item" *ngFor="let operation of custAcc.operations"
+                    (click)="onPatientAccountOperationClick(operation, patient, custAcc)">
+                    <div class="w100">{{operation.value}}</div>
+
+                  </div>
+                </div>
+              </div>
+              <div class="ui mini green bottom right attached label" *ngIf="custAcc.isActive=='1'">
+                {{'Active'}}
+              </div>
+              <div class="ui mini red bottom right attached label" *ngIf="custAcc.isActive!='1'">
+                {{'InActive'}}
+              </div>
+              <div class="header">{{custAcc.accountHolderName}}</div>
+              <div class="meta">
+              </div>
+            </div>
+            <div class="content">
+
+              <ng-container *ngIf="custAcc.accountType=='1'">
+                <span class="left floated like">
+                  <b>****{{custAcc.maskedCardNumber}}</b><br>
+                  Valid through: {{custAcc.cardExpiry}}
+                </span>
+                <span class="right floated star">
+                  <img class="ui image" *ngIf="custAcc.cardType==''||custAcc.cardType==null"
+                    src="../../../../../../../assets/images/cards/BlankCard.png" />
+                  <img class="ui image" *ngIf="custAcc.cardType=='AMEX'"
+                    src="../../../../../../../assets/images/cards/Amex.png" />
+                  <img class="ui image" *ngIf="custAcc.cardType=='DINERS'"
+                    src="../../../../../../../assets/images/cards/Diners.png" />
+                  <img class="ui image" *ngIf="custAcc.cardType=='DISCOVER'"
+                    src="../../../../../../../assets/images/cards/Discover.png" />
+                  <img class="ui image" *ngIf="custAcc.cardType=='JCB'"
+                    src="../../../../../../../assets/images/cards/JCB.png" />
+                  <img class="ui image" *ngIf="custAcc.cardType=='MASTERCARD'"
+                    src="../../../../../../../assets/images/cards/MasterCard.png" />
+                  <img class="ui image" *ngIf="custAcc.cardType=='VISA'"
+                    src="../../../../../../../assets/images/cards/Visa.png" />
+                </span>
+              </ng-container>
+
+              <ng-container *ngIf="custAcc.accountType=='2'">
+                <span class="left floated like">
+                  <b>****{{custAcc.maskedAccountNo}}</b><br>
+                  {{'transaction.add.paymentTypeACH' | translate}}
+                </span>
+              </ng-container>
+
+              <div style="clear: both;"></div>
+              <button class="orange circular ui left floated icon button" type="button"
+                (click)="$event.stopPropagation();onPatientAccountOperationClick({ 'key': 'editPatientAccount', 'value': 'Edit' }, patient, custAcc)"
+                suiPopup popupText="Edit" popupInverted [popupPlacement]="'top'">
+                <i class="pencil sign icon"></i>
+              </button>
+              <button class="orange circular ui left floated icon button" type="button"
+                (click)="$event.stopPropagation();onPatientAccountOperationClick({ 'key': 'delete', 'value': 'Delete' }, patient, custAcc)"
+                suiPopup popupText="Delete" popupInverted [popupPlacement]="'top'">
+                <i class="trash alternate outline sign icon" style="color: #ffffff;"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- No Records Found patient Payment Account List -->
+  <div *ngIf="noRecordsFound_CustCreditAccList && !isLoader_WalletPatient">
+    <sui-message class="attached warning" [isDismissable]="false">
+      <p>{{'transaction.add.noRecordsFound' | translate}}</p>
+    </sui-message>
+  </div>
+
+</ng-template>
+<!-- Wallet Template End -->
+
+
+
+<ng-template let-context let-modal="modal" #modalTransactionOperations>
+  <div class="header">{{typeOfOperationHeading}}
+    <i #closeModal (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-transaction-operations [InputData]="inputDataForOperation"
+      (OutputData)="outputDataFromTransactionOperation($event)"></app-transaction-operations>
+  </div>
+  <div class="actions">
+    <div class="ui tiny">
+      <button class="ui tiny button" (click)="modal.deny()">{{'transaction.find.close' | translate}}</button>
+    </div>
+  </div>
+</ng-template>
+<ng-template let-context let-modal="modal" #modalDeleteAppointment>
+  <div class="header">
+    <span>{{'appointment.cancel.heading' | translate}}</span>
+    <i #closeWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-delete-appointment [InputData]="inputDataForCancelOperation"
+      (OutputData)="outputDataFromCancelOperation($event)">
+    </app-delete-appointment>
+  </div>
+  <div class="actions">
+    <div class="ui tiny">
+      <button class="tiny ui orange button" (click)="deleteAppointment()" [disabled]="false">{{'appointment.cancel.yes'
+        | translate}}</button>
+      <button class="ui tiny button" (click)="modal.deny()">{{'appointment.cancel.no' | translate}}</button>
+    </div>
+  </div>
+
+</ng-template>
+
+
+<ng-template let-context let-modal="modal" #modalAddPatientAccount>
+  <div class="header">
+    <span *ngIf="!inputDataForAccountOperation.isEdit">{{'patientAccount.add.heading' | translate}}</span>
+    <span *ngIf="inputDataForAccountOperation.isEdit">{{'patientAccount.edit.heading' | translate}}</span>
+    <i #closeModal (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-add-patient-account [InputData]="inputDataForAccountOperation" (OutputData)="outputDataOperation($event)">
+    </app-add-patient-account>
+  </div>
+  <div class="actions">
+    <div class="ui tiny">
+      <button class="tiny ui orange button" autofocus (click)='onAddPatientAccountClick()'
+        *ngIf="!inputDataForAccountOperation.isEdit">{{'patient.add.save' | translate}}</button>
+      <button class="tiny ui orange button" autofocus (click)='onEditPatientAccountClick()'
+        *ngIf="inputDataForAccountOperation.isEdit">{{'patient.add.save' | translate}}</button>
+      <button class="tiny ui button" (click)="modal.deny()">{{'transaction.find.cancel' | translate}}</button>
+    </div>
+  </div>
+</ng-template>

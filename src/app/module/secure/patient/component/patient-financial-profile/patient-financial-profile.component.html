@@ -1,0 +1,210 @@
+<app-toaster [toaster]="toastData"></app-toaster>
+<div id="initialLoad">
+  <form novalidate [formGroup]="">
+    <div class="main-content">
+      <h1 class="ui header">{{'patient.financialplan.heading' | translate}}</h1>
+      <div class="ui three column stackable grid dashboard-block">
+        <div class="three column row">
+          <div class="column">
+            <button class="fluid ui huge basic button" type="button" (click)="btnClick()">
+              <i class="orange home icon"></i>
+              Home
+            </button>
+          </div>
+          <div class="column">
+            <button
+              [ngClass]="isLoader_ActivityPatient ? 'fluid ui huge basic button loading' : 'fluid ui huge basic button'"
+              class="fluid ui huge basic button" type="button"
+              (click)="onPatientAccountOperationClick('addAccount', patient, '')">
+              <i class="orange calendar plus outline icon"></i>
+              Add Payment Account
+            </button>
+          </div>
+          <div class="column">
+            <button class="fluid ui huge basic button" type="button" (click)="open()">
+              <i class="orange dollar sign icon"></i>
+              Make a Payment
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- <div class="ui segment results" > -->
+      <br>
+      <!-- <div class="results-crsr" > -->
+      <div class="ui divided list" style="cursor: default">
+        <div class="content">
+          <!-- operation control will come here -->
+          <sui-tabset>
+            <div class="ui mini top attached tabular menu" style="flex-wrap: wrap;font-size: 1rem;">
+              <a class="item" suiTabHeader="1" [isActive]="selectedTab=='invoices'"
+                (click)="selectedTab='invoices';">Provider Dues</a>
+              <a class="item" suiTabHeader="2" [isActive]="selectedTab=='paidInvoices'"
+                (click)="selectedTab='paidInvoices';">Paid Balances</a>
+              <a class="item" suiTabHeader="3" [isActive]="selectedTab=='paymentPlans'"
+                (click)="selectedTab='paymentPlans';">Payment Plans</a>
+              <a class="item" suiTabHeader="4" [isActive]="selectedTab=='history'" (click)="selectedTab='history';">Pmt.
+                History</a>
+              <a class="item" suiTabHeader="5" [isActive]="selectedTab=='upcomingPayments'"
+                (click)="selectedTab='upcomingPayments';">Upcoming Payments</a>
+              <a class="item" suiTabHeader="6" [isActive]="selectedTab=='wallet'"
+                (click)="selectedTab='wallet';">Wallet</a>
+              <a class="item" suiTabHeader="7" [isActive]="selectedTab=='transaction'"
+                (click)="selectedTab='transaction';">Transactions</a>
+            </div>
+            <div class="ui bottom attached segment" suiTabContent="1">
+              <app-patient-invoice [InvoiceStatus]="unpaidInvoicesData"></app-patient-invoice>
+            </div>
+            <div class="ui bottom attached segment" suiTabContent="2">
+              <app-patient-invoice [InvoiceStatus]="paidInvoicesData"></app-patient-invoice>
+            </div>
+            <div class="ui bottom attached segment" suiTabContent="3">
+              <app-patient-payment-plan></app-patient-payment-plan>
+            </div>
+            <div class="ui bottom attached segment" suiTabContent="4">
+              <!--<div class="ui active text loader" *ngIf="isLoader_PaymentHistory">Uploading</div>-->
+              <div class="ui segment modal-loader" *ngIf="isLoader_PaymentHistory">
+                <div class="ui active dimmer">
+                  <div class="ui medium text loader">Loading</div>
+                </div>
+              </div>
+              <div style="overflow-x:scroll" *ngIf="paymentHistoryList.length > 0 && !isLoader_PaymentHistory">
+                <table style="width: 1000px !important;font-size: .78571429rem;" class="ui unstackable table">
+                  <thead>
+                    <tr>
+                      <th>{{'transaction.find.txnDate' | translate}}</th>
+                      <th>{{'transaction.find.patient' | translate}}</th>
+                      <th>{{'reports.transaction.cardAccNo' | translate}}</th>
+                      <th>{{'reports.transaction.channel' | translate}}</th>
+                      <th class="right aligned">{{'transaction.find.amount' | translate}}</th>
+                      <th>{{'transaction.find.type' | translate}}</th>
+                      <th>{{'transaction.find.status' | translate}}</th>
+                      <th>{{'transaction.find.authCode' | translate}}</th>
+                      <th>{{'reports.transaction.traceNo' | translate}}</th>
+                      <!--<th>{{'reports.transaction.refundOn' | translate}}</th>-->
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let transaction of paymentHistoryList">
+                      <td>{{transaction.localTransactionDate}} {{transaction.localTransactionTime}}</td>
+                      <td>{{transaction.fullName}}</td>
+                      <td>
+                        {{transaction.channelTypeValue=='ACH'? transaction.tenderInfo.maskAccount : transaction.tenderInfo.maskCardNumber}}
+                      </td>
+                      <td>{{transaction.channelTypeValue}}</td>
+                      <td class="right aligned">{{transaction.tenderInfo.totalAmount | CustomFormatCurrency}}</td>
+                      <td>{{transaction.operationType}}</td>
+                      <td>{{transaction.transactionStatus}}</td>
+                      <td data-label="Auth Code">{{transaction.preAuthCode}}</td>
+                      <td>{{transaction.transactionId}}</td>
+                      <!--<td>-</td>-->
+                    </tr>
+                  </tbody>
+                </table>
+
+              </div>
+              <!-- No Records Found patient Payment Account List -->
+              <div *ngIf="noRecordsFound_paymentHistoryList && !isLoader_PaymentHistory">
+                <sui-message class="attached warning" [isDismissable]="false">
+                  <p>{{'transaction.add.noRecordsFound' | translate}}</p>
+                </sui-message>
+                <br>
+              </div>
+
+            </div>
+            <div class="ui bottom attached segment" suiTabContent="5">
+              <div class="ui segment modal-loader" *ngIf="isLoader_SchedulePayment">
+                <div class="ui active dimmer">
+                  <div class="ui medium text loader">Loading</div>
+                </div>
+              </div>
+              <div *ngIf="paymentScheduleList.length > 0 && !isLoader_SchedulePayment">
+
+                <div class="list">
+                  <div class="item" *ngFor="let transaction of paymentScheduleList">
+                    <i class="circle icon positive"
+                      *ngIf="transaction.transactionStatus!=null && (transaction.transactionStatus=='Success' || transaction.transactionStatus=='Refund Success')"
+                      style="padding-top: 4px;"></i>
+                    <i class="circle icon negative"
+                      *ngIf="transaction.transactionStatus!=null && (transaction.transactionStatus=='Failed' || transaction.transactionStatus=='Denied' || transaction.transactionStatus=='Hold'|| transaction.transactionStatus=='Void' || transaction.transactionStatus=='Closed')"
+                      style="padding-top: 4px;"></i>
+                    <i class="circle icon blue"
+                      *ngIf="transaction.transactionStatus!=null && transaction.transactionStatus!='Success' && transaction.transactionStatus!='Denied' && transaction.transactionStatus!='Failed' && transaction.transactionStatus!='Refund Success' && transaction.transactionStatus!='Void' && transaction.transactionStatus!='Closed'"
+                      style="padding-top: 4px;"></i>
+                    <i class="circle icon" *ngIf="transaction.transactionStatus==null" style="padding-top: 4px;"></i>
+                    <div class="content">
+                      <div class="description" *ngIf="transaction.transactionStatus!=null">
+                        <strong>{{transaction.installationType==1?'Down Payment:':'Scheduled:'}}</strong>
+                        {{getFormattedDate(transaction.executionDate)}}<span class="separator">|</span>
+                        <span><strong>{{transaction.amountDue | CustomFormatCurrency}}</strong></span><span
+                          class="separator">|</span>
+                        <span><strong>Status:</strong> {{transaction.transactionStatus}}</span><span class="separator"
+                          *ngIf="transaction.transactionId!=null">|</span>
+                        <span *ngIf="transaction.transactionId!=null"><strong>Paid On:</strong>
+                          {{getFormattedDate(transaction.transactionDate)}}</span>
+                        <br><span><strong>Payment Plan Id:</strong> {{transaction.recurringPaymentId}}</span>
+                        <br><span *ngIf="transaction.transactionId!=null"><strong>Transaction Id:</strong>
+                          {{transaction.transactionId}}</span>
+                      </div>
+                      <div class="description" *ngIf="transaction.transactionStatus==null">
+                        <strong>{{transaction.installationType==1?'Down Payment:':'Scheduled:'}}</strong>
+                        {{getFormattedDate(transaction.executionDate)}}<span class="separator">|</span>
+                        <span>{{transaction.amountDue | CustomFormatCurrency}}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- No Records Found Message -->
+              <div *ngIf="noRecordsFound_schedulePaymentList && !isLoader_SchedulePayment">
+                <sui-message class="attached warning" [isDismissable]="false">
+                  <p>{{'transaction.add.noRecordsFoundForNext90Days' | translate}}</p>
+                </sui-message>
+                <br>
+              </div>
+            </div>
+            <div class="ui bottom attached segment" suiTabContent="6">
+              <app-patient-wallet></app-patient-wallet>
+            </div>
+            <div class="ui bottom attached segment" suiTabContent="7">
+              <app-patient-transaction></app-patient-transaction>
+            </div>
+          </sui-tabset>
+        </div>
+      </div>
+      <!-- </div> -->
+      <!-- </div>        -->
+    </div>
+
+
+  </form>
+</div>
+<ng-template let-context let-modal="modal" #modalAddPatientAccount>
+  <div class="header">
+    <span *ngIf="!inputDataForAccountOperation.isEdit">{{'patientAccount.add.heading' | translate}}</span>
+    <span *ngIf="inputDataForAccountOperation.isEdit">{{'patientAccount.edit.heading' | translate}}</span>
+    <i #closeModal (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-add-patient-account [InputData]="inputDataForAccountOperation" (OutputData)="outputDataOperation($event)">
+    </app-add-patient-account>
+  </div>
+  <div class="actions">
+    <div class="ui tiny">
+      <button class="tiny ui orange button" autofocus (click)='onAddPatientAccountClick()'
+        *ngIf="!inputDataForAccountOperation.isEdit">{{'patient.add.save' | translate}}</button>
+      <button class="tiny ui orange button" autofocus (click)='onEditPatientAccountClick()'
+        *ngIf="inputDataForAccountOperation.isEdit">{{'patient.add.save' | translate}}</button>
+      <button class="tiny ui button" (click)="modal.deny()">{{'transaction.find.cancel' | translate}}</button>
+    </div>
+  </div>
+</ng-template>
+<ng-template let-context let-modal="modal" #modalAddTransaction>
+  <div class="header">{{'transaction.add.acceptPayment' | translate}}
+    <i #closeModal (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-add-transaction [InputData]="inputDataForOperation" (OutputData)="outputDataFromOperation($event)">
+    </app-add-transaction>
+  </div>
+</ng-template>

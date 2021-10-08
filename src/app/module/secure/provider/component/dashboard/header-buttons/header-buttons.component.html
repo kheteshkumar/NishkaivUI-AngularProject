@@ -1,0 +1,269 @@
+<div class="ui grid dashboard-block">
+  <div class="doubling two column row">
+    <div class="column widget2" *ngIf="hasModuleAccess(1) && permissions.addLinkPatient">
+      <div class="ui segment" style="min-height: 140px">
+        <div class="ui orange ribbon label">
+          <i class="user circle icon"></i>
+          {{'patient.add.heading' | translate}}
+        </div>
+        <div content>
+          <div class="ui tiny form">
+            <div class="ui container">
+              <div class="ui segments">
+                <div class="ui segment">
+                  <ng-container *ngTemplateOutlet="modalAddPatient2"></ng-container>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="column widget2" *ngIf="hasModuleAccess(2) && permissions.addInvoice">
+      <div class="ui segment" style="min-height: 140px">
+        <div class="ui orange ribbon label">
+          <i class="shopping cart icon"></i>
+          {{'invoice.add.header' | translate}}
+        </div>
+        <div content>
+          <div class="ui tiny form">
+            <div class="ui container">
+              <div class="ui segments">
+                <div class="ui segment">
+                  <ng-container *ngTemplateOutlet="modalAddInvoice2"></ng-container>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="ui grid dashboard-block" *ngIf="hasModuleAccess(14)">
+  <div class="doubling two column row">
+    <div class="column widget2" *ngIf="permissions.addAppointment">
+      <div class="ui segment" style="min-height: 140px">
+        <div class="ui orange ribbon label">
+          <i class="calendar plus outline icon"></i>
+          {{'appointment.add.heading' | translate}}
+        </div>
+        <div content>
+          <div class="ui tiny form">
+            <div class="ui container">
+              <div class="ui segments">
+                <div class="ui segment">
+                  <ng-container *ngTemplateOutlet="modalAddAppointment2"></ng-container>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--Upcoming Appointment started-->
+    <div class="column widget2" *ngIf="permissions.viewAllAppointment">
+      <div class="ui segment" style="min-height: 140px">
+        <div class="ui" *ngIf="isLoader_FindAppointment">
+          <div class="ui active inverted dimmer">
+            <div class="ui indeterminate text loader"></div>
+          </div>
+        </div>
+        <div class="ui orange ribbon label">
+          <i class="calendar plus outline icon"></i>
+          {{'dashboard.provider.todaysAppointment' | translate}}
+        </div>
+
+        <sui-select style="float: right; font-size: 10px; margin-top: -5px;"
+          class="ui mini floating labeled basic icon button" icon="download"
+          (selectedOptionChange)="download('Todays_Appointment_Report')" [isSearchable]="false" placeholder="Export"
+          #filterSelect>
+          <sui-select-option value="PDF"></sui-select-option>
+          <sui-select-option value="CSV"></sui-select-option>
+        </sui-select>
+
+        <div *ngIf='appointmentList.length>0'
+          style="min-height: 180px; cursor: default; overflow-y: auto; overflow-x: hidden; max-height: 180px;">
+          <div *ngFor="let details of appointmentList">
+            <div class="ui divided selection list">
+              <a class="item" title="{{ (details.past == false) ? 'Upcoming Appointments' : 'Past Appointments'}}">
+                {{details.fullName}}
+                <div class="ui right floated horizontal label" [ngClass]="(details.past == false) ? 'green' : 'red'">
+                  {{details.fromDate | date:'h:mma'}} - {{details.toDate | date:'h:mma'}}
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+        <div *ngIf='appointmentList.length==0'>
+          <br>
+          <div class="item">
+            <div class="content">
+              <div class="header">No Appointments for Today</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <!--Upcoming Appointment Ended-->
+  </div>
+</div>
+<!-- Add Patient Start -->
+<ng-template #modalAddPatient2>
+  <div class="content">
+    <app-add-patient (OutputData)="outputDataFromAddPatientOperation($event)" [InputData]="inputDataForEditOperation">
+    </app-add-patient>
+  </div>
+  <div class="actions">
+    <div class="ui tiny"><button class="tiny ui orange button" autofocus
+        (click)="onAddPatientClick({'saveAndContinue': true})"
+        *ngIf="!inputDataForEditOperation.isEdit && isLinked==undefined">{{'patient.add.save' | translate}}</button>
+      <button class="tiny ui orange button" autofocus (click)='onEditPatientClick()'
+        *ngIf="inputDataForEditOperation.isEdit && isLinked==undefined">{{'patient.add.save' | translate}}</button>
+      <button class="tiny ui orange button" autofocus (click)='confirmPaymentTypeModal(patientData)'
+        *ngIf="isLinked!=undefined && isLinked">{{'patient.add.continue' | translate}}</button>
+      <button class="tiny ui orange button" autofocus (click)='linkPatient(patientData)'
+        *ngIf="isLinked!=undefined && !isLinked">{{'patient.add.link' | translate}}</button>
+      <button class="tiny ui button" *ngIf="!inputDataForEditOperation.isEdit"
+        (click)="clearAddPatientForm()">{{'patient.add.reset' | translate}}</button>
+    </div>
+  </div>
+</ng-template>
+<!-- Add Patient End -->
+
+
+
+
+
+<!--Add appointment start-->
+<ng-template #modalAddAppointment2>
+  <div class="content">
+    <div class="ui segment modal-loader" *ngIf="patientListLoading || doctorListLoading">
+      <div class="ui active dimmer">
+        <div class="ui medium text loader"></div>
+      </div>
+    </div>
+    <app-add-appointment (OutputData)="outputDataFromAppointment($event)" [InputData]="inputDataForAppointment"
+      *ngIf="!patientListLoading && !doctorListLoading">
+    </app-add-appointment>
+
+  </div>
+</ng-template>
+
+<!--Add Invoice Start-->
+<ng-template #modalAddInvoice2>
+  <div class="content">
+    <app-add-invoice (OutputData)="outputDataFromInvoiceOperation($event)"
+      [InputData]="inputDataForInvoiceOperationDashboard">
+    </app-add-invoice>
+  </div>
+</ng-template>
+<!--Add Invoice End-->
+<!--Add Invoice Pop up Start-->
+<ng-template let-context let-modal="modal" #modalAddInvoice>
+  <div class="header">{{'invoice.add.header' | translate}}
+    <i #closeInvoiceWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-add-invoice (OutputData)="outputDataFromInvoiceOperation($event)" [InputData]="inputDataForInvoiceOperation">
+    </app-add-invoice>
+  </div>
+</ng-template>
+<!--Add Invoice Pop up End-->
+<!--Add appointment Pop up start-->
+<ng-template let-context let-modal="modal" #modalAddAppointment let-eventTimesChanged="eventTimesChanged">
+  <div class="header">
+    <span *ngIf="inputDataForAppointment.isEdited">{{'appointment.edit.heading' | translate}}</span>
+    <span *ngIf="!inputDataForAppointment.isEdited">{{'appointment.add.heading' | translate}}</span>
+    <i #closeAppointmentWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-add-appointment (OutputData)="outputDataFromAppointment($event)" [InputData]="inputDataForAppointment">
+    </app-add-appointment>
+
+    <button class="tiny ui button" (click)="modal.deny()">{{'appointment.add.cancel' | translate}}</button>
+
+  </div>
+</ng-template>
+<!--Add appointment Pop up end-->
+<!-- Add Patient Popup Start -->
+<ng-template let-context let-modal="modal" #modalAddPatient>
+  <div class="header">
+    <span *ngIf="inputDataForEditOperation.isEdit">{{'patient.edit.heading' | translate}}</span>
+    <span *ngIf="!inputDataForEditOperation.isEdit">{{'patient.add.heading' | translate}}</span>
+    <i #closeWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-add-patient (OutputData)="outputDataFromAddPatientOperation($event)" [InputData]="inputDataForEditOperation">
+    </app-add-patient>
+  </div>
+  <div class="actions">
+    <div class="ui tiny">
+      <!--<button class="tiny ui orange button" autofocus (click)="onAddPatientClick({'saveAndContinue': false})" *ngIf="!inputDataForOperation.isEdit">{{'patient.add.save' | translate}}</button>-->
+      <button class="tiny ui orange button" autofocus (click)="onAddPatientClick({'saveAndContinue': true})"
+        *ngIf="!inputDataForEditOperation.isEdit && isLinked==undefined">{{'patient.add.save' | translate}}</button>
+      <button class="tiny ui orange button" autofocus (click)='onEditPatientClick()'
+        *ngIf="inputDataForEditOperation.isEdit && isLinked==undefined">{{'patient.add.save' | translate}}</button>
+      <button class="tiny ui orange button" autofocus (click)='confirmPaymentTypeModal(patientData)'
+        *ngIf="isLinked!=undefined && isLinked">{{'patient.add.continue' | translate}}</button>
+      <button class="tiny ui orange button" autofocus (click)='linkPatient(patientData)'
+        *ngIf="isLinked!=undefined && !isLinked">{{'patient.add.link' | translate}}</button>
+      <button class="tiny ui button" *ngIf="!inputDataForEditOperation.isEdit"
+        (click)="clearAddPatientForm()">{{'patient.add.reset' | translate}}</button>
+      <button class="tiny ui button" (click)="modal.deny()">{{'patient.add.cancel' | translate}}</button>
+    </div>
+  </div>
+</ng-template>
+<!-- Add Patient Popup End -->
+<!-- Add Payment Account Start -->
+<ng-template let-context let-modal="modal" #modalAddPatientAccount>
+  <div class="header">
+    <span *ngIf="!inputDataForAccountOperation.isEdit">{{'patientAccount.add.heading' | translate}}</span>
+    <span *ngIf="inputDataForAccountOperation.isEdit">{{'patientAccount.edit.heading' | translate}}</span>
+    <i #closeAccountModal (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <!-- <div id="hellopaygateway"></div> -->
+  <div class="content">
+
+    <app-add-patient-account [InputData]="inputDataForAccountOperation" (OutputData)="outputDataFromAccount($event)">
+    </app-add-patient-account>
+  </div>
+  <div class="actions">
+    <div class="ui tiny">
+      <button class="tiny ui orange button" autofocus (click)='onAddPatientAccountClick()'
+        *ngIf="!inputDataForAccountOperation.isEdit">{{'patient.add.save' | translate}}</button>
+      <button class="tiny ui orange button" autofocus (click)='onEditPatientAccountClick()'
+        *ngIf="inputDataForAccountOperation.isEdit">{{'patient.add.save' | translate}}</button>
+      <button class="tiny ui button" (click)="modal.deny()">{{'transaction.find.cancel' | translate}}</button>
+    </div>
+  </div>
+</ng-template>
+<!-- Add Payment Account End -->
+
+<!-- Add Transaction Start -->
+<ng-template let-context let-modal="modal" #modalAddTransaction>
+  <div class="header">{{'transaction.add.acceptPayment' | translate}}
+    <i #closeTransactionWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-add-transaction [InputData]="inputDataOneTimePayment" (OutputData)="outputDataFromTransaction($event)">
+    </app-add-transaction>
+  </div>
+</ng-template>
+<!-- Add Transaction End -->
+
+<!-- Recurring Payment Start -->
+<ng-template let-context let-modal="modal" #modalAddRecurringPayments>
+  <div class="header">
+    <span *ngIf="!inputDataForOperation.isEdit">{{'recurringPayments.add.heading' | translate}}</span>
+    <i #cancel (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-add-recurring (cancel)='closeRecurringModal($event)' [InputData]="inputDataPaymentPlan"
+      (OutputData)="outputDataFromAddRecurring($event)"></app-add-recurring>
+  </div>
+</ng-template>
+<!-- Recurring Payment Start -->

@@ -1,0 +1,63 @@
+<app-toaster [toaster]="toastData"></app-toaster>
+
+<sui-accordion class="styled fluid">
+  <sui-accordion-panel>
+    <div title>
+      <i class="dropdown icon"></i>
+      {{'Notification Settings' | translate}}
+    </div>
+    <div content>
+
+      <div class="ui segment modal-loader" *ngIf="isLoader_moduleList">
+        <div class="ui active dimmer">
+          <div class="ui medium text loader">Loading</div>
+        </div>
+      </div>
+
+      <div style="overflow-x: auto;" *ngIf="!isLoader_moduleList">
+        <div class="ui segment">
+          <div class="ui" *ngIf="isLoader_processing">
+            <div class="ui active dimmer">
+              <div class="ui indeterminate text loader">{{'common.processing' | translate}}</div>
+            </div>
+          </div>
+          <table class="ui single celled line table unstackable" style="width: 100%;">
+            <tr>
+              <td width="60%"><b>{{'Feature Name' | translate}}</b></td>
+              <td width="20%">
+                <sui-checkbox class="toggle" style="float: right;" [(ngModel)]="smsModule.hasAccess"
+                  (checkChange)="updateModuleConfig($event, smsModule)">
+                  <b>{{smsModule.name| translate}}</b>
+                </sui-checkbox>
+              </td>
+              <td width="20%">
+                <sui-checkbox class="toggle" style="float: right;" [(ngModel)]="emailModule.hasAccess"
+                  (checkChange)="updateModuleConfig($event,emailModule)">
+                  <b>{{emailModule.name | translate}}</b>
+                </sui-checkbox>
+              </td>
+            </tr>
+            <ng-container *ngFor="let feature of featureList">
+              <tr *ngIf="feature.hasSms || feature.hasEmail">
+                <td>{{feature.featureName}}</td>
+                <td class="center aligned">
+                  <sui-checkbox class="toggle" style="float: right;" [(ngModel)]="feature.isSmsEnabled"
+                    [isDisabled]="!feature.hasSms || !smsModule.hasAccess"
+                    (checkChange)="updateFeatureConfig($event, feature, 'isSms')">
+                  </sui-checkbox>
+                </td>
+                <td>
+                  <sui-checkbox class="toggle" style="float: right;" [(ngModel)]="feature.isEmailEnabled"
+                    [isDisabled]="!feature.hasEmail || !emailModule.hasAccess"
+                    (checkChange)="updateFeatureConfig($event, feature, 'isEmail')">
+                  </sui-checkbox>
+                </td>
+              </tr>
+            </ng-container>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </sui-accordion-panel>
+</sui-accordion>

@@ -1,0 +1,109 @@
+<div class="ui" *ngIf="isLoader">
+  <div class="ui active dimmer">
+    <div class="ui indeterminate text loader">{{'common.processing' | translate}}</div>
+  </div>
+</div>
+<form [formGroup]="updateScheduleForm" class="ui tiny form">
+  <div class="toaster-static toaster-s" *ngIf="showSuccessMessage">
+    <span><a href="javascript:void(0)" (click)="showSuccessMessage=!showSuccessMessage"><i
+          class="close icon"></i></a></span>
+    <p>{{successMessage}}</p>
+  </div>
+  <div class="toaster-static toaster-e" *ngIf="showErrorMessage">
+    <span><a href="javascript:void(0)" (click)="showErrorMessage=!showErrorMessage"><i
+          class="close icon"></i></a></span>
+    <p>{{errorMessage}}</p>
+  </div>
+  <div class="ui grid">
+    <div class="sixteen wide column">
+      <div class="ui tinyX segments">
+        <div class="ui horizontal segments">
+          <div class="ui segment details-cols2">
+            <div class="ui small list">
+              <div class="item">
+                <div class="header">{{'claims.schedule.firstClaimDate' | translate}}:
+                  {{getFormattedDate(this.InputData.claimData.firstClaimDate)}}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ui segment details-cols2">
+            <div class="ui small list">
+              <div class="item">
+                <div class="header">{{'claims.schedule.nextClaimDate' | translate}}:
+                  {{getFormattedDate(this.InputData.claimData.nextClaimDate)}}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ui horizontal segments">
+          <div class="ui segment details-cols2">
+            <div class="ui small list">
+              <div class="item">
+                <div class="header">{{'claims.schedule.lastClaimDate' | translate}}:
+                  {{getFormattedDate(this.InputData.claimData.lastClaimDate)}}</div>
+              </div>
+            </div>
+          </div>
+          <div class="ui segment details-cols2">
+            <div class="ui small list">
+              <div class="item">
+                <div class="header">{{'claims.schedule.totalClaimsScheduled' | translate}} :
+                  {{this.InputData.claimData.noOfClaims}}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ui horizontal segments">
+          <div class="ui segment details-cols2">
+            <div class="ui small list">
+              <div class="item">
+                <div class="header">{{'claims.schedule.noOfClaimsMade' | translate}} :
+                  {{(this.InputData.claimData.noOfClaimsMade != null && this.InputData.claimData.noOfClaimsMade !=
+                  '')?this.InputData.claimData.noOfClaimsMade: '--'}}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <br>
+      <div class="inline field required">
+        <label class="update-label">{{'claims.add.claimCycle' | translate}} </label>
+        <sui-select class="selection" [options]="frequencyList" formControlName="Frequency"
+          (selectedOptionChange)="onFrequencySelectionClick(Frequency)" labelField="title" #Frequency valueField="value"
+          style="width: 210px;">
+          <sui-select-option *ngFor="let option of frequencyList" [value]="option"></sui-select-option>
+        </sui-select>
+        <span>{{updateScheduleFormError.Frequency}}</span>
+      </div>
+      <div class="inline field required">
+        <label class="update-label">{{'claims.add.noOfTimes' | translate}}</label>
+        <input type="text" placeholder="{{'claims.add.noOfTimes' | translate}}" formControlName="NoOfTimes" #NoOfTimes
+          style="width: 210px;">
+        <span>{{updateScheduleFormError.NoOfTimes}}</span>
+      </div>
+
+      <div class="inline field required">
+        <label class="update-label"><b>{{'claims.add.claimUpdate' | translate}} </b></label>
+        <div class="ui left icon input">
+          <i class="calendar icon"></i>
+          <input suiDatepicker [pickerMode]="dateMode" style="width: 115px;" [pickerUseNativeOnMobile]="false"
+            [pickerMinDate]="minClaimDate" [pickerMaxDate]="maxClaimDate" formControlName="StartDate" #StartDate
+            readonly style="width: 210px;">
+
+          <span>{{updateScheduleFormError.StartDate}}</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</form>
+
+<br>
+<button class="tiny ui orange button" autofocus (click)='onUpdateClick()'>
+  {{'claims.schedule.update' | translate}}
+</button>

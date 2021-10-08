@@ -1,0 +1,82 @@
+<sui-tabset>
+  <div class="ui top attached tabular menu">
+    <a class="item" suiTabHeader="1">Passed Records</a>
+    <a class="item" suiTabHeader="2"><i class="attention brown icon"></i> Failed Records</a>
+  </div>
+  <div class="ui bottom attached segment" style="max-height: 35vh; overflow: scroll;" suiTabContent="1">
+    <table class="ui single line small table">
+      <thead>
+        <tr>
+          <!-- <th>{{ recordEnum.ProductType }}</th>
+          <th>{{ recordEnum.CodeType }}</th> -->
+          <th>{{ recordEnum.Name }}</th>
+          <!-- <th>{{ recordEnum.CptIcd10Code }}</th> -->
+          <th>{{ recordEnum.Quantity }}</th>
+          <th>{{ recordEnum.UnitPrice }}</th>
+          <th>{{ recordEnum.TaxPercent }}</th>
+          <th>{{ recordEnum.Description }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <ng-container *ngIf="uploadLogDetailSuccessfullItems.length; else noRecordsSuccessfull">
+          <tr *ngFor="let i of uploadLogDetailSuccessfullItems" [ngClass]="{ warning: i.record[recordEnum.Comment] }">
+            <!-- <td>{{ i.record[recordEnum.ProductType] }}</td>
+            <td>{{ i.record[recordEnum.CodeType] }}</td> -->
+            <td>{{ i.record[recordEnum.Name] }}</td>
+            <!-- <td>{{ i.record[recordEnum.CptIcd10Code] }}</td> -->
+            <td>{{ i.record[recordEnum.Quantity] }}</td>
+            <td>{{ i.record[recordEnum.UnitPrice] }}</td>
+            <td>{{ i.record[recordEnum.TaxPercent] }}</td>
+            <td>{{ i.record[recordEnum.Description] }}</td>
+          </tr>
+        </ng-container>
+        <ng-template #noRecordsSuccessfull>
+          <tr class="warning">
+            <td colspan="99">
+              {{ 'product.upload.noRecordsFound' | translate }}
+            </td>
+          </tr>
+        </ng-template>
+      </tbody>
+    </table>
+  </div>
+  <div class="ui bottom attached segment" style="max-height: 35vh; overflow: scroll;" suiTabContent="2">
+    <table class="ui single line small table">
+      <thead>
+        <tr>
+          <th>{{ recordEnum.Error }}</th>
+          <!-- <th>{{ recordEnum.ProductType }}</th>
+          <th>{{ recordEnum.CodeType }}</th> -->
+          <th>{{ recordEnum.Name }}</th>
+          <!-- <th>{{ recordEnum.CptIcd10Code }}</th> -->
+          <th>{{ recordEnum.Quantity }}</th>
+          <th>{{ recordEnum.UnitPrice }}</th>
+          <th>{{ recordEnum.TaxPercent }}</th>
+          <th>{{ recordEnum.Description }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <ng-container *ngIf="uploadLogDetailFailedItems.length; else noRecordsFailed">
+          <tr class="warning" *ngFor="let i of uploadLogDetailFailedItems">
+            <td>{{ i.error }}</td>
+            <!-- <td>{{ i.record[recordEnum.ProductType] }}</td>
+            <td>{{ i.record[recordEnum.CodeType] }}</td> -->
+            <td>{{ i.record[recordEnum.Name] }}</td>
+            <!-- <td>{{ i.record[recordEnum.CptIcd10Code] }}</td> -->
+            <td>{{ i.record[recordEnum.Quantity] }}</td>
+            <td>{{ i.record[recordEnum.UnitPrice] }}</td>
+            <td>{{ i.record[recordEnum.TaxPercent] }}</td>
+            <td>{{ i.record[recordEnum.Description] }}</td>
+          </tr>
+        </ng-container>
+        <ng-template #noRecordsFailed>
+          <tr class="warning">
+            <td colspan="99">
+              {{ 'product.upload.noRecordsFound' | translate }}
+            </td>
+          </tr>
+        </ng-template>
+      </tbody>
+    </table>
+  </div>
+</sui-tabset>

@@ -1,0 +1,687 @@
+<app-toaster [toaster]="toastData"></app-toaster>
+<div id="initialLoad">
+  <div class="ui" *ngIf="isLoader">
+    <div class="ui active dimmer">
+      <div class="ui indeterminate text loader">{{'common.processing' | translate}}</div>
+    </div>
+  </div>
+  <div class="main-content">
+
+    <form novalidate [formGroup]="findPatientForm" *ngIf="!isFormOpen">
+      <h1 class="ui header">{{'patient.find.heading' | translate}}</h1>
+      <div class="ui segment apf-search">
+        <button class="tiny ui orange right floated button" type="button" *ngIf="permissions.addLinkPatient"
+          (click)="this.isLinked= undefined;openAddPatientModal()">
+          <i class="user circle icon"></i>{{'patient.find.addPatient' | translate}}</button>
+        <div class="u-cf-m"></div>
+        <sui-tabset>
+          <div class="tiny ui secondary menu">
+            <a class="item" suiTabHeader="1">{{'patient.find.name' | translate}}</a>
+            <a class="item" suiTabHeader="2">{{'patient.find.mrn' | translate}}</a>
+            <a class="item" suiTabHeader="3">{{'patient.find.email' | translate}}</a>
+            <a class="item" suiTabHeader="4">{{'patient.find.phone' | translate}}</a>
+          </div>
+          <div class="ui segment selection-area">
+            <a class="ui label" *ngIf="findPatientForm.value.PatientName">
+              {{'patient.find.name' | translate}}: {{displayFilter}}
+              <i class="delete icon" (click)="clear('PatientName');"></i>
+            </a>
+            <a class="ui label" *ngIf="findPatientForm.value.Mrn">
+              {{'patient.find.mrn' | translate}}: {{findPatientForm.value.Mrn}}
+              <i class="delete icon" (click)="clear('Mrn')"></i>
+            </a>
+            <a class="ui label" *ngIf="findPatientForm.value.Email">
+              {{'patient.find.email' | translate}}: {{findPatientForm.value.Email}}
+              <i class="delete icon" (click)="clear('Email')"></i>
+            </a>
+            <a class="ui label" *ngIf="findPatientForm.value.Phone">
+              {{'patient.find.phone' | translate}}: {{findPatientForm.value.Phone}}
+              <i class="delete icon" (click)="clear('Phone')"></i>
+            </a>
+          </div>
+          <!-- Patient Name -->
+          <div class="ui" suiTabContent="1">
+            <div class="ui tiny form">
+              <div class="three fields mb0">
+                <div class="field">
+
+                  <sui-multi-select class="selection" formControlName="PatientName" #PatientName
+                    (selectedOptionsChange)="onMultiSelectClick(PatientName)" [hasLabels]="true" [maxSelected]="5"
+                    labelField="displayName" valueField="id" [isSearchable]="true" [options]="searchPatientList"
+                    icon="search">
+                    <sui-select-option *ngFor="let o of PatientName.filteredOptions" [value]="o"></sui-select-option>
+                  </sui-multi-select>
+
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Mrn -->
+          <div class="ui" suiTabContent="2">
+            <div class="ui tiny form">
+              <div class="five fields mb0">
+                <div class="field">
+                  <input placeholder="MRN" type="text" formControlName="Mrn">
+                  <span>{{formErrors.Mrn}}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Email -->
+          <div class="ui" suiTabContent="3">
+            <div class="ui tiny form">
+              <div class="five fields mb0">
+                <div class="field">
+                  <input placeholder="Email" type="text" formControlName="Email">
+                  <span>{{formErrors.Email}}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Phone -->
+          <div class="ui" suiTabContent="4">
+            <div class="ui tiny form">
+              <div class="five fields mb0">
+                <div class="field">
+                  <input placeholder="Phone" type="text" formControlName="Phone" mask="000-000-0000" unmask=true
+                    [validation]="false" #phone>
+                  <span>{{formErrors.Phone}}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ui clearing divider"></div>
+          <button [ngClass]="isLoader_FindPatient ? 'tiny ui orange button loading' : 'tiny ui orange button'"
+            class="tiny ui orange button" type="submit" (click)="find(true)">{{'patient.find.find' |
+            translate}}</button>
+          <button class="tiny ui button" (click)="clearForm()">{{'transaction.find.clear' | translate}}</button>
+        </sui-tabset>
+      </div>
+
+      <sui-message class="attached warning" [isDismissable]="false" *ngIf="noRecordsFound_PatientList">
+        <p>{{noResultsMessage}}</p>
+      </sui-message>
+
+      <div *ngIf="patientList.length>0">
+        <form novalidate [formGroup]="patientResultsForm">
+          <div class="ui grid">
+            <div class="eight wide column">
+              <div class="ui mini compact segment sort">
+                <div class="inline field sort-dd">
+                  <label>Sort by: </label>
+                  <sui-select class="selection" [options]="sortingItemsList" formControlName="Sorting"
+                    labelField="label" valueField="label" (selectedOptionChange)="sortPatients(Sorting)" #Sorting>
+                    <sui-select-option *ngFor="let option of sortingItemsList" [value]="option"></sui-select-option>
+                  </sui-select>
+                </div>
+              </div>
+            </div>
+            <div class="right aligned eight wide column btn-export">
+              <sui-select class="ui mini floating labeled basic icon button" icon="download"
+                (selectedOptionChange)="download($event)" [isSearchable]="false" placeholder="Export" #filterSelect>
+                <sui-select-option value="PDF"></sui-select-option>
+                <sui-select-option value="CSV"></sui-select-option>
+              </sui-select>
+            </div>
+          </div>
+        </form>
+        <!-- Patient List -->
+        <div>
+          <div *ngFor="let patient of patientList" class="ui segment results">
+            <div class="ui active dimmer" *ngIf="patient.isLoader_patientOperation">
+              <div class="ui small text loader"></div>
+            </div>
+            <div class="results-crsr" (click)="getPatientAccountList(patient)">
+              <div class="ui stackable grid">
+                <div class="ten wide column">
+                  <div class="ui horizontal list">
+                    <div class="item">
+                      <div class="content">
+                        <div class="ui sub header">{{patient.fullName}}
+                          <span>&nbsp;&nbsp;MRN : <i class="address card outline icon"></i>
+                            {{patient.mrn!=null && patient.mrn!='' ? patient.mrn : '--'}}</span>
+                          <span class="separator" *ngIf="patient.lastPatientVisit.visitStatus">|</span>
+                          <img src="../../../../assets/images/waiting-room.png"
+                            *ngIf="patient.lastPatientVisit.visitStatus==1" style="width:25px; height:25px" suiPopup
+                            popupText="Waiting" popupInverted [popupPlacement]="'top'" />
+                          <span class="text_red" *ngIf="patient.lastPatientVisit.visitStatus==1"
+                            style="font-size: 1rem;"><b> {{patient.lastPatientVisit.checkInDate}}</b></span>
+                          <img src="../../../../assets/images/doctor.png"
+                            *ngIf="patient.lastPatientVisit.visitStatus==2" style="width:20px; height:20px" />
+                          <span class="text_orange" *ngIf="patient.lastPatientVisit.visitStatus==2"><b>
+                              {{patient.lastPatientVisit.doctorName}}</b></span>
+                          <img src="../../../../assets/images/exit.png" *ngIf="patient.lastPatientVisit.visitStatus==3"
+                            style="width:25px; height:25px" suiPopup popupText="Checked Out at" popupInverted
+                            [popupPlacement]="'top'" />
+                          <span *ngIf="patient.lastPatientVisit.visitStatus==3" style="font-size: 1rem;"><b>
+                              {{patient.lastPatientVisit.checkOutDate}}</b></span>
+                        </div>
+                        <!-- forms start -->
+                        <div class="items" *ngIf="patient.formsDetails && patient.formsDetails.length">
+                          <div class="selectionX ui dropdown multiple" style="width: auto;padding:0 0 5px 0;">
+                            <div suiPopup [popupText]="form.statusHelper.text" popupInverted [popupPlacement]="'top'"
+                              class="chipX transition visible ui tiny label" [ngClass]="form.statusHelper.color"
+                              *ngFor="let form of patient.formsDetails">
+                              <span>{{ form.formTitle }}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <!-- forms end -->
+                        <div class="item">
+                          <strong> {{'patient.find.dob' | translate}}:
+                          </strong>{{patient.dob!=null ? getFormattedDateToDisplay(patient.dob) : '--'}}<span
+                            class="separator">|</span>
+                          <strong> {{'patient.find.ssn' | translate}}:
+                          </strong>{{(patient.ssn!=null && patient.ssn!='') ? (patient.ssn | dashMask: 'XXX-XX-XXXX') :
+                          '--'}}<span class="separator">|</span>
+                          <strong> {{'patient.find.email' | translate}}:
+                          </strong>{{(patient.email!=null && patient.email!='')? patient.email : '--'}}<span
+                            class="separator">|</span>
+                          <strong> {{'patient.find.phone' | translate}}:
+                          </strong>{{patient.mobile!=null ? (patient.mobile | mask: '000-000-0000') : '--'}}<span
+                            class="separator">|</span>
+                          <strong> {{'patient.find.creationDate' | translate}}: </strong>{{patient.createdOn}}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="six wide column">
+                  <div class="ui right floated header" *ngIf="patient.operations.length > 0">
+                    <div class="ui right pointing dropdown" suiPopup popupText="Actions" popupInverted suiDropdown
+                      (click)="$event.stopPropagation()">
+                      <i class="ellipsis horizontal icon"></i>
+                      <div class="menu" suiDropdownMenu>
+                        <div class="item" *ngFor="let operation of patient.operations">
+                          <div class="w100" (click)="onPatientOperationClick(operation, patient)">{{operation.value}}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <button class="orange circular ui right floated icon button" type="button"
+                    *ngIf="patient.isOptIn && permissions.optInOut"
+                    (click)="$event.stopPropagation();onPatientOperationClick({key: 'optout', value: 'OptOut SMS'}, patient)"
+                    suiPopup popupText="Opted In" popupInverted [popupPlacement]="'top'">
+                    <i class="mobile alternate icon"></i>
+                  </button>
+                  <i class="icons" style="float: right; margin-left: .25em;"
+                    *ngIf="!patient.isOptIn && permissions.optInOut"
+                    (click)="$event.stopPropagation();onPatientOperationClick({key: 'optin', value: 'OptIn SMS'}, patient)"
+                    suiPopup popupText="Opted Out" popupInverted [popupPlacement]="'top'">
+                    <i class="circular inverted orange mobile alternate icon"></i>
+                    <i class="red small close icon"></i>
+                  </i>
+                  <button class="orange circular ui right floated icon button" type="button"
+                    *ngIf="permissions.addNotes"
+                    (click)="$event.stopPropagation();onPatientOperationClick({key: 'addNote', value: 'Add Note'}, patient)"
+                    suiPopup popupText="Add Note" popupInverted [popupPlacement]="'top'">
+                    <i class="sticky note outline icon"></i>
+                  </button>
+                  <button class="orange circular ui right floated icon button" type="button"
+                    *ngIf="permissions.viewAllTransaction"
+                    (click)="$event.stopPropagation();onPatientOperationClick({key: 'fetchTransaction', value: 'Transaction History'}, patient)"
+                    suiPopup popupText="Transaction History" popupInverted [popupPlacement]="'top'">
+                    <i class="list alternate outline icon"></i>
+                  </button>
+                  <button class="orange circular  ui right floated icon button" type="button"
+                    *ngIf="permissions.addInvoice"
+                    (click)="$event.stopPropagation();onPatientOperationClick({key: 'patientCheckout', value: 'Patient Checkout'}, patient)"
+                    suiPopup popupText="Collect Payment" popupInverted [popupPlacement]="'top'">
+                    <i class="dollar icon"></i>
+                  </button>
+                  <button class="blue circular  ui right floated icon button" type="button"
+                    *ngIf="(patient.lastPatientVisit.visitStatus == undefined || patient.lastPatientVisit.visitStatus==3) && permissions.patientCheckInCheckOut"
+                    (click)="$event.stopPropagation();onPatientOperationClick({key: 'checkIn', value: 'Check In Now'}, patient)"
+                    suiPopup popupText="Check In Now" popupInverted [popupPlacement]="'top'">
+                    <i class="calendar check icon"></i>
+                  </button>
+                  <button class="blue circular ui right floated icon button" type="button"
+                    *ngIf="patient.lastPatientVisit.visitStatus==1 && permissions.patientCheckInCheckOut"
+                    (click)="$event.stopPropagation();onPatientOperationClick({key: 'withDoctor', value: 'With Doctor'}, patient)"
+                    suiPopup popupText="With Doctor" popupInverted [popupPlacement]="'top'">
+                    <i class="user md icon"></i>
+                  </button>
+                  <i class="icons blue" style="float: right; margin-left: .25em;"
+                    *ngIf="patient.lastPatientVisit.visitStatus==2 && permissions.patientCheckInCheckOut"
+                    (click)="$event.stopPropagation();onPatientOperationClick({key: 'checkOut', value: 'Check Out Now'}, patient)"
+                    suiPopup popupText="Check Out Now" popupInverted [popupPlacement]="'top'">
+                    <i class="circular inverted orange calendar check icon blue"></i>
+                    <i class="red small close icon"></i>
+                  </i>
+                </div>
+              </div>
+            </div>
+            <div class="ui divided list" [suiTransition]="transitionController" *ngIf="patient.showDetails"
+              style="cursor: default">
+
+
+              <div class="item">
+                <i class="map marker icon"></i>
+                <div class="content">
+                  <strong> {{'patient.find.address' | translate}}:
+                  </strong>{{patient.fullAddress!='' ? patient.fullAddress : '--'}}
+                </div>
+              </div>
+
+              <!-- <div *ngIf="patient.isInsured">
+                <div class="item">
+                  <div class="content">
+                    <div class="item" *ngFor="let details of patient.insuranceDetails">
+                      <strong> {{'patient.find.insurancePartner' | translate}}:
+                      </strong>{{details.insurancePartner}}<span class="separator">|</span>
+                      <strong> {{'patient.find.policyNo' | translate}}: </strong>{{details.policyNo}}<span
+                        class="separator">|</span>
+                      <strong> {{'patient.find.groupNo' | translate}}: </strong>{{details.groupNo}}<span
+                        class="separator">|</span>
+                      <strong> {{'patient.find.binNo' | translate}}:
+                      </strong>{{details.binNo!=null ? details.binNo : '--'}}<span class="separator">|</span>
+                      <strong> {{'patient.find.relation' | translate}}:
+                      </strong>{{relationList[details.relation].title}}
+                    </div>
+                  </div>
+                </div>
+              </div> -->
+
+              <!-- Account List -->
+              <sui-accordion [closeOthers]="true">
+
+                <sui-accordion-panel *ngIf="hasModuleAccess(2) && permissions.viewAllInvoices">
+                  <div title>
+                    <i class="dropdown icon"></i>
+                    {{'Open Balances' | translate}}
+                  </div>
+                  <div content class="ui segment results" (click)="$event.stopPropagation()">
+                    <app-patient-invoices-card [InputData]="patient"></app-patient-invoices-card>
+                  </div>
+                </sui-accordion-panel>
+
+                <!-- <sui-accordion-panel *ngIf="hasModuleAccess(3) && permissions.viewAllClaims && false">
+                  <div title>
+                    <i class="dropdown icon"></i>
+                    {{'Claims' | translate}}
+                  </div>
+                  <div content class="ui segment results" (click)="$event.stopPropagation()">
+                    <app-patient-claims-card [InputData]="patient"></app-patient-claims-card>
+                  </div>
+                </sui-accordion-panel> -->
+
+                <sui-accordion-panel *ngIf="hasModuleAccess(1) && permissions.patientInsuranceManagement">
+                  <div title>
+                    <i class="dropdown icon"></i>
+                    {{'Insurance Details' | translate}}
+                  </div>
+                  <div content class="ui segment results" (click)="$event.stopPropagation()">
+                    <app-patient-insurance-card [InputData]="patient"></app-patient-insurance-card>
+                  </div>
+                </sui-accordion-panel>
+
+                <sui-accordion-panel *ngIf="hasModuleAccess(1) && permissions.viewPaymentAccount">
+                  <div title>
+                    <i class="dropdown icon"></i>
+                    {{'Wallet' | translate}}
+                  </div>
+                  <div content class="ui segment results" (click)="$event.stopPropagation()">
+
+                    <!-- No Records Found patient Payment Account List -->
+                    <div *ngIf="patient.showDetails && patient.noRecordsFound_CustAccList">
+                      <div class="ui cards cards-overflow">
+                        <div class="ui card add-insurance">
+                          <sui-message class="attached warning" [isDismissable]="false">
+                            <p>{{'transaction.add.noRecordsFound' | translate}}</p>
+                          </sui-message>
+                        </div>
+                        <div class="card add-insurance"
+                          (click)="onPatientOperationClick({ 'key': 'addAccount', 'value': 'Add Payment Account' }, patient)">
+                          <div class="content">
+                            <i class="plus circle orange link icon huge" suiPopup popupText="Add Patient Account"
+                              popupInverted [popupPlacement]="'top'"></i>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="ui cards cards-overflow" *ngIf="patient.custAccList.length>0"
+                      style="margin: 0px; margin-bottom: 0.5em;">
+                      <div *ngFor="let custAcc of patient.custAccList">
+                        <div class="content">
+                          <!-- operation control will come here -->
+
+                          <div style="margin: 5px" class="ui card card-selectX">
+                            <div class="ui active dimmer" *ngIf="custAcc.isLoader_patientAccountOperation">
+                              <div class="ui small text loader"></div>
+                            </div>
+                            <div class="content">
+                              <div class="ui right floated pointing dropdown mr0" suiDropdown
+                                (click)="$event.stopPropagation()">
+                                <i class="ellipsis horizontal icon"></i>
+                                <div class="menu" suiDropdownMenu>
+                                  <div class="item" *ngFor="let operation of custAcc.operations"
+                                    (click)="onPatientAccountOperationClick(operation, patient, custAcc)">
+                                    <div class="w100">{{operation.value}}</div>
+
+                                  </div>
+                                </div>
+                              </div>
+                              <div class="ui mini green bottom right attached label" *ngIf="custAcc.isActive=='1'">
+                                {{'Active'}}
+                              </div>
+                              <div class="ui mini red bottom right attached label" *ngIf="custAcc.isActive!='1'">
+                                {{'InActive'}}
+                              </div>
+                              <div class="header">
+                                &nbsp;&nbsp;{{custAcc.accountHolderName}}</div>
+                              <div class="meta">
+                              </div>
+                            </div>
+                            <div class="content">
+                              <div *ngIf="custAcc.accountType=='1'">
+                                <div class="meta">
+                                  ****{{custAcc.maskedCardNumber}}
+                                  <img *ngIf="custAcc.cardType==''||custAcc.cardType==null"
+                                    src="../../../../../../../assets/images/cards/BlankCard.png" />
+                                  <img *ngIf="custAcc.cardType=='AMEX'"
+                                    src="../../../../../../../assets/images/cards/Amex.png" />
+                                  <img *ngIf="custAcc.cardType=='DINERS'"
+                                    src="../../../../../../../assets/images/cards/Diners.png" />
+                                  <img *ngIf="custAcc.cardType=='DISCOVER'"
+                                    src="../../../../../../../assets/images/cards/Discover.png" />
+                                  <img *ngIf="custAcc.cardType=='JCB'"
+                                    src="../../../../../../../assets/images/cards/JCB.png" />
+                                  <img *ngIf="custAcc.cardType=='MASTERCARD'"
+                                    src="../../../../../../../assets/images/cards/MasterCard.png" />
+                                  <img *ngIf="custAcc.cardType=='VISA'"
+                                    src="../../../../../../../assets/images/cards/Visa.png" />
+
+                                </div>
+                                <br>
+                                <div class="description">
+                                  {{'transaction.add.validThrough' | translate}}: {{custAcc.cardExpiry}}
+                                </div>
+                              </div>
+                              <div *ngIf="custAcc.accountType==2">
+                                <div class="meta">
+                                  ****{{custAcc.maskedAccountNo}}
+                                </div>
+                                <div class="description">
+                                  {{'transaction.add.paymentTypeACH' | translate}}
+                                </div>
+                              </div>
+                              <div style="clear: both;"></div>
+                              <button class="orange circular ui left floated icon button" type="button"
+                                *ngIf="permissions.addInvoice"
+                                (click)="$event.stopPropagation();onPatientAccountOperationClick({ 'key': 'oneTimePaymentCredit', 'value': 'Patient Checkout' }, patient, custAcc)"
+                                suiPopup popupText="Collect Payment" popupInverted [popupPlacement]="'top'">
+                                <i class="dollar sign icon"></i>
+                              </button>
+                              <button class="orange circular ui left floated icon button" type="button"
+                                *ngIf="permissions.deletePaymentAccount"
+                                (click)="$event.stopPropagation();onPatientAccountOperationClick({ 'key': 'editPatientAccount', 'value': 'Edit' }, patient, custAcc)"
+                                suiPopup popupText="Edit" popupInverted [popupPlacement]="'top'">
+                                <i class="pencil sign icon"></i>
+                              </button>
+                              <button class="orange circular ui left floated icon button" type="button"
+                                *ngIf="permissions.editPaymentAccount"
+                                (click)="$event.stopPropagation();onPatientAccountOperationClick({ 'key': 'delete', 'value': 'Delete' }, patient, custAcc)"
+                                suiPopup popupText="Delete" popupInverted [popupPlacement]="'top'">
+                                <i class="trash alternate outline sign icon" style="color: #ffffff;"></i>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="card add-insurance"
+                        (click)="onPatientOperationClick({ 'key': 'addAccount', 'value': 'Add Payment Account' }, patient)">
+                        <div class="content">
+                          <i class="plus circle orange link icon huge" suiPopup popupText="Add Patient Account"
+                            popupInverted [popupPlacement]="'top'"></i>
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+                </sui-accordion-panel>
+
+                <!-- forms start -->
+                <sui-accordion-panel *ngIf="hasModuleAccess(10) && permissions.viewAllForms">
+                  <div title>
+                    <i class="dropdown icon"></i>
+                    {{'Forms' | translate}}
+                  </div>
+                  <div content class="ui segment results" (click)="$event.stopPropagation()">
+                    <app-patient-forms-card [PatientData]="patient">
+                    </app-patient-forms-card>
+                  </div>
+                </sui-accordion-panel>
+                <!-- forms end -->
+
+                <sui-accordion-panel *ngIf="hasModuleAccess(1) && permissions.viewNotes">
+                  <div title>
+                    <i class="dropdown icon"></i>
+                    {{'Notes' | translate}}
+                  </div>
+                  <div content class="ui segment results" (click)="$event.stopPropagation()">
+                    <app-patient-notes [InputData]="patient" [PatientList]="searchPatientList"></app-patient-notes>
+                  </div>
+                </sui-accordion-panel>
+
+                <!-- patient visit start -->
+                <sui-accordion-panel *ngIf="hasModuleAccess(1) && permissions.patientCheckInCheckOut">
+                  <div title>
+                    <i class="dropdown icon"></i>
+                    {{'Patient Visits' | translate}}
+                  </div>
+                  <div content class="ui segment results" (click)="$event.stopPropagation()">
+                    <app-patient-visits-card [InputData]="patient" [DoctorList]="doctorList"
+                      (OutputData)="outputDataFromVisitCardOperation($event)"></app-patient-visits-card>
+                  </div>
+                </sui-accordion-panel>
+                <!-- patient visit ends -->
+
+
+                <sui-accordion-panel *ngIf="hasModuleAccess(14) && permissions.viewAllAppointment">
+                  <div title>
+                    <i class="dropdown icon"></i>
+                    {{'Appointments' | translate}}
+                  </div>
+                  <div content class="ui segment results" (click)="$event.stopPropagation()">
+                    <app-patient-appointment-card [InputData]="patient" [searchPatientList]="searchPatientList"
+                      [searchDoctorList]="doctorList" (OutputData)="outputDataFromAppointmentCardOperation($event)">
+                    </app-patient-appointment-card>
+                  </div>
+                </sui-accordion-panel>
+
+                <!-- <!-1- attachment start -1-> -->
+                <!-- <sui-accordion-panel *ngIf="hasModuleAccess(10) && permissions.viewAttachments">
+                  <div title>
+                    <i class="dropdown icon"></i>
+                    {{'Attachments' | translate}}
+                  </div>
+                  <div content class="ui segment results" (click)="$event.stopPropagation()">
+                    <app-attachment-card [patientData]="patient"></app-attachment-card>
+                  </div>
+                </sui-accordion-panel> -->
+
+              </sui-accordion>
+
+            </div>
+
+          </div>
+        </div>
+        <app-pagination [pager]="pager" (OutputData)="fetchPatient($event)"></app-pagination>
+      </div>
+    </form>
+
+    <ng-container *ngIf="isFormOpen">
+      <h1 class="ui header" *ngIf="!inputDataForEditOperation.isEdit">{{'patient.add.heading' | translate}}</h1>
+      <h1 class="ui header" *ngIf="inputDataForEditOperation.isEdit">{{'patient.edit.heading' | translate}}</h1>
+
+      <div class="ui segment">
+        <app-add-patient (OutputData)="outputDataFromOperation($event)" [InputData]="inputDataForEditOperation">
+        </app-add-patient>
+        <div class="ui fitted divider wizard-footer"></div>
+        <div class="actions">
+          <div class="ui tiny">
+            <button class="tiny ui orange button" autofocus (click)="onAddPatientClick({'saveAndContinue': true})"
+              *ngIf="!inputDataForEditOperation.isEdit && isLinked==undefined">{{'patient.add.save' |
+              translate}}</button>
+            <button class="tiny ui orange button" autofocus (click)='onEditPatientClick()'
+              *ngIf="inputDataForEditOperation.isEdit && isLinked==undefined">{{'patient.add.save' |
+              translate}}</button>
+            <button class="tiny ui orange button" autofocus (click)='confirmPaymentTypeModal(patientData)'
+              *ngIf="isLinked!=undefined && isLinked">{{'patient.add.continue' | translate}}</button>
+            <button class="tiny ui orange button" autofocus (click)='linkPatient(patientData)'
+              *ngIf="isLinked!=undefined && !isLinked">{{'patient.add.link' | translate}}</button>
+            <button class="tiny ui button" *ngIf="!inputDataForEditOperation.isEdit"
+              (click)="clearAddPatientForm()">{{'patient.add.reset' | translate}}</button>
+            <button class="tiny ui button" (click)="this.closeAddPatientModal();">{{'patient.add.cancel' |
+              translate}}</button>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+  </div>
+</div>
+
+<!-- <ng-template let-context let-modal="modal" #modalAddPatient>
+  <div class="header">
+    <span *ngIf="inputDataForEditOperation.isEdit">{{'patient.edit.heading' | translate}}</span>
+    <span *ngIf="!inputDataForEditOperation.isEdit">{{'patient.add.heading' | translate}}</span>
+    <i #closeWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-add-patient (OutputData)="outputDataFromOperation($event)" [InputData]="inputDataForEditOperation">
+    </app-add-patient>
+  </div>
+  <div class="actions">
+    <div class="ui tiny">
+      <button class="tiny ui orange button" autofocus (click)="onAddPatientClick({'saveAndContinue': true})"
+        *ngIf="!inputDataForEditOperation.isEdit && isLinked==undefined">{{'patient.add.save' | translate}}</button>
+      <button class="tiny ui orange button" autofocus (click)='onEditPatientClick()'
+        *ngIf="inputDataForEditOperation.isEdit && isLinked==undefined">{{'patient.add.save' | translate}}</button>
+      <button class="tiny ui orange button" autofocus (click)='confirmPaymentTypeModal(patientData)'
+        *ngIf="isLinked!=undefined && isLinked">{{'patient.add.continue' | translate}}</button>
+      <button class="tiny ui orange button" autofocus (click)='linkPatient(patientData)'
+        *ngIf="isLinked!=undefined && !isLinked">{{'patient.add.link' | translate}}</button>
+      <button class="tiny ui button" *ngIf="!inputDataForEditOperation.isEdit"
+        (click)="clearAddPatientForm()">{{'patient.add.reset' | translate}}</button>
+      <button class="tiny ui button" (click)="modal.deny()">{{'patient.add.cancel' | translate}}</button>
+    </div>
+  </div>
+</ng-template> -->
+
+<ng-template let-context let-modal="modal" #modalAddPatientAccount>
+  <div class="header">
+    <span *ngIf="!inputDataForAccountOperation.isEdit">{{'patientAccount.add.heading' | translate}}</span>
+    <span *ngIf="inputDataForAccountOperation.isEdit">{{'patientAccount.edit.heading' | translate}}</span>
+    <i #closeAccountModal (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+
+    <app-add-patient-account [InputData]="inputDataForAccountOperation" (OutputData)="outputDataFromAccount($event)">
+    </app-add-patient-account>
+  </div>
+  <div class="actions">
+    <div class="ui tiny">
+      <button class="tiny ui orange button" autofocus (click)='onAddPatientAccountClick()'
+        *ngIf="!inputDataForAccountOperation.isEdit">{{'patient.add.save' | translate}}</button>
+      <button class="tiny ui orange button" autofocus (click)='onEditPatientAccountClick()'
+        *ngIf="inputDataForAccountOperation.isEdit">{{'patient.add.save' | translate}}</button>
+      <button class="tiny ui button" (click)="modal.deny()">{{'transaction.find.cancel' | translate}}</button>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template let-context let-modal="modal" #modalAddPatientNote>
+  <div class="header">
+    <span>{{'patient.note.heading' | translate}}</span>
+    <i #closeAddNote (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-add-note [InputData]="inputDataForNote" (OutputData)="outputDataFromNote($event)"></app-add-note>
+  </div>
+  <div class="actions">
+    <div class="ui tiny">
+      <button class="ui tiny button" (click)="modal.deny()">{{'note.add.cancel' | translate}}</button>
+    </div>
+  </div>
+</ng-template>
+<!-- Add Transaction Start -->
+
+<ng-template let-context let-modal="modal" #modalAddTransaction>
+  <div class="header">{{'transaction.add.acceptPayment' | translate}}
+    <i #closeTransactionWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-add-transaction [InputData]="inputDataForOperation" (OutputData)="outputDataFromTransaction($event)">
+    </app-add-transaction>
+  </div>
+</ng-template>
+<!-- Add Transaction End -->
+
+<!--Add Recurring Payment-->
+<ng-template let-context let-modal="modal" #modalAddRecurringPayments>
+  <div class="header">
+    <span *ngIf="!inputDataForOperation.isEdit">{{'recurringPayments.add.heading' | translate}}</span>
+    <i #cancel (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-add-recurring (cancel)='closeRecurringModal($event)' [InputData]="inputDataForOperation"
+      (OutputData)="outputDataFromAddRecurring($event)"></app-add-recurring>
+  </div>
+
+</ng-template>
+
+<!--Add Recurring payment end-->
+<ng-template let-context let-modal="modal" #modalAddAppointment let-eventTimesChanged="eventTimesChanged">
+  <div class="header">
+    <span>{{'appointment.add.heading' | translate}}</span>
+    <i #closeAptModal (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-add-appointment (OutputData)="outputDataFromAptOperation($event)" [InputData]="inputDataForAptOperation">
+    </app-add-appointment>
+    <button class="tiny ui button" (click)="modal.deny()">{{'appointment.add.cancel' | translate}}</button>
+  </div>
+</ng-template>
+
+<!--Add Invoice Start-->
+<ng-template let-context let-modal="modal" #modalAddInvoice>
+  <div class="header">{{'invoice.add.header' | translate}}
+    <i #closeInvoiceWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-add-invoice (OutputData)="outputDataFromInvoiceOperation($event)" [InputData]="inputDataForInvoiceOperation">
+    </app-add-invoice>
+  </div>
+</ng-template>
+<!--Add Invoice End-->
+
+<!-- Add Patient Additional Insurance Starts -->
+<ng-template let-context let-modal="modal" #modalAddInsurance>
+  <div class="header">
+    <span *ngIf="inputDataForInsuranceOperation.isEdit">{{'patientInsurance.edit.heading' | translate}}</span>
+    <span *ngIf="!inputDataForInsuranceOperation.isEdit">{{'patientInsurance.add.heading' | translate}}</span>
+    <i #closeWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-patient-add-insurance (OutputData)="outputDataFromInsuranceOperation($event)"
+      [InputData]="inputDataForInsuranceOperation">
+    </app-patient-add-insurance>
+  </div>
+</ng-template>
+<!-- Add Patient Additional Insurance Ends -->
+
+<!-- Patient Check In/Out Status Change Modal Starts -->
+<ng-template let-context let-modal="modal" #modalCheckIn>
+  <div class="header">
+    <span>{{'patient.checkInOut.heading' | translate}}</span>
+    <i #closeWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-patient-check-in (OutputData)="outputDataFromCheckInOperation($event)" [InputData]="inputDataForCheckIn">
+    </app-patient-check-in>
+  </div>
+</ng-template>
+<!-- Patient Check In/Out Status Change Modal Ends -->

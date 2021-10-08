@@ -1,0 +1,9 @@
+<app-header></app-header>
+<app-side-nav></app-side-nav>
+<div class="ui" *ngIf="loading">
+  <div class="ui active dimmer">
+    <div class="ui indeterminate text loader">Loading..</div>
+  </div>
+</div>
+<router-outlet></router-outlet>
+<!-- <app-footer></app-footer> -->

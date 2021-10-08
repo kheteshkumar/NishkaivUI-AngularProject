@@ -1,0 +1,761 @@
+<div class="toaster-static toaster-s" *ngIf="showSuccessMessage">
+  <span><a href="javascript:void(0)" (click)="showSuccessMessage=!showSuccessMessage"><i
+        class="close icon"></i></a></span>
+  <p>{{successMessage}}</p>
+</div>
+<div class="toaster-static toaster-e" *ngIf="showErrorMessage">
+  <span><a href="javascript:void(0)" (click)="showErrorMessage=!showErrorMessage"><i class="close icon"></i></a></span>
+  <p>{{errorMessage}}</p>
+</div>
+
+<div class="ui" *ngIf="isLoader_customerDetails || isLoader_saveInvoice || isLoader_saveAndPayInvoice">
+  <div class="ui active dimmer">
+    <div class="ui indeterminate text loader">{{'common.loading' | translate}}</div>
+  </div>
+</div>
+
+<div class="ui segment modal-loader" *ngIf="isLoader_ProductLookup || isLoader_PatientLookup || isLoader_DoctorLookup">
+  <div class="ui active dimmer">
+    <div class="ui medium text loader">Loading</div>
+  </div>
+</div>
+
+<div [hidden]="showPreviewScreen" *ngIf="!isLoader_ProductLookup && !isLoader_PatientLookup && !isLoader_DoctorLookup">
+  <div style="margin: auto; padding-top: 15px; font-size: 14px; line-height: 24px; color: #555;">
+    <!-- <div style="max-width: 800px; margin: auto; padding-top: 15px; font-size: 14px; line-height: 24px; color: #555;"> -->
+
+    <div class="ui container">
+      <!-- <div class="ui segments"> -->
+
+      <div class="ui segment" *ngIf="!InputData.showReset">
+        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="line-height: inherit; text-align: center;"
+          [style.border-color]="settingsData.colourTheme">
+          <tr>
+            <td style="padding: 10px; vertical-align: middle">
+              <!-- <img src="{{settingsData.logo}}" style="width:auto; max-width:190px; max-height:60px"> -->
+              <img *ngIf="(settingsData.logo !== '' && settingsData.logo !== null)" src="{{settingsData.logo}}"
+                style="width:auto; max-width:190px; max-height:60px" />
+              <img *ngIf="(settingsData.logo === '' || settingsData.logo === null)"
+                src="../../../../assets/images/logo_login.png" style="width:auto; max-width:190px; max-height:60px" />
+            </td>
+        </table>
+      </div>
+      <sui-accordion [closeOthers]="true">
+        <sui-accordion-panel [(isOpen)]="accordian.basicDetails">
+          <div title>
+            <i class="dropdown icon"></i>
+            {{'patient.add.basicDetails' | translate}}
+          </div>
+          <div content (click)="$event.stopPropagation()">
+            <div class="ui segment">
+              <form [formGroup]="invoiceDetailsForm" class="ui tiny form">
+                <div *ngIf="!patientPreSelected">
+                  <div class="two fields">
+                    <div class="field fourteen wide column">
+                      <label>
+                        <h3 class="mb0"><i class="user icon"></i>Choose Patient</h3>
+                      </label>
+
+                      <sui-select class="selection" formControlName="PatientName" #PatientName
+                        (selectedOptionChange)="onPatientSelectionClick(PatientName)" labelField="displayName"
+                        valueField="id" [isSearchable]="true" [optionsLookup]="filterPatients" icon="search">
+                        <sui-select-option *ngFor="let o of PatientName.filteredOptions" [value]="o">
+                        </sui-select-option>
+                      </sui-select>
+
+                      <span>{{invoiceDetailsFormErrors.PatientName}}</span>
+                      <span>{{invoiceDetailsFormErrors.ToEmail}}</span>
+                      <span>{{invoiceDetailsFormErrors.CCEmail}}</span>
+                    </div>
+                    <div class="field two wide column" style="margin-left: -5px; margin-top: 2px; text-align: center;">
+                      <label>
+                        <h3 class="mb0">&nbsp;</h3>
+                      </label>
+                      <button class="ui primary icon orange tiny button" autofocus (click)="onAddNewPatientClick()"
+                        suiPopup popupText="Add New Patient" popupInverted [popupPlacement]="'top'">
+                        <i class="plus icon"></i></button>
+                    </div>
+                  </div>
+                </div>
+                <div class="ui grid" style="margin-bottom: 10px;" *ngIf="patientPreSelected">
+                  <div class="one wide column"></div>
+                  <div class="fourteen wide column" style="padding-right: 2px;">
+                    <div class="field">
+                      <label>
+                        <h3 class="mb0"><i class="user icon"></i>Selected Patient</h3>
+                      </label>
+                      <sui-select class="selection" formControlName="PatientName" #PatientName
+                        (selectedOptionChange)="onPatientSelectionClick(PatientName)" labelField="displayName"
+                        valueField="id" [isSearchable]="true" [options]="patientList" icon="search" [isDisabled]="true">
+                        <sui-select-option *ngFor="let o of PatientName.filteredOptions" [value]="o">
+                        </sui-select-option>
+                      </sui-select>
+                      <span>{{invoiceDetailsFormErrors.PatientName}}</span>
+                      <span>{{invoiceDetailsFormErrors.ToEmail}}</span>
+                      <span>{{invoiceDetailsFormErrors.CCEmail}}</span>
+                    </div>
+                  </div>
+                  <div class="one wide column"></div>
+                </div>
+              </form>
+            </div>
+
+            <div class="ui segment">
+              <form class="ui tiny form" [formGroup]="invoiceDetailsForm">
+
+                <div class="two fields">
+                  <div class="required field">
+                    <label>{{'invoice.add.invoiceDate' | translate}}</label>
+                    <div class="ui left icon input">
+                      <i class="calendar icon"></i>
+                      <input suiDatepicker [pickerMode]="dateMode" [pickerMinDate]="minInvoiceDate"
+                        [pickerMaxDate]="maxInvoiceDate" [pickerUseNativeOnMobile]="false" formControlName="InvoiceDate"
+                        readonly>
+                    </div>
+                  </div>
+
+                  <div class="required field">
+                    <label>Due In Days</label>
+                    <sui-select class="selection" [options]="dueInDaysOptionsList" formControlName="DueInDays"
+                      labelField="name" valueField="id" #DueInDays>
+                      <div class="ui icon search input">
+                        <i class="search icon"></i>
+                        <input suiSelectSearch type="text" placeholder="Search options...">
+                      </div>
+                      <div class="divider"></div>
+                      <sui-select-option *ngFor="let o of DueInDays.filteredOptions" [value]="o">
+                      </sui-select-option>
+                    </sui-select>
+                  </div>
+                </div>
+                <div class="two fields">
+                  <div class="required field">
+                    <label>Due Date
+                      <em *ngIf="invoiceDetailsForm.value.DueInDays === 0">(On Receipt)</em>
+                      <em *ngIf="invoiceDetailsForm.value.DueInDays === ''">(Custom)</em>
+                      <em *ngIf="invoiceDetailsForm.value.DueInDays && invoiceDetailsForm.value.DueInDays != 0">(Net
+                        {{invoiceDetailsForm.value.DueInDays}} days)</em>
+                    </label>
+                    <div class="ui left icon input">
+                      <i class="calendar icon"></i>
+                      <input suiDatepicker [pickerMode]="dateMode" [pickerMinDate]="minInvoiceDueDate"
+                        [pickerMaxDate]="maxDueDueDate" [pickerUseNativeOnMobile]="false" formControlName="DueDate"
+                        readonly>
+                    </div>
+                  </div>
+
+                  <div class="required field">
+                    <label>Service Date</label>
+                    <div class="ui left icon input">
+                      <i class="calendar icon"></i>
+                      <input suiDatepicker [pickerMode]="dateMode" [pickerUseNativeOnMobile]="false"
+                        [pickerMinDate]="minServiceDate" [pickerMaxDate]="maxServiceDate" formControlName="ServiceDate"
+                        readonly>
+                    </div>
+                  </div>
+                </div>
+                <div class="two fields">
+
+                  <div class="required field">
+                    <label>Search Practitioner</label>
+                    <sui-select class="selection" formControlName="DoctorId" #DoctorId labelField="displayName"
+                      valueField="id" [isSearchable]="true" [options]="doctorList" icon="search">
+                      <sui-select-option *ngFor="let o of DoctorId.filteredOptions" [value]="o">
+                      </sui-select-option>
+                    </sui-select>
+                    <span>{{invoiceDetailsFormErrors.DoctorId}}</span>
+                  </div>
+
+                </div>
+
+              </form>
+
+            </div>
+          </div>
+        </sui-accordion-panel>
+        <sui-accordion-panel [(isOpen)]="accordian.productsServices">
+          <div title>
+            <i class="dropdown icon"></i>
+            Products/Services
+          </div>
+          <div content (click)="$event.stopPropagation()">
+
+            <div class="ui segment" *ngIf="hasModuleAccess(3) && permissions.checkClaimStatus">
+              <form class="ui tiny form" [formGroup]="invoiceDetailsForm">
+
+                <div class="one fields">
+                  <div class="field">
+                    <label></label>
+                    <sui-checkbox formControlName="AutoClaim" #AutoClaim [isDisabled]="!isPatientSelected"
+                      (checkChange)="onAutoClaimStatusChange()">
+                      {{'Check this box if you would like automatic claim update for this patient and date' |
+                      translate}}
+                    </sui-checkbox>
+                  </div>
+                </div>
+                <div class="three fields" *ngIf="invoiceDetailsForm.value.AutoClaim">
+                  <div class="field required">
+                    <label class="update-label">{{'invoice.add.claimCycle' | translate}} </label>
+                    <sui-select class="selection" [options]="frequencyList" formControlName="Frequency"
+                      (selectedOptionChange)="onFrequencySelectionClick(Frequency)" labelField="title" #Frequency
+                      valueField="value">
+                      <sui-select-option *ngFor="let option of frequencyList" [value]="option"></sui-select-option>
+                    </sui-select>
+                    <span>{{invoiceDetailsFormErrors.Frequency}}</span>
+                  </div>
+                  <div class="field required">
+                    <label class="update-label">{{'invoice.add.claimUpdate' | translate}} </label>
+                    <div class="ui left icon input">
+                      <i class="calendar icon"></i>
+                      <input suiDatepicker [pickerMode]="dateMode" [pickerFirstDayOfWeek]="firstDayOfWeek"
+                        style="width: 115px;" [pickerUseNativeOnMobile]="false" [pickerMinDate]="minClaimDate"
+                        [pickerMaxDate]="maxClaimDate" formControlName="StartDate" #StartDate readonly>
+                    </div>
+                    <span>{{invoiceDetailsFormErrors.StartDate}}</span>
+                  </div>
+                  <div class="field required">
+                    <label class="update-label">{{'invoice.add.noOfTimes' | translate}}</label>
+                    <input type="text" placeholder="{{'invoice.add.noOfTimes' | translate}}" formControlName="NoOfTimes"
+                      #NoOfTimes>
+                    <span>{{invoiceDetailsFormErrors.NoOfTimes}}</span>
+                  </div>
+                </div>
+                <div class="two fields" *ngIf="invoiceDetailsForm.value.AutoClaim">
+                  <div class="field required">
+                    <label>{{'claims.add.patientInsuranceId' | translate}}</label>
+                    <sui-select class="selection" icon="search" [options]="patientInsuranceList"
+                      labelField="displayName" valueField="id"
+                      (selectedOptionChange)="selectPatientInsurance(PatientInsuranceId)" [isSearchable]="true"
+                      placeholder="{{'claims.add.patientInsuranceId' | translate}}" [isDisabled]="InputData.isEdit"
+                      formControlName="PatientInsuranceId" #PatientInsuranceId>
+                      <sui-select-option *ngFor="let o of PatientInsuranceId.filteredOptions" [value]="o">
+                      </sui-select-option>
+                    </sui-select>
+                    <span>{{invoiceDetailsFormErrors.PatientInsuranceId}}</span>
+                  </div>
+                  <div class="field one wide column" style="margin-left: -5px; margin-top: 2px; text-align: center;">
+                    <!-- <div class="field"> -->
+                    <label>
+                      <h3 class="mb0">&nbsp;</h3>
+                    </label>
+                    <button class="ui orange tiny default icon button" autofocus (click)="onAddPayerClick()" suiPopup
+                      popupText="Update Insurance" popupInverted [popupPlacement]="'top'">
+                      <i class="pencil icon"></i>
+                    </button>
+                    <!-- </div> -->
+                  </div>
+                </div>
+                <div class="one fields"
+                  *ngIf="invoiceDetailsForm.value.Frequency !=0 && invoiceDetailsForm.value.AutoClaim">
+                  <div class="field">
+                    <label>Claim update calls will repeat until an adjudication date is found or time expires.</label>
+                  </div>
+                </div>
+                <div class="two fields" *ngIf="invoiceDetailsForm.value.PatientInsuranceId"
+                  style="background: #ddd; padding: 10px;">
+                  <div class="field">
+                    <label>Policy Subscriber</label>
+                    <p>{{selectedInsurance.relation}}</p>
+                  </div>
+                  <div class="field">
+                    <label>Subscriber Name</label>
+                    <p>{{selectedInsurance.firstName + ' ' + selectedInsurance.lastName}}</p>
+                  </div>
+                </div>
+
+              </form>
+            </div>
+
+            <div class="ui segment" style="background-color: #dddddd;">
+              <table cellpadding="0" cellspacing="10" style="width: 100%;">
+                <tbody>
+                  <tr class="details">
+                    <td colspan="7" class="Prod-svc" style="padding-top:10px;padding-bottom: 10px;">
+                      <form [formGroup]="invoiceDetailsForm" class="ui tiny form">
+                        <div class="two fields">
+                          <!-- <h3 class="mb0"><i class="cubes icon"></i> Choose Products/Services</h3> -->
+                          <div class="field fourteen wide column">
+                            <label>
+                              <h3 class="mb0"><i class="cubes icon"></i>Choose Products/Services</h3>
+                            </label>
+                            <sui-select class="selection" formControlName="Product_ServiceName" #Product_ServiceName
+                              labelField="displayName" valueField="id" [isSearchable]="true" icon="search"
+                              [optionsLookup]="filterProducts"
+                              (selectedOptionChange)="onProductSelectionClick(Product_ServiceName)">
+                              <sui-select-option *ngFor="let o of Product_ServiceName.filteredOptions" [value]="o">
+                              </sui-select-option>
+                            </sui-select>
+                            <span class="error-msg3">{{invoiceDetailsFormErrors.Product_ServiceName}}</span>
+                          </div>
+                          <div class="field two wide column"
+                            style="margin-left: -5px; margin-top: 2px; text-align: center;">
+                            <label>
+                              <h3 class="mb0">&nbsp;</h3>
+                            </label>
+                            <button class="ui primary icon orange tiny button" autofocus
+                              (click)="onAddNewProductClick()" suiPopup popupText="Add New Product/Services"
+                              popupInverted [popupPlacement]="'top'">
+                              <i class="plus icon"></i></button>
+                          </div>
+                        </div>
+                      </form>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="ui segment" style="overflow-x: auto;background-color: #dddddd;" *ngIf="productList.length > 0">
+              <table cellpadding="0" cellspacing="10" class="product-list"
+                style="width: 100%; line-height: inherit; text-align: left;border: none; background: inherit;">
+                <tbody>
+                  <tr class="heading">
+                    <td style="padding-top: 10px;padding-bottom: 10px;"><b>Products/Services</b></td>
+                    <td style="padding-top: 10px;padding-bottom: 10px;"><b>Unit Rate</b></td>
+                    <td style="padding-top: 10px;padding-bottom: 10px;"><b>Quantity</b></td>
+                    <td style="padding-top: 10px;padding-bottom: 10px; min-width: 140px;"><b>Discount</b></td>
+                    <td style="padding-top: 10px;padding-bottom: 10px;"><b>Tax(%)</b></td>
+                    <td style="padding-top: 10px;padding-bottom: 10px;"><b>Amount</b></td>
+                    <td style="padding-top: 10px;padding-bottom: 10px;">&nbsp;</td>
+                  </tr>
+
+                  <tr class="details" *ngFor="let product of productList">
+                    <td>
+                      <p *ngIf="!product.lineItemSource || product.lineItemSource && product.lineItemSource == 1"
+                        style="font-size: 14px;margin: 0; line-height: 1.2">
+                        <span *ngIf="product.itemType=='1'"><i class="shopping cart icon"></i></span>
+                        <span *ngIf="product.itemType=='2'"><i class="handshake icon"></i></span>
+                        {{product.name}} ({{product.stock}})
+                      </p>
+                      <form class="ui tiny form" *ngIf="product.lineItemSource == 2">
+                        <div class="field">
+                          <input class="rt-text tax-input" type="text" [(ngModel)]="product.name"
+                            [ngModelOptions]="{standalone: true}" (input)="checkDuplicateName()">
+                        </div>
+                      </form>
+                      <span *ngIf="!product.name" style="font-size:10px; color:red">Invalid Product Name</span>
+                      <span class="error-msg3" *ngIf="product.name && product.equalFlag">Product Name Already
+                        Exist</span>
+                    </td>
+                    <td>
+                      <form class="ui tiny form">
+                        <div class="field">
+                          <input class="" type="text" [(ngModel)]="product.unitPrice"
+                            [ngModelOptions]="{standalone: true}" currencyMask (ngModelChange)="onQuantiyUpdate()">
+                        </div>
+                      </form>
+                      <!-- <span *ngIf="!product.unitPrice" style="font-size:10px; color:red">Invalid Unit Rate</span> -->
+                    </td>
+                    <td>
+                      <form class="ui tiny form">
+                        <div class="field">
+                          <input class="" type="number" min="1" step="1" [(ngModel)]="product.quantity"
+                            [ngModelOptions]="{standalone: true}" (ngModelChange)="onQuantiyUpdate()"
+                            onKeyPress="if(this.value.length==3) return false;">
+                        </div>
+                      </form>
+                      <span *ngIf="product.quantity <= 0" style="font-size:10px; color:red">Invalid Quantity</span>
+                    </td>
+                    <td>
+                      <form class="ui tiny form">
+                        <div class="field">
+                          <sui-select class="selection inv-discount-dd" [options]="discountTypeList"
+                            [(ngModel)]="product.discountType" [ngModelOptions]="{standalone: true}" labelField="label"
+                            valueField="id" (selectedOptionChange)="onQuantiyUpdate()"
+                            style="width:46px !important;margin-right:0">
+                            <sui-select-option *ngFor="let option of discountTypeList" [value]="option">
+                            </sui-select-option>
+                          </sui-select>
+                          <input class="rt-text tax-input quantity" *ngIf="product.discountType==1" type="text"
+                            placeholder="0.00" [(ngModel)]="product.discount" [ngModelOptions]="{standalone: true}"
+                            (ngModelChange)="onQuantiyUpdate()"
+                            [maxlength]=inputValidation.invoice.add.discountAmount.maxLength currencyMask>
+                          <input class="rt-text tax-input" *ngIf="product.discountType==2" type="number"
+                            placeholder="0.00" [(ngModel)]="product.discount" [ngModelOptions]="{standalone: true}"
+                            (ngModelChange)="onQuantiyUpdate()"
+                            [maxlength]=inputValidation.invoice.add.discountPercentage.maxLength>
+                        </div>
+
+                      </form>
+                      <span
+                        *ngIf="(product.discount < 0 || product.discount > product.unitPrice) && product.discountType == 1"
+                        style="font-size:10px; color:red">Invalid Discount</span>
+                      <span *ngIf="(product.discount < 0 || product.discount > 100) && product.discountType == 2"
+                        style="font-size:10px; color:red">Invalid Discount</span>
+                    </td>
+                    <td>
+                      <form class="ui tiny form">
+                        <div class="field">
+                          <input class="rt-text tax-input" style="width: 100% !important;" type="text"
+                            [(ngModel)]="product.taxPercent" [ngModelOptions]="{standalone: true}"
+                            (ngModelChange)="onQuantiyUpdate()">
+                        </div>
+                      </form>
+                      <span *ngIf="product.taxPercent < 0" style="font-size:10px; color:red">Invalid Tax
+                        Percent</span>
+                    </td>
+                    <td>
+                      {{product.calculatedTotalPrice | CustomFormatCurrency}}
+                    </td>
+                    <td>
+                      <button class="ui right floated circular orange tiny icon button"
+                        (click)="onProductDeselectionClick(product)" suiPopup popupText="Delete" popupInverted
+                        [popupPlacement]="'left'">
+                        <i class="trash icon"></i>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="ui segment">
+              <form [formGroup]="invoiceDetailsForm" class="ui tiny form">
+                <table width="100%" border="0" cellspacing="0" cellpadding="0"
+                  style="width: 100%; line-height: inherit; text-align: left;">
+                  <tbody>
+
+                    <tr class="total">
+                      <td style="padding-top: 10px;padding-bottom: 10px;text-align: right">
+                        {{'invoice.add.subTotal' | translate}}</td>
+                      <td width="35%" style="padding-top: 10px;padding-bottom: 10px;text-align: right">
+                        <b>{{subTotalAmount | CustomFormatCurrency}}</b>
+                      </td>
+                    </tr>
+                    <tr class="discount">
+                      <td style="padding-top: 10px;padding-bottom: 10px;text-align: right">
+                        {{'invoice.add.discount' | translate}}</td>
+                      <td width="35%" style="padding-top: 10px;padding-bottom: 10px;text-align: right">
+                        <b>{{totalDiscountAmount | CustomFormatCurrency}}</b>
+                      </td>
+                    </tr>
+                    <tr class="tax">
+                      <td style="padding-top: 10px;padding-bottom: 10px;text-align: right">
+                        {{'invoice.add.tax' | translate}}</td>
+                      <td width="35%" style="padding-top: 10px;padding-bottom: 10px;text-align: right">
+                        <b>{{totalTaxAmount | CustomFormatCurrency}}</b>
+                      </td>
+                    </tr>
+
+
+                    <!-- <tr class="total">
+                            <td style="padding-top: 10px;padding-bottom: 10px;text-align: right">Sub Total</td>
+                            <td width="35%" style="padding-top: 10px;padding-bottom: 10px;text-align: right">
+                              <b>{{invoiceDetailsForm.value.SubTotal | CustomFormatCurrency}}</b></td>
+                          </tr> -->
+                    <!-- <tr class="discount">
+                            <td colspan="2" style="padding-top: 10px;padding-bottom: 10px;text-align: right">
+                              <div class="inv-tax">
+                                <div class="ui mini form">
+                                  <div class="inline fields">
+                                    <div class="field rt-text" style="padding: 0">
+                                      <label>{{'invoice.add.discount' | translate}} &nbsp;&nbsp;</label>
+                                    </div>
+                                    <div class="field rt-text" style="padding: 0" *ngIf="invoiceDetailsForm.value.DiscountType==2">
+                                      <sui-select class="selection inv-discount-dd" [options]="discountTypeList"
+                                        formControlName="DiscountType" labelField="label" valueField="id"
+                                        style="width:46px !important;margin-right:0">
+                                        <sui-select-option *ngFor="let option of discountTypeList" [value]="option">
+                                        </sui-select-option>
+                                      </sui-select>
+                                      <input class="rt-text tax-input" type="number" placeholder="0.00"
+                                        formControlName="DiscountPercentage"
+                                        [maxlength]=inputValidation.invoice.add.discountPercentage.maxLength
+                                        style="width:124px !important;margin-top:-1px;">
+          
+                                      <span
+                                        style="position: absolute;right: 0">{{invoiceDetailsFormErrors.DiscountPercentage}}</span>
+                                    </div>
+                                    <div class="field rt-text" style="padding: 0" *ngIf="invoiceDetailsForm.value.DiscountType!=2">
+                                      <sui-select class="selection inv-discount-dd" [options]="discountTypeList"
+                                        formControlName="DiscountType" labelField="label" valueField="id"
+                                        style="width:46px !important;margin-right:0">
+                                        <sui-select-option *ngFor="let option of discountTypeList" [value]="option">
+                                        </sui-select-option>
+                                      </sui-select>
+          
+                                      <input class="rt-text tax-input quantity" type="number" placeholder="0.00"
+                                        formControlName="DiscountAmount" (keyup)="calculateTotalAmount()"
+                                        [maxlength]=inputValidation.invoice.add.discountAmount.maxLength
+                                        style="width:124px !important;margin-top:-1px;">
+          
+                                      <span style="position: absolute;right: 0">{{invoiceDetailsFormErrors.DiscountAmount}}</span>
+                                    </div>
+                                    <div class="field rt-text" style="padding: 0; width: 90px;">
+                                      <label></label>
+                                      {{invoiceDetailsForm.value.DiscountAmount | CustomFormatCurrency}}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+                          </tr> -->
+                    <!-- <tr class="tax">
+                            <td colspan="2" style="padding-top: 10px;padding-bottom: 10px;text-align: right">
+                              <div class="inv-tax">
+                                <div class="ui mini form">
+                                  <div class="inline fields">
+                                    <div class="field rt-text" style="padding: 0">
+                                      <label>{{'invoice.add.tax' | translate}}</label>
+                                      <div class="ui right icon input">
+                                        <i class="icon" style="line-height:2.8"><b>&#37;</b></i>
+                                        <input class="rt-text tax-input quantity" type="number" placeholder="0.00"
+                                          formControlName="TaxPercentage"
+                                          [maxlength]=inputValidation.invoice.add.taxPercentage.maxLength
+                                          style="width:76px !important" (keyup)="calculateTotalAmount()"
+                                          (blur)="formatCurrency('invoiceDetailsForm', 'TaxPercentage', $event)">
+                                      </div>
+                                      <span style="position: absolute;right: 0">{{invoiceDetailsFormErrors.TaxPercentage}}</span>
+                                    </div>
+                                    <div class="field rt-text" style="padding:0; width:184px">
+                                      <b>{{invoiceDetailsForm.value.TaxAmount | CustomFormatCurrency}}</b>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+                          </tr> -->
+                  </tbody>
+                </table>
+              </form>
+
+            </div>
+            <div class="ui segment">
+              <form [formGroup]="invoiceDetailsForm" class="ui tiny form">
+                <table width="100%" border="0" cellspacing="0" cellpadding="0"
+                  style="width: 100%; line-height: inherit; text-align: left;">
+                  <tbody>
+                    <tr class="tax">
+                      <td style="padding-top: 10px;padding-bottom: 10px;text-align: right">
+                        {{'invoice.add.totalAmount' | translate}}</td>
+                      <td width="35%" style="padding-top: 10px;padding-bottom: 10px;text-align: right">
+                        <b>{{invoiceDetailsForm.value.TotalAmount | CustomFormatCurrency}}</b>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </form>
+            </div>
+          </div>
+        </sui-accordion-panel>
+        <sui-accordion-panel [(isOpen)]="accordian.paymentOptions">
+          <div title>
+            <i class="dropdown icon"></i>
+            Payment Options
+          </div>
+          <div content (click)="$event.stopPropagation()">
+            <div class="ui segment">
+              <form [formGroup]="invoiceDetailsForm" class="ui tiny form">
+                <div class="ui form">
+                  <div class="field">
+                    <textarea rows="2" placeholder="{{'invoice.add.note' | translate}}"
+                      formControlName="Note"></textarea>
+                  </div>
+                </div>
+              </form>
+            </div>
+
+            <div class="ui segment">
+              <form class="ui tiny form">
+
+                <div class="ui stackable  grid" style="margin-bottom: 10px;">
+                  <div class="four wide column">
+                    <sui-radio-button name="example" value="sendToPatient" [(ngModel)]="paymentMode"
+                      [isDisabled]="!amountGreaterThanZero" (ngModelChange)="paymentModeChanged($event)"
+                      [ngModelOptions]="{standalone: true}">
+                      Send To Patient
+                    </sui-radio-button>
+                  </div>
+                  <div class="four wide column">
+                    <sui-radio-button name="example" value="payInFull" [(ngModel)]="paymentMode"
+                      (ngModelChange)="paymentModeChanged($event)" [ngModelOptions]="{standalone: true}">
+                      Pay In Full
+                    </sui-radio-button>
+                  </div>
+                  <div class="four wide column">
+                    <sui-radio-button name="example" value="createPaymentPlan" [(ngModel)]="paymentMode"
+                      [isDisabled]="!amountGreaterThanZero" (ngModelChange)="paymentModeChanged($event)"
+                      [ngModelOptions]="{standalone: true}">
+                      Create Payment Plan
+                    </sui-radio-button>
+                  </div>
+                  <div class="four wide column">
+                    <sui-radio-button name="example" value="createSubscriptionPlan" [(ngModel)]="paymentMode"
+                      [isDisabled]="!amountGreaterThanZero" (ngModelChange)="paymentModeChanged($event)"
+                      [ngModelOptions]="{standalone: true}">
+                      Setup Subscription
+                    </sui-radio-button>
+                  </div>
+                </div>
+
+              </form>
+            </div>
+          </div>
+        </sui-accordion-panel>
+      </sui-accordion>
+      <!-- </div> -->
+    </div>
+
+  </div>
+  <div class="ui fitted divider wizard-footer"></div>
+
+  <div class="actions">
+    <div class="ui tiny">
+      <button class="ui primary orange tiny button" autofocus *ngIf='!InputData.isEdit'
+        (click)='saveAsDraft = true;addInvoice(1)'>{{'invoice.add.saveAsDraft' | translate}}</button>
+
+      <button class="ui primary orange tiny button" *ngIf='!InputData.isEdit && paymentMode=="sendToPatient"'
+        (click)='onReadyToSendClick()'>{{'invoice.add.readyToSend' | translate}}</button>
+
+      <button class="ui primary orange tiny button" *ngIf='!InputData.isEdit && paymentMode=="payInFull"'
+        (click)='onSaveAndPayClick()'>{{'invoice.add.payInFull' | translate}}</button>
+
+      <button class="ui primary orange tiny button" *ngIf='!InputData.isEdit && paymentMode=="createPaymentPlan"'
+        (click)='onSaveAndPayClick()'>{{'invoice.add.createPaymentPlan' | translate}}</button>
+
+      <button class="ui primary orange tiny button" *ngIf='!InputData.isEdit && paymentMode=="createSubscriptionPlan"'
+        (click)='onSaveAndPayClick()'>{{'invoice.add.createSubscription' | translate}}</button>
+
+      <button class="ui primary orange tiny button" autofocus *ngIf='InputData.isEdit'
+        (click)='saveAsDraft = true;editInvoice(1)'>{{'invoice.add.saveAsDraft' | translate}}</button>
+      <button class="ui primary orange tiny button" *ngIf='InputData.isEdit && paymentMode=="sendToPatient"'
+        (click)='onReadyToSendClick()'>{{'invoice.add.readyToSend' | translate}}</button>
+
+      <button class="ui primary orange tiny button" *ngIf='InputData.isEdit && paymentMode=="payInFull"'
+        (click)='onSaveAndPayClick()'>{{'invoice.add.payInFull' | translate}}</button>
+
+      <button class="ui primary orange tiny button" *ngIf='InputData.isEdit && paymentMode=="createPaymentPlan"'
+        (click)='onSaveAndPayClick()'>{{'invoice.add.createPaymentPlan' | translate}}</button>
+
+      <button class="ui primary orange tiny button" *ngIf='InputData.isEdit && paymentMode=="createSubscriptionPlan"'
+        (click)='onSaveAndPayClick()'>{{'invoice.add.createSubscription' | translate}}</button>
+
+      <button class="ui tiny button" (click)="cancel()" *ngIf="!InputData.showReset">{{'invoice.add.cancel' |
+        translate}}</button>
+
+      <button class="tiny ui button" (click)="clearForm()" *ngIf="InputData.showReset">{{'patient.add.reset' |
+        translate}}</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Invoice preview Start -->
+<div *ngIf="showPreviewScreen">
+  <div class="ui two column stackable padded grid">
+    <div class="four wide column pymnt-sumry">
+      <form [formGroup]="sendInvoiceDetailsForm" class="ui tiny form">
+        <div class="ui form p15">
+
+          <div class="ui segment">
+            <div class="field">
+              <label>{{'invoice.add.toEmail' | translate}}</label>
+              <input placeholder="{{'invoice.add.toEmail' | translate}}" type="text" formControlName="ToEmail">
+              <span>{{sendInvoiceDetailsFormErrors.ToEmail}}</span>
+            </div>
+          </div>
+
+          <div class="ui segment">
+            <div class="field">
+              <label>{{'invoice.add.phone' | translate}}</label>
+              <input placeholder="{{'invoice.add.phone' | translate}}" type="text" formControlName="Phone"
+                mask="000-000-0000" unmask=true>
+              <span>{{sendInvoiceDetailsFormErrors.Phone}}</span>
+            </div>
+          </div>
+
+        </div>
+      </form>
+    </div>
+    <div class="twelve wide column pymnt-ctrl">
+      <div content>
+        <app-invoice-template [InputData]="inputDataForPreviewOperation" *ngIf="isInputDataForOperationPrepeared">
+        </app-invoice-template>
+      </div>
+    </div>
+  </div>
+
+  <div class="ui fitted divider wizard-footer"></div>
+  <div class="actions">
+    <div class="ui tiny">
+      <button class="ui  orange tiny primary button" autofocus (click)='onBackClick()'>{{'common.previous' |
+        translate}}</button>
+      <button class="ui orange tiny primary button" autofocus (click)='onSendClick()'>{{'invoice.add.send' |
+        translate}}</button>
+      <button class="ui tiny button" (click)="cancel()">{{'invoice.add.cancel' | translate}}</button>
+    </div>
+  </div>
+</div>
+<!-- Invoice preview End -->
+
+<!-- Add Patient Start -->
+<ng-template let-context let-modal="modal" #modalAddPatient>
+  <div class="header">
+    <span *ngIf="inputDataForAddPatient.isEdit">{{'patient.edit.heading' | translate}}</span>
+    <span *ngIf="!inputDataForAddPatient.isEdit">{{'patient.add.heading' | translate}}</span>
+    <i #closeModal (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-add-patient [InputData]="inputDataForAddPatient" (OutputData)="outputDataFromPatientOperation($event)">
+    </app-add-patient>
+  </div>
+  <div class="actions">
+    <div class="ui tiny">
+
+      <button class="tiny ui orange button" autofocus (click)="onAddPatientClick({'saveAndContinue': false})"
+        *ngIf="!inputDataForAddPatient.isEdit && !linkPatient">{{'patient.add.save' | translate}}</button>
+
+      <button class="tiny ui orange button" autofocus (click)='onEditPatientClick()'
+        *ngIf="inputDataForAddPatient.isEdit && isLinked==undefined">{{'patient.add.save' | translate}}</button>
+
+      <button class="tiny ui orange button" autofocus (click)='linkThisPatient(patientData)' *ngIf="linkPatient">
+        {{'patient.add.link' | translate}}
+      </button>
+
+      <button class="tiny ui button" (click)="clearAddPatientForm()">{{'patient.add.reset' | translate}}</button>
+
+      <button class="ui tiny button" (click)="modal.deny()"
+        *ngIf="!outputDataFromAddPatientOperation.showAddPatientReceipt">{{'patient.add.cancel' | translate}}</button>
+
+      <button class="ui tiny button" (click)="modal.deny()"
+        *ngIf="outputDataFromAddPatientOperation.showAddPatientReceipt">{{'patient.add.close' | translate}}</button>
+    </div>
+  </div>
+</ng-template>
+<!-- Add Patient End -->
+
+<!-- Add Product Start -->
+<ng-template let-context let-modal="modal" #modalAddProduct>
+  <div class="header">{{'product.add.heading' | translate}}
+    <i #closeModal (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-add-product-service [InputData]="inputDataForOperation" (OutputData)="outputDataFromProductOperation($event)">
+    </app-add-product-service>
+
+    <!-- Un comment if InvoiceOnly product needed in future -->
+    <!-- <div class="field" style="margin:15px 0;">
+      <sui-checkbox [(ngModel)]="addtoProductCheck" [ngModelOptions]="{standalone: true}">
+        {{'product.add.addToProducts' | translate}}
+      </sui-checkbox>
+    </div> -->
+
+    <form class="ui tiny form" *ngIf="showCustomProductTagsFlag">
+      <div class="field">
+        <app-custom-product-tags [(closeFlag)]="modelClickFlag" [InputData]="inputDataForTags"
+          (OutputData)="outputDataFromcustTags($event)"></app-custom-product-tags>
+      </div>
+    </form>
+
+
+  </div>
+  <div class="actions">
+    <div class="ui tiny">
+      <button class="ui orange tiny primary button" autofocus
+        (click)="onAddProductClick('Invoice')">{{'product.add.addToInvoice' | translate}}</button>
+      <!-- <button class="ui primary button" autofocus (click)="onAddProductClick('Add')">{{'product.add.addToProducts' | translate}}</button> -->
+      <button class="ui orange tiny button" (click)="modal.deny()">{{'product.add.cancel' | translate}}</button>
+    </div>
+  </div>
+</ng-template>
+<!-- Add Product End -->

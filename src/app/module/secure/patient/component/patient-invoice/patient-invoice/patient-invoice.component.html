@@ -1,0 +1,289 @@
+<app-toaster [toaster]="toastData"></app-toaster>
+<div *ngIf="isLoader_FindInvoice" class="ui bottom attached loading tab segment"></div>
+
+<div *ngIf="!isLoader_FindInvoice">
+  <sui-message class="attached warning" [isDismissable]="false" *ngIf="noRecordsFound_InvoiceList">
+    <p>{{noResultsMessage}}</p>
+  </sui-message>
+
+  <div *ngIf="invoiceList.length>0">
+    <!-- Sorting and Export/Download control -->
+    <form novalidate [formGroup]="invoiceResultsForm">
+      <div class="ui grid">
+        <div class="eight wide column">
+          <div class="ui mini compact segment sort">
+            <div class="inline field sort-dd">
+              <label>Sort by: </label>
+              <sui-select class="selection" [options]="sortingItemsList" formControlName="Sorting" labelField="label"
+                valueField="label" (selectedOptionChange)="sortInvoice(Sorting)" #Sorting>
+                <sui-select-option *ngFor="let option of sortingItemsList" [value]="option"></sui-select-option>
+              </sui-select>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </form>
+    <!-- Invoice List -->
+    <div>
+      <form novalidate [formGroup]="invoiceListForm">
+
+        <ng-container *ngFor="let invoice of invoiceList">
+          <div class="ui segment results" *ngIf="invoice.invoiceStatus !=1">
+            <div class="ui active dimmer" *ngIf="invoice.isLoader_InvoiceOperation">
+              <div class="ui small text loader"></div>
+            </div>
+
+            <div class="results-crsr" (click)="getInvoiceById(invoice)">
+              <button class="ui tiny right floated button invoicestatus orange"
+                style="background-color: #F47A37 !important;" *ngIf="invoice.displayInvoiceStatus=='Ready To Send'">
+                {{invoice.displayInvoiceStatus}}
+              </button>
+              <button
+                [ngClass]="checkDueDate(invoice) ? 'ui tiny right floated button invoicestatus red' : 'ui tiny right floated button invoicestatus blue'"
+                *ngIf="invoice.displayInvoiceStatus=='Awaiting Payment'">
+                {{invoice.displayInvoiceStatus}}
+              </button>
+              <button class="ui tiny right floated button invoicestatus green" *ngIf="invoice.displayInvoiceStatus=='Paid'||
+              invoice.displayInvoiceStatus=='Payment Scheduled'||
+              invoice.displayInvoiceStatus=='Payment Plan Created'||
+              invoice.displayInvoiceStatus=='Subscription Plan Created'||
+              invoice.displayInvoiceStatus=='Payment Created'||
+              invoice.displayInvoiceStatus=='In Progress'">{{invoice.displayInvoiceStatus}}</button>
+              <button class="ui tiny right floated button invoicestatus red" *ngIf="invoice.displayInvoiceStatus=='Expired'||invoice.displayInvoiceStatus=='Cancelled'||
+              invoice.displayInvoiceStatus=='Unpaid'||
+              invoice.displayInvoiceStatus=='Unsubscribed'">{{invoice.displayInvoiceStatus}}</button>
+
+              <button class="orange circular ui right floated icon button" type="button"
+                (click)="$event.stopPropagation();download(invoice)" suiPopup popupText="Download" popupInverted
+                [popupPlacement]="'top'">
+
+                <i class="arrow alternate down icon"></i>
+              </button>
+
+              <button class="orange circular ui right floated icon button" type="button"
+                (click)="$event.stopPropagation();preview(invoice)" suiPopup popupText="Preview" popupInverted
+                [popupPlacement]="'top'">
+
+                <i class="arrow eye icon"></i>
+              </button>
+
+              <button class="orange circular ui right floated icon button" type="button"
+                *ngIf="invoice.displayInvoiceStatus=='Awaiting Payment' && invoice.finalAmount > 0"
+                (click)="$event.stopPropagation();makePayment(invoice)" suiPopup popupText="Pay Now" popupInverted
+                [popupPlacement]="'top'">
+
+                <i class="arrow dollar icon"></i>
+              </button>
+
+              <!-- Invoice Status End -->
+              <div class="ui horizontal list">
+                <div class="item">
+                  <div class="content">
+                    <div class="ui sub header">
+                      <span *ngIf="invoice.invoiceNumber">{{invoice.invoiceNumber}}
+                        <span class="separator">|</span>
+                      </span>
+                      {{invoice.providerName}}
+
+                      <span *ngIf="invoice.displayInvoiceStatus!='Ready To Send'">
+                        <span class="separator">|</span>
+                        <strong [ngClass]="{'text_red': checkDueDate(invoice)}">{{'invoice.find.dueDate' |
+                          translate}}:
+                        </strong>
+                        <span [ngClass]="{'text_red': checkDueDate(invoice)}">{{
+                          getFormattedDate(invoice.dueDate)}}</span>
+                      </span>
+                      <span *ngIf="invoice.displayInvoiceStatus=='Paid'">
+                        <span class="separator">|</span>
+                        <strong> {{'invoice.find.paidOn' | translate}}: </strong>{{invoice.paymentDate}}
+                      </span>
+                      <span *ngIf="invoice.displayInvoiceStatus=='Partially Paid'">
+                        <span class="separator">|</span>
+                        <strong> {{'invoice.find.paidAmount' | translate}}:
+                        </strong>{{invoice.paidAmount | CustomFormatCurrency}}
+                        <span class="separator">|</span>
+                        <strong class="text_red"> {{'invoice.find.dueAmount' | translate}}: </strong><span
+                          class="text_red">{{invoice.pendingAmount | CustomFormatCurrency}}</span>
+                      </span>
+                      <span *ngIf="invoice.displayInvoiceStatus=='Cancelled'">
+                        <span class="separator">|</span>
+                        <strong> {{'invoice.find.cancelledOn' | translate}}: </strong>{{invoice.cancelledOn}}
+                      </span>
+                    </div>
+                    <div class="item">
+                      <strong> {{'invoice.find.invoiceDate' | translate}}: </strong>{{invoice.displayInvoiceDate}}<span
+                        class="separator">|</span>
+                      <!-- <strong> {{'invoice.find.visitDate' | translate}}: </strong>{{invoice.displayVisitDate}}<span
+                        class="separator">|</span> -->
+                      <strong> {{'invoice.find.providerEmail' | translate}}: </strong>{{invoice.providerEmail}}<span
+                        class="separator">|</span>
+                      <strong> {{'invoice.find.providerPhone' | translate}}:
+                      </strong>{{invoice.providerPhone | mask: '000-000-0000'}}
+                      <span class="separator">|</span>
+                      <strong> {{'invoice.find.doctorName' | translate}}: </strong>
+                      {{(invoice.doctorName !== null && invoice.doctorName != '')? invoice.doctorName: '-'}}
+                    </div>
+                    <div class="divider" style="padding: 3px;"></div>
+                    <div class="item">
+                      <div class="content">
+                        <i class="info circle icon"></i>
+                        <strong>{{'invoice.find.totalAmount' | translate}}:
+                        </strong>{{invoice.finalAmount | CustomFormatCurrency}}
+                        <span class="separator">|</span>
+                        {{'invoice.find.taxAmount' | translate}}: {{invoice.taxAmount | CustomFormatCurrency}}
+
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+            <!-- Invoice Details -->
+            <div [suiTransition]="transitionController" *ngIf="invoice.showDetails" style="cursor: default">
+              <div class="ui divided list">
+                <div class="table-mini">
+                  <table class="ui single line table">
+                    <tr>
+                      <th width="40%">{{'invoice.find.productName' | translate}}</th>
+                      <th class="right aligned" width="10%">{{'invoice.find.unitRate' | translate}}</th>
+                      <th class="right aligned" width="10%">{{'invoice.find.quantity' | translate}}</th>
+                      <th class="right aligned" width="10%">{{'invoice.find.discountPercent' | translate}}</th>
+                      <th class="right aligned" width="10%">{{'invoice.find.discountAmount' | translate}}</th>
+                      <th class="right aligned" width="10%">{{'invoice.find.taxPercent' | translate}}</th>
+                      <th class="right aligned" width="10%">{{'invoice.find.amount' | translate}}</th>
+                    </tr>
+                    <tr *ngFor="let product of invoice.items">
+                      <td>{{product.name}}</td>
+                      <td class="right aligned">{{product.unitPrice | CustomFormatCurrency}}</td>
+                      <td class="right aligned">{{product.quantity}}</td>
+                      <td class="right aligned" *ngIf="product.discountType!=2">
+                        {{product.discountPercent | CustomFormatPercentage}}</td>
+                      <td class="right aligned" *ngIf="product.discountType==2">
+                        {{product.discountPercent | CustomFormatPercentage}}</td>
+                      <td class="right aligned" *ngIf="product.discountType!=2">
+                        {{product.discountAmount | CustomFormatCurrency}}</td>
+                      <td class="right aligned" *ngIf="product.discountType==2">
+                        {{product.discountAmount | CustomFormatCurrency}}</td>
+                      <td class="right aligned">{{product.taxPercent | CustomFormatPercentage}}</td>
+                      <td class="right aligned">{{product.calculatedTotalPrice | CustomFormatCurrency}}</td>
+                    </tr>
+                  </table>
+                </div>
+              </div>
+              <div class="ui divided list inv-summ">
+
+                <div class="item">
+                  <div class="content">
+                    <strong>{{'invoice.find.subTotal' | translate}}:
+                    </strong>{{invoice.subTotalAmount | CustomFormatCurrency}}
+                  </div>
+                </div>
+                <div class="item">
+                  <div class="content">
+
+                    <strong>{{'invoice.find.totalDiscount' | translate}}:
+                    </strong><span>{{invoice.totalDiscountAmount | CustomFormatCurrency}}</span>
+
+                    <!-- <strong>{{'invoice.find.discount' | translate}}<span
+                        *ngIf="invoice.discountType==2">({{invoice.discountPercent | CustomFormatPercentage}})</span>:
+                    </strong>
+                    <span *ngIf="invoice.discountType!=2">{{invoice.discountAmount | CustomFormatCurrency}}</span>
+                    <span *ngIf="invoice.discountType==2">{{invoice.calculatedDiscount | CustomFormatCurrency}}</span> -->
+                  </div>
+                </div>
+                <div class="item">
+                  <div class="content">
+                    <strong>{{'invoice.find.totalTax' | translate}}:
+                    </strong>{{invoice.totalTaxAmount | CustomFormatCurrency}}
+                    <!-- <strong>{{'invoice.find.tax' | translate}}({{invoice.taxPercent | CustomFormatPercentage}}):
+                    </strong>{{invoice.taxAmount | CustomFormatCurrency}} -->
+                  </div>
+                </div>
+
+                <!-- <div class="item">
+                  <div class="content">
+                    <strong>{{'invoice.find.subTotal' | translate}}:
+                    </strong>{{invoice.subTotal | CustomFormatCurrency}}
+                  </div>
+                </div>
+                <div class="item">
+                  <div class="content">
+
+                    <strong>{{'invoice.find.discount' | translate}}<span
+                        *ngIf="invoice.discountType==2">({{invoice.discountPercent | CustomFormatPercentage}})</span>:
+                    </strong>
+                    <span *ngIf="invoice.discountType!=2">{{invoice.discountAmount | CustomFormatCurrency}}</span>
+                    <span *ngIf="invoice.discountType==2">{{invoice.calculatedDiscount | CustomFormatCurrency}}</span>
+                  </div>
+                </div>
+                <div class="item">
+                  <div class="content">
+                    <strong>{{'invoice.find.tax' | translate}}({{invoice.taxPercent | CustomFormatPercentage}}):
+                    </strong>{{invoice.taxAmount | CustomFormatCurrency}}
+                  </div>
+                </div> -->
+                <div class="item">
+                  <div class="content">
+                    <strong>{{'invoice.find.totalAmount' | translate}}:
+                    </strong>{{invoice.finalAmount | CustomFormatCurrency}}
+                  </div>
+                </div>
+                <div class="item">
+                  <i class="envelope open outline icon"></i>
+                  <div class="content">
+                    <strong> {{'invoice.find.toEmail' | translate}}: </strong>{{invoice.toEmail}}
+
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </ng-container>
+
+      </form>
+    </div>
+    <app-pagination [pager]="pager" (OutputData)="fetchInvoice($event)"></app-pagination>
+
+  </div>
+</div>
+
+
+<ng-template let-context let-modal="modal" #modalPreviewInvoice>
+  <div class="header">{{'invoice.find.invoicePreviewHeader' | translate}}
+    <i #closeWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-invoice-template [InputData]="inputDataForPreview"></app-invoice-template>
+  </div>
+  <div class="actions">
+    <button class="tiny ui button" (click)="modal.deny()">{{'invoice.add.close' | translate}}</button>
+  </div>
+</ng-template>
+
+<!-- Add Transaction Start -->
+<ng-template let-context let-modal="modal" #modalAddTransaction>
+  <div class="header">{{'transaction.add.acceptPayment' | translate}}
+    <i #closeTransactionWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-add-transaction [InputData]="inputDataOneTimePayment" (OutputData)="outputDataFromTransaction($event)">
+    </app-add-transaction>
+  </div>
+</ng-template>
+<!-- Add Transaction End -->
+
+<!-- Recurring Payment Start -->
+<ng-template let-context let-modal="modal" #modalAddRecurringPayments>
+  <div class="header">
+    <span *ngIf="!inputDataForOperation.isEdit">{{'recurringPayments.add.heading' | translate}}</span>
+    <i #cancel (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-add-recurring (cancel)='closeRecurringModal($event)' [InputData]="inputDataPaymentPlan"
+      (OutputData)="outputDataFromAddRecurring($event)"></app-add-recurring>
+  </div>
+</ng-template>
+<!-- Recurring Payment Start -->

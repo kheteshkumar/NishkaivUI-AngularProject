@@ -1,0 +1,43 @@
+<div class="ui segment modal-loader" *ngIf="isLoader">
+  <div class="ui active dimmer">
+    <div class="ui indeterminate text loader">{{ 'common.loading' | translate }}</div>
+  </div>
+</div>
+<form [formGroup]="patientFormsForm" class="ui form">
+  <div class="toaster-static toaster-s" *ngIf="showSuccessMessage">
+    <span
+      ><a href="javascript:void(0)" (click)="showSuccessMessage = !showSuccessMessage"><i class="close icon"></i></a
+    ></span>
+    <p>{{ successMessage }}</p>
+  </div>
+  <div class="toaster-static toaster-e" *ngIf="showErrorMessage">
+    <span
+      ><a href="javascript:void(0)" (click)="showErrorMessage = !showErrorMessage"><i class="close icon"></i></a
+    ></span>
+    <p>{{ errorMessage }}</p>
+  </div>
+
+  <div class="ui tiny form" *ngIf="!isLoader">
+    <div *ngIf="allFormsList && allFormsList.length; else noForms">
+      <form [formGroup]="patientFormsForm" id="formChecks" novalidate>
+        <div class="field" *ngFor="let form of allFormsList; let i = index">
+          <label>
+            <input type="checkbox" [value]="form.id" (change)="onCheckboxChange($event)" />
+            {{ form.formTitle }}
+          </label>
+        </div>
+      </form>
+    </div>
+    <ng-template #noForms>
+      <sui-message class="attached warning" [isDismissable]="false">
+        <p>{{ 'plforms.attach.noFormsFound' | translate }}</p>
+      </sui-message>
+    </ng-template>
+  </div>
+</form>
+<div class="ui fitted divider"></div>
+<br />
+
+<button class="tiny ui orange button" autofocus (click)="onSaveFormsMappings()">
+  {{ 'plforms.attach.save' | translate }}
+</button>

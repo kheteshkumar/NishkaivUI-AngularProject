@@ -1,0 +1,152 @@
+<ng-template let-result let-query="query" #template>
+  {{ result.displayName}}
+</ng-template>
+
+<div class="ui" *ngIf="isLoader_processing">
+  <div class="ui active dimmer">
+    <div class="ui indeterminate text loader">{{'common.processing' | translate}}</div>
+  </div>
+</div>
+
+<div class="ui segment modal-loader" *ngIf="isLoader_ProductLookup ||  isLoader_Practitioner">
+  <div class="ui active dimmer">
+    <div class="ui medium text loader">Loading</div>
+  </div>
+</div>
+
+<form [formGroup]="checkInOutForm" class="ui form" *ngIf="!isLoader_ProductLookup && !isLoader_Practitioner">
+
+  <div class="toaster-static toaster-s" *ngIf="showSuccessMessage">
+    <span><a href="javascript:void(0)" (click)="showSuccessMessage=!showSuccessMessage"><i
+          class="close icon"></i></a></span>
+    <p>{{successMessage}}</p>
+  </div>
+  <div class="toaster-static toaster-e" *ngIf="showErrorMessage">
+    <span><a href="javascript:void(0)" (click)="showErrorMessage=!showErrorMessage"><i
+          class="close icon"></i></a></span>
+    <p>{{errorMessage}}</p>
+  </div>
+
+
+  <div class="content">
+    <div class="ui large icon message">
+      <div class="content">
+        <p>{{confirmationMessage}}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="ui fitted divider wizard-footer"></div>
+
+  <div class="three fields">
+    <div class="required field">
+      <label>{{'patient.checkInOut.date' | translate}}</label>
+      <div class="ui left icon input">
+        <i class="calendar icon"></i>
+        <input placeholder="MM/DD/YYYY" type="text" mask="00/00/0000" [dropSpecialCharacters]="false"
+          [validation]="false" formControlName="Date">
+      </div>
+      <span>{{checkInOutFormErrors.Date}}</span>
+    </div>
+
+    <div class="required field">
+      <label>{{'patient.checkInOut.time' | translate}}</label>
+      <input placeholder="HH:MM" type="text" mask="00:00" [dropSpecialCharacters]="false" [validation]="false"
+        formControlName="Time">
+      <span>{{checkInOutFormErrors.Time}}</span>
+    </div>
+
+    <div class="required field">
+      <label>{{'patient.checkInOut.meridian' | translate}}</label>
+      <div class="inline fields">
+        <div class="ui radio checkbox">
+          <sui-radio-button name="meridian" value="am" formControlName="Meridian" #Meridian>
+            {{'AM' | translate}}
+          </sui-radio-button>
+        </div>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <div class="ui radio checkbox">
+          <sui-radio-button name="meridian" value="pm" formControlName="Meridian" #Meridian>
+            {{'PM' | translate}}
+          </sui-radio-button>
+        </div>
+      </div>
+      <span>{{checkInOutFormErrors.Meridian}}</span>
+    </div>
+  </div>
+
+  <div class="one fields">
+    <div class="required field sixteen wide column">
+      <label>{{'patient.checkInOut.pratitioner' | translate}}</label>
+      <sui-select class="selection" formControlName="DoctorId" #DoctorId labelField="displayName" valueField="id"
+        [isSearchable]="true" [options]="doctorList" icon="search" [isDisabled]="InputData.type == 'checkOut'">
+        <sui-select-option *ngFor="let o of DoctorId.filteredOptions" [value]="o">
+        </sui-select-option>
+      </sui-select>
+      <span>{{checkInOutFormErrors.DoctorId}}</span>
+    </div>
+  </div>
+
+  <div class="one fields" *ngIf="InputData.type == 'checkOut'">
+    <div class="field sixteen wide column">
+      <label>{{'patient.checkInOut.services' | translate}}</label>
+      <sui-select class="selection" formControlName="ServiceId" #ServiceId labelField="displayName" valueField="id"
+        [isSearchable]="true" icon="search" [optionsLookup]="filterProducts"
+        (selectedOptionChange)="onProductSelectionClick(ServiceId)">
+        <sui-select-option *ngFor="let o of ServiceId.filteredOptions" [value]="o">
+        </sui-select-option>
+      </sui-select>
+      <span>{{checkInOutFormErrors.ServiceId}}</span>
+    </div>
+  </div>
+
+
+
+  <div class="ui segment" style="overflow-x: auto;background-color: #dddddd;" *ngIf="selectedServices.length > 0">
+    <table cellpadding="0" cellspacing="10" class="product-list"
+      style="width: 100%; line-height: inherit; text-align: left;border: none; background: inherit;">
+      <tbody>
+        <tr class="heading">
+          <td style="padding-top: 10px;padding-bottom: 10px;"><b>Products/Services</b></td>
+          <td style="padding-top: 10px;padding-bottom: 10px;"><b>Unit Rate</b></td>
+          <td style="padding-top: 10px;padding-bottom: 10px;"><b>Quantity</b></td>
+          <td style="padding-top: 10px;padding-bottom: 10px;"><b>Tax(%)</b></td>
+          <td style="padding-top: 10px;padding-bottom: 10px;">&nbsp;</td>
+        </tr>
+
+        <tr class="details" *ngFor="let product of selectedServices">
+          <td>
+            <p style="font-size: 14px;margin: 0; line-height: 1.2">{{product.name}}</p>
+          </td>
+          <td>{{product.unitPrice | CustomFormatCurrency}}</td>
+          <td>{{product.quantity}}</td>
+          <td>{{product.taxPercent | CustomFormatPercentage}}</td>
+          <td>
+            <button class="ui right floated circular orange tiny icon button"
+              (click)="onProductDeselectionClick(product)" suiPopup popupText="Delete" popupInverted
+              [popupPlacement]="'left'">
+              <i class="trash icon"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</form>
+<div class="ui fitted divider wizard-footer"></div>
+
+<div class="actions">
+  <div class="ui tiny">
+    <button class="ui primary orange tiny button" autofocus (click)="addVisit('checkIn')"
+      *ngIf="InputData.type == 'checkIn'">{{'patient.checkInOut.checkIn' | translate}}
+    </button>
+    <button class="ui primary orange tiny button" autofocus (click)="updateVisit('withDoctor')"
+      *ngIf="InputData.type == 'withDoctor'">{{'patient.checkInOut.confirm' | translate}}</button>
+    <button class="ui primary orange tiny button" autofocus (click)="updateVisit('checkOut')"
+      *ngIf="InputData.type == 'checkOut'">{{'patient.checkInOut.checkOut' | translate}}</button>
+    <button class="ui primary orange tiny button" autofocus (click)="updateVisit('checkOutAndPay')"
+      *ngIf="InputData.type == 'checkOut'">{{'patient.checkInOut.checkOutAndPay' | translate}}</button>
+    <button class="ui tiny button" (click)="cancel()">{{'cancel' | translate}}</button>
+  </div>
+</div>

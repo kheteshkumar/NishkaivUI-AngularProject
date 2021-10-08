@@ -1,0 +1,221 @@
+<app-toaster [toaster]="toastData"></app-toaster>
+<div id="initialLoad">
+  <form novalidate [formGroup]="findFacilityForm">
+    <div class="main-content">
+      <h1 class="ui header">{{'facility.find.heading' | translate}}</h1>
+      <div class="ui segment apf-search">
+        <button class="tiny ui orange right floated button" type="button" (click)="openAddFacilityModal()"><i
+            class="hospital outline icon"></i>{{'facility.find.addFacility' | translate}}</button>
+        <div class="u-cf-m"></div>
+        <sui-tabset>
+          <div class="tiny ui secondary menu">
+            <a class="item" suiTabHeader="1">{{'facility.find.facilityName' | translate}}</a>
+            <!-- <a class="item" suiTabHeader="2">{{'facility.find.branchName' | translate}}</a>-->
+            <!-- <a class="item" suiTabHeader="3">{{'facility.find.email' | translate}}</a>-->
+            <a class="item" suiTabHeader="4">{{'facility.find.status' | translate}}</a>
+          </div>
+          <div class="ui segment selection-area">
+            <a class="ui label" *ngIf="findFacilityForm.value.FacilityName">
+              {{'facility.find.facilityName' | translate}}: {{findFacilityForm.value.FacilityName}}
+              <i class="delete icon" (click)="clear('FacilityName');"></i>
+            </a>
+            <!-- <a class="ui label" *ngIf="findFacilityForm.value.BranchName">
+          {{'facility.find.branchName' | translate}}: {{findFacilityForm.value.BranchName}}
+          <i class="delete icon" (click)="clear('BranchName')"></i>
+        </a>-->
+            <!--<a class="ui label" *ngIf="findFacilityForm.value.Email">
+          {{'facility.find.email' | translate}}: {{findFacilityForm.value.Email}}
+          <i class="delete icon" (click)="clear('Email')"></i>
+        </a>-->
+            <a class="ui label" *ngIf="findFacilityForm.value.Status!=null && findFacilityForm.value.Status.length>0">
+              {{'facility.find.status' | translate}}: {{findFacilityForm.value.Status}}
+              <i class="delete icon" (click)="clear('Status')"></i>
+            </a>
+          </div>
+          <!-- Facility Name -->
+          <div class="ui" suiTabContent="1">
+            <div class="ui tiny form">
+              <div class="five fields mb0">
+                <div class="field">
+                  <input placeholder="Facility Name" type="text" formControlName="FacilityName">
+                  <span>{{formErrors.FacilityName}}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Branch Name -->
+          <div class="ui" suiTabContent="2">
+            <div class="ui tiny form">
+              <div class="five fields mb0">
+                <div class="field">
+                  <input placeholder="Branch Name" type="text" formControlName="BranchName">
+                  <span>{{formErrors.BranchName}}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Email 
+      <div class="ui" suiTabContent="3">
+        <div class="ui tiny form">
+          <div class="five fields mb0">
+            <div class="field">
+              <input placeholder="Email" type="text" formControlName="Email">
+              <span>{{formErrors.Email}}</span>
+            </div>
+          </div>
+        </div>
+      </div>-->
+          <!-- Status -->
+          <div class="ui" suiTabContent="4">
+            <!-- <sui-multi-select [options]="facilityStatusList" formControlName="Status" labelField="statusName" valueField="statusName" [maxSelected]="5" icon="search" #Status>
+          <div class="ui icon search input">
+            <i class="search icon"></i>
+            <input suiSelectSearch type="text" placeholder="Search options...">
+          </div>
+          <div class="divider"></div>
+          <div class="header">
+            <i class="list icon"></i>
+            {{'facility.find.options' | translate}}
+          </div>
+          <div class="scrolling menu">
+            <sui-select-option *ngFor="let o of Status.filteredOptions" [value]="o"></sui-select-option>
+          </div>
+        </sui-multi-select> -->
+
+            <div class="ui tiny form">
+              <div class="three fields mb0">
+                <div class="field">
+                  <sui-multi-select class="selection" formControlName="Status" #Status [hasLabels]="true"
+                    [maxSelected]="5" labelField="statusName" valueField="statusName" [isSearchable]="true"
+                    [options]="facilityStatusList" icon="search">
+                    <sui-select-option *ngFor="let o of Status.filteredOptions" [value]="o"></sui-select-option>
+                  </sui-multi-select>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ui clearing divider"></div>
+          <button [ngClass]="isLoader_FindFacility ? 'tiny ui orange button loading' : 'tiny ui orange button'"
+            class="tiny ui orange button" type="submit" (click)="find(true)">{{'facility.find.find' | translate}}</button>
+          <button class="tiny ui tiny button" (click)="clearForm()">{{'facility.find.clear' | translate}}</button>
+        </sui-tabset>
+      </div>
+
+      <!-- <div> -->
+      <sui-message class="attached warning" [isDismissable]="false" *ngIf="noRecordsFound_FacilityList">
+        <p>{{noResultsMessage}}</p>
+      </sui-message>
+
+      <div *ngIf="facilityList.length>0">
+        <form novalidate [formGroup]="facilityResultsForm">
+          <div class="ui grid">
+            <div class="eight wide column">
+              <div class="ui mini compact segment sort">
+                <div class="inline field sort-dd">
+                  <label>{{'common.sortBy' | translate}}: </label>
+                  <sui-select class="selection" [options]="sortingItemsList" formControlName="Sorting"
+                    labelField="label" valueField="label" (selectedOptionChange)="sortFacility(Sorting)" #Sorting>
+                    <sui-select-option *ngFor="let option of sortingItemsList" [value]="option">
+                    </sui-select-option>
+                  </sui-select>
+                </div>
+              </div>
+            </div>
+            <div class="right aligned eight wide column btn-export">
+              <sui-select class="ui mini floating labeled basic icon button" icon="download"
+                (selectedOptionChange)="download($event)" [isSearchable]="false" placeholder="Export" #filterSelect>
+                <sui-select-option value="PDF"></sui-select-option>
+                <sui-select-option value="CSV"></sui-select-option>
+              </sui-select>
+            </div>
+          </div>
+        </form>
+        <!-- Facility List -->
+        <div>
+          <div *ngFor="let facility of facilityList" class="ui segment results">
+            <div class="ui active dimmer" *ngIf="facility.isLoader_ActivateInactivate">
+              <div class="ui small text loader"></div>
+            </div>
+            <div class="results-crsr" (click)="getFacilityDetails(facility)">
+              <div class="ui right floated header">
+                <button class="ui mini right floated button status green"
+                  *ngIf="facility.isActive=='Active'">{{facility.isActive}}</button>
+                <button class="ui mini right floated button status red"
+                  *ngIf="facility.isActive=='Inactive'">{{facility.isActive}}</button>
+                <div class="ui right pointing dropdown" suiPopup popupText="Actions" popupInverted suiDropdown
+                  (click)="$event.stopPropagation()">
+                  <i class="ellipsis horizontal icon"></i>
+                  <div class="menu" suiDropdownMenu>
+                    <div class="item" *ngFor="let operation of facility.operations">
+                      <div class="w100" (click)="onFacilityOperationClick(operation, facility)">{{operation.value}}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="ui horizontal list">
+                <div class="item">
+                  <div class="content">
+                    <div class="ui sub header">{{facility.name}}
+                      <span>&nbsp;&nbsp;<i class="hospital outline icon"></i>{{facility.branchName}}</span>
+                    </div>
+                    <div class="item">
+                      <strong> {{'facility.find.creationDate' | translate}}: </strong>{{facility.createdOn}}<span
+                        class="separator">|</span>
+                      <strong> {{'facility.find.phone' | translate}}: </strong>{{facility.phone!=null ? (facility.phone
+                      | mask: '000-000-0000') : '--'}}
+                      <!-- <strong> {{'facility.find.fax' | translate}}: </strong>{{facility.contact.fax!='' ? facility.contact.fax : '--'}}<span class="separator">|</span> -->
+                      <!--<strong> {{'facility.find.email' | translate}}: </strong>{{facility.email!=null ? facility.email : '--'}}-->
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Facility Details -->
+              <div class="ui divided list" [suiTransition]="transitionController" *ngIf="facility.showDetails"
+                style="cursor: default">
+
+                <div class="item">
+                  <i class="map marker icon"></i>
+                  <div class="content">
+                    <strong>{{'facility.find.address' | translate}}: </strong>{{facility.facilityDetails != '' ?
+                    facility.facilityDetails : '--'}}
+                  </div>
+                </div>
+                <div class="item">
+                  <i class="globe icon"></i>
+                  <div class="content">
+                    <strong>{{'provider.find.url' | translate}}: </strong>
+                    <span *ngIf="facility.url != null && facility.url != ''">
+                      <a href="{{facility.url}}" target="_blank">{{facility.url}}</a>
+                    </span>
+                    <span *ngIf="facility.url == null || facility.url == ''">
+                      --
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <app-pagination [pager]="pager" (OutputData)="fetchFacility($event)"></app-pagination>
+      </div>
+      <!-- </div> -->
+    </div>
+  </form>
+</div>
+
+<ng-template let-context let-modal="modal" #modalAddFacility>
+  <div class="header">
+    <span *ngIf="inputDataForOperation.isEdit">{{'facility.edit.heading' | translate}}</span>
+    <span *ngIf="!inputDataForOperation.isEdit">{{'facility.add.heading' | translate}}</span>
+    <i #closeWizard (click)="modal.deny()" class="close link icon item-right"></i>
+  </div>
+  <div class="content">
+    <app-add-facility (OutputData)="outputDataFromOperation($event)" [InputData]="inputDataForOperation">
+    </app-add-facility>
+    <button class="tiny ui button" (click)="modal.deny()">{{'facility.add.cancel' | translate}}</button>
+
+
+  </div>
+
+</ng-template>

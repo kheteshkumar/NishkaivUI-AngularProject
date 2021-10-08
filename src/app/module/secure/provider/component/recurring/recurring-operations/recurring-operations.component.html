@@ -1,0 +1,494 @@
+<form>
+  <div class="ui segment modal-loader" *ngIf="!displayView">
+    <div class="ui active dimmer">
+      <div class="ui medium text loader">Loading</div>
+    </div>
+  </div>
+  <!-- Recurring Payment History Start -->
+  <div id="demo" class="rcpt" *ngIf="InputData.operationName == 'paymentSchedule' && displayView">
+
+    <!-- Send Email to alternate emails Start -->
+    <div class="btn2pop-wrapper">
+      <!-- <button class="orange circular small ui right floated icon button" (click)="$event.stopPropagation();onPrintClick()">
+              <i class="icon print"></i>
+          </button> -->
+      <button class="orange circular small ui right floated icon button" printTitle="Payment_Schedule"
+        [useExistingCss]="true" printSectionId="demo" ngxPrint><i class="icon print"></i></button>
+      <button class="orange circular small ui right floated icon button"
+        (click)="openEmailClick(InputData.recurringData.sendReceiptTo)" suiPopup
+        popupText="Send Schedule to alternate emails" popupInverted [popupPlacement]="'left'">
+        <i class="icon envelope"></i>
+      </button>
+      <div
+        [ngClass]="sendScheduleToAlternateEmailsVisibility ? 'btn1pop-content btn1pop-content-open' : 'btn1pop-content'">
+        <div class="ui" *ngIf="isLoader_SendScheduleToAlternateEmails">
+          <div class="ui active inverted dimmer">
+            <div class="ui indeterminate text loader"></div>
+          </div>
+        </div>
+        <div class="custs-cards">
+          <form class="ui form" [formGroup]="sendScheduleToAlternateEmailsForm">
+            <button style="margin-bottom:-8px" class="circular ui mini icon button right floated"
+              (click)="sendScheduleClear()">
+              <i class="close link icon"></i>
+            </button>
+            <div class="field required">
+              <label>Email</label>
+              <input type="text" class="custom-pop" placeholder="Email" formControlName="TransactionEmail">
+              <span>{{sendScheduleToAlternateEmailsFormErrors.TransactionEmail}}</span>
+            </div>
+          </form>
+          <div class="ui info message" *ngIf="showSuccessMessage_SendScheduleToAlternateEmails">
+            {{successMessage_SendScheduleToAlternateEmails}}</div>
+          <div class="ui negative message" *ngIf="showErrorMessage_SendScheduleToAlternateEmails">
+            {{errorMessage_SendScheduleToAlternateEmails}}</div>
+        </div>
+        <button class="fluid ui button" (click)="onSendScheduleToMorePatientClick()">Send</button>
+      </div>
+    </div>
+    <!-- Send Email to alternate emails End -->
+    <div class="ui list">
+      <div class="item">
+        <i class="address book outline icon"></i>
+        <div class="content">
+          <div class="header">
+            <!-- {{'recurringPayments.find.patient' | translate}}: -->{{InputData.recurringData.firstName}}
+            {{InputData.recurringData.lastName}}
+
+          </div>
+          <!-- Root Transaction -->
+          <div class="description">
+            {{dataToShow}}
+
+          </div>
+          <!-- Child Transactions -->
+          <div class="list">
+            <div class="item" *ngFor="let transaction of paymentScheduleList">
+              <i class="circle icon positive"
+                *ngIf="transaction.transactionStatus!=null && (transaction.transactionStatus=='Success' || transaction.transactionStatus=='Refund Success')"
+                style="padding-top: 4px;"></i>
+              <i class="circle icon negative"
+                *ngIf="transaction.transactionStatus!=null && (transaction.transactionStatus=='Failed' || transaction.transactionStatus=='Denied' || transaction.transactionStatus=='Hold' || transaction.transactionStatus=='Void' || transaction.transactionStatus=='Closed')"
+                style="padding-top: 4px;"></i>
+              <i class="circle icon blue"
+                *ngIf="transaction.transactionStatus!=null && transaction.transactionStatus!='Success' && transaction.transactionStatus!='Denied' && transaction.transactionStatus!='Failed' && transaction.transactionStatus!='Refund Success' && transaction.transactionStatus!='Void' &&  transaction.transactionStatus!='Closed'"
+                style="padding-top: 4px;"></i>
+              <i class="circle icon" *ngIf="transaction.transactionStatus==null" style="padding-top: 4px;"></i>
+              <div class="content">
+                <div class="header"></div>
+                <div class="description" *ngIf="transaction.transactionStatus!=null">
+                  <strong>{{transaction.installationType==1?'Down Payment:':'Scheduled:'}}</strong>
+                  {{getFormattedDate(transaction.executionDate)}}<span class="separator">|</span>
+                  <span><strong>{{transaction.amountDue | CustomFormatCurrency}}</strong></span><span
+                    class="separator">|</span>
+                  <span><strong>Status:</strong> {{transaction.transactionStatus}}</span><span class="separator"
+                    *ngIf="transaction.transactionId!=null">|</span>
+                  <span *ngIf="transaction.transactionId!=null"><strong>Paid On:</strong>
+                    {{getFormattedDate(transaction.executionDate)}}</span>
+                  <br><span><strong>Payment Plan Id:</strong> {{transaction.recurringPaymentId}}</span>
+                  <br><span *ngIf="transaction.transactionId!=null"><strong>Transaction Id:</strong>
+                    {{transaction.transactionId}}</span>
+                </div>
+                <div class="description" *ngIf="transaction.transactionStatus==null">
+                  <!-- <strong>{{transaction.installationType==1?'Down Payment:':'Scheduled:'}}</strong> {{getFutureFormattedDate(transaction.executionDate)}}<span class="separator">|</span> -->
+                  <strong>{{transaction.installationType==1?'Down Payment:':'Scheduled:'}}</strong>
+                  {{getFormattedDate(transaction.executionDate)}}<span class="separator">|</span>
+
+                  <span>{{transaction.amountDue | CustomFormatCurrency}}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- No Records Found Message -->
+    <sui-message class="attached warning" [isDismissable]="false" *ngIf="transactionList.length==0">
+      <p>{{ noResultsMessage }}</p>
+    </sui-message>
+  </div>
+  <!-- Recurring Payment History End -->
+  <!-- Receipt Start -->
+  <div id="demo" class="rcpt" *ngIf="InputData.operationName == 'receipt' && displayView">
+    <div class="toaster-static toaster-s" *ngIf="InputData.recurringData.status==2">
+      <h3>Payment Plan {{'recurringPayments.find.active' | translate}}</h3>
+    </div>
+    <div class="toaster-static toaster-e" *ngIf="InputData.recurringData.status==8">
+      <h3>Payment Plan {{'recurringPayments.find.cancelled' | translate}}</h3>
+    </div>
+    <div class="toaster-static toaster-e" *ngIf="InputData.recurringData.status==30">
+      <h3>Payment Plan {{'recurringPayments.find.closed' | translate}}</h3>
+    </div>
+    <div class="toaster-static toaster-o" *ngIf="InputData.recurringData.status==1">
+      <h3>Payment Plan {{'recurringPayments.find.pendingForActivation' | translate}}</h3>
+    </div>
+    <div class="toaster-static toaster-b" *ngIf="InputData.recurringData.status==3">
+      <h3>Payment Plan {{'recurringPayments.find.paid' | translate}}</h3>
+    </div>
+    <div class="toaster-static toaster-e" *ngIf="InputData.recurringData.status==5">
+      <h3>Payment Plan {{'recurringPayments.find.failed' | translate}}</h3>
+    </div>
+    <div class="sixteen wide column rcpt-dtls">
+
+      <!-- Send Email to alternate emails Start -->
+      <div class="btn1pop-wrapper">
+        <button class="orange circular big ui right floated icon button"
+          (click)="openEmailClick(InputData.recurringData.sendReceiptTo)" suiPopup
+          popupText="Send Schedule to alternate emails" popupInverted [popupPlacement]="'left'">
+          <i class="icon envelope"></i>
+        </button>
+        <button class="orange circular big ui right floated icon button" printTitle="Payment_Schedule"
+          [useExistingCss]="true" printSectionId="demo" ngxPrint>
+          <i class="icon print"></i>
+        </button>
+        <button class="orange circular big ui right floated icon button" (click)="downloadReceiptClick()" suiPopup
+          popupText="Download Receipt" popupInverted [popupPlacement]="'left'">
+          <i class="icon arrow alternate down"></i>
+        </button>
+        <div
+          [ngClass]="sendScheduleToAlternateEmailsVisibility ? 'btn1pop-content btn1pop-content-open' : 'btn1pop-content'">
+          <div class="ui" *ngIf="isLoader_SendScheduleToAlternateEmails">
+            <div class="ui active inverted dimmer">
+              <div class="ui indeterminate text loader"></div>
+            </div>
+          </div>
+          <div class="custs-cards">
+            <form class="ui form" [formGroup]="sendScheduleToAlternateEmailsForm">
+              <button style="margin-bottom:-8px" class="circular ui mini icon button right floated"
+                (click)="sendScheduleClear()">
+                <i class="close link icon"></i>
+              </button>
+              <div class="field required">
+                <label>Email</label>
+                <input type="text" class="custom-pop" placeholder="Email" formControlName="TransactionEmail">
+                <span>{{sendScheduleToAlternateEmailsFormErrors.TransactionEmail}}</span>
+              </div>
+            </form>
+            <div class="ui info message" *ngIf="showSuccessMessage_SendScheduleToAlternateEmails">
+              {{successMessage_SendScheduleToAlternateEmails}}</div>
+            <div class="ui negative message" *ngIf="showErrorMessage_SendScheduleToAlternateEmails">
+              {{errorMessage_SendScheduleToAlternateEmails}}</div>
+          </div>
+          <button class="fluid ui button" (click)="onSendScheduleToMorePatientClick()">Send</button>
+        </div>
+      </div>
+      <!-- Send Email to alternate emails End -->
+
+      <div class="ui tinyX segments">
+        <div class="ui grey segment">
+          <div class="ui list">
+            <div class="item">
+              <div class="header">
+                <h2>{{InputData.recurringData.fullName}}</h2>
+              </div>
+              <div class="item">
+                <i class="map marker icon list-icon"></i> {{InputData.recurringData.fullAddress}}
+              </div>
+              <div class="item">
+                <!-- <span *ngIf="transactionReceipt.providerDetails.contact.url"><i class="globe icon list-icon"></i> {{transactionReceipt.providerDetails.contact.url}} <span class="separator">|</span></span> -->
+                <i class="envelope icon list-icon"></i> {{InputData.recurringData.email}} <span
+                  class="separator">|</span>
+                <i class="phone icon list-icon"></i> {{InputData.recurringData.phone}}
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- <div class="ui horizontal segments">
+          <div class="ui segment details-cols2X">
+            <div class="ui small list">
+              <div class="item">
+                <div class="header">Provider ID</div>
+                {{InputData.recurringData.providerId}}
+              </div>
+            </div>
+          </div>
+          <div class="ui segment details-cols2X">
+            <div class="ui small list">
+              <div class="item">
+                <div class="header">Name on Card</div>
+                {{InputData.recurringData.nameOnCheckOrCard}}
+              </div>
+            </div>
+          </div>
+          <div class="ui segment details-cols2X">
+            <div class="ui small list">
+              <div class="item">
+                <div class="header">Card Type</div>
+                {{InputData.recurringData.cardType}}
+              </div>
+            </div>
+          </div>
+          <div class="ui segment details-cols2X">
+            <div class="ui small list">
+              <div class="item">
+                <div class="header">Payment Type</div>
+                {{InputData.recurringData.paymentType}}
+              </div>
+            </div>
+          </div>
+        </div> -->
+      </div>
+
+      <div class="ui horizontal segments" *ngIf="(invoiceData | json) != '{}'">
+        <div class="ui segment details-cols2X">
+          <div class="ui small list">
+            <div class="item">
+              <div class="header">Reference No</div>
+              {{InputData.recurringData.invoiceNumber}}
+            </div>
+          </div>
+        </div>
+        <div class="ui segment details-cols2X">
+          <div class="ui small list">
+            <div class="item">
+              <div class="header">Patient Name</div>
+              {{InputData.patientDetails.patientName}}
+            </div>
+          </div>
+        </div>
+        <div class="ui segment details-cols2X">
+          <div class="ui small list">
+            <div class="item">
+              <div class="header">Email</div>
+              {{InputData.patientDetails.email}}
+            </div>
+          </div>
+        </div>
+        <div class="ui segment details-cols2X">
+          <div class="ui small list">
+            <div class="item">
+              <div class="header">Phone</div>
+              {{InputData.patientDetails.phone}}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Invoice line Items in case Receipt is for Invoice Starts -->
+      <div class="u-cf"></div>
+      <div class="ui tinyX segments" *ngIf="(invoiceData | json) != '{}'">
+        <div class="ui horizontal segments">
+          <div style="overflow-x: auto; width: 100%;">
+            <table class="ui table celled unstackable" style="border: none;">
+              <tbody>
+                <tr class="heading">
+                  <td style="padding-top: 10px;padding-bottom: 10px;"><b>{{'invoice.find.productName' |
+                      translate}}</b></td>
+                  <td style="padding-top: 10px;padding-bottom: 10px;"><b>{{'invoice.find.unitRate' |
+                      translate}}</b></td>
+                  <td style="padding-top: 10px;padding-bottom: 10px;"><b>{{'invoice.find.quantity' |
+                      translate}}</b></td>
+                  <td style="padding-top: 10px;padding-bottom: 10px;"><b>{{'invoice.find.discount' |
+                      translate}}</b></td>
+                  <td style="padding-top: 10px;padding-bottom: 10px;"><b>{{'invoice.find.taxPercent' |
+                      translate}}</b></td>
+                  <td style="padding-top: 10px;padding-bottom: 10px;"><b>{{'invoice.find.amount' |
+                      translate}}</b></td>
+                </tr>
+                <tr class="details" *ngFor="let product of invoiceData.items">
+                  <td>
+                    <p style="font-size: 14px;margin: 0; line-height: 1.2">{{product.name}}</p>
+                  </td>
+                  <td>{{product.unitPrice | CustomFormatCurrency}}</td>
+                  <td>{{product.quantity}}</td>
+                  <td *ngIf="product.discountType!=2">{{product.discount | CustomFormatCurrency}}</td>
+                  <td *ngIf="product.discountType==2">{{product.calculatedDiscountAmount |
+                    CustomFormatCurrency}}
+                  </td>
+                  <td>{{product.taxPercent | CustomFormatPercentage}}</td>
+                  <td>{{product.calculatedTotalPrice | CustomFormatCurrency}}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <!-- Invoice line Items in case Receipt is for Invoice Ends -->
+
+      <div class="u-cf"></div>
+      <div class="ui tinyX segments">
+        <div class="ui horizontal segments">
+          <div class="ui segment details-cols2">
+            <div class="ui small list">
+              <div class="item">
+                <div class="header">Provider ID : {{InputData.recurringData.providerId}}</div>
+              </div>
+            </div>
+          </div>
+          <div class="ui segment details-cols2">
+            <div class="ui small list">
+              <div class="item">
+                <div class="header">Payment Plan ID : {{InputData.recurringData.id}}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="ui horizontal segments">
+          <div class="ui segment details-cols2">
+            <div class="ui small list">
+              <div class="item">
+                <div class="header">Payment Type : {{InputData.recurringData.paymentType}}</div>
+              </div>
+            </div>
+          </div>
+          <!-- <div class="ui segment details-cols2">
+            <div class="ui small list">
+              <div class="item">
+                <div class="header">Last 4 digits of Card : {{InputData.recurringData.maskedCardNumber}}</div>
+              </div>
+            </div>
+          </div> -->
+        </div>
+        <div class="ui horizontal segments" *ngIf="InputData.recurringData.transactionType != 3">
+          <div class="ui segment details-cols2">
+            <div class="ui small list">
+              <div class="item">
+                <div class="header">Total Amount : {{InputData.recurringData.totalAmount | CustomFormatCurrency}}</div>
+              </div>
+            </div>
+          </div>
+          <div class="ui segment details-cols2">
+            <div class="ui small list">
+              <div class="item">
+                <div class="header">Down Payment : {{InputData.recurringData.downPayment | CustomFormatCurrency}}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="ui horizontal segments" *ngIf="InputData.recurringData.transactionType != 3">
+          <div class="ui segment details-cols2">
+            <div class="ui small list">
+              <div class="item">
+                <div class="header">Remaining Balance : {{InputData.recurringData.totalDueAmount |
+                  CustomFormatCurrency}}</div>
+              </div>
+            </div>
+          </div>
+          <div class="ui segment details-cols2">
+            <div class="ui small list">
+              <div class="item">
+                <div class="header">Number of Payments : {{InputData.recurringData.noOfPayments}}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="ui horizontal segments">
+          <div class="ui segment details-cols2">
+            <div class="ui small list">
+              <div class="item">
+                <div class="header">Payment Amount : {{InputData.recurringData.paymentAmount | CustomFormatCurrency}}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ui segment details-cols2">
+            <div class="ui small list">
+              <div class="item">
+                <div class="header">Created Date : {{getFormattedDate(InputData.recurringData.createdOn)}}</div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="ui horizontal segments">
+          <div class="ui segment details-cols2X">
+            <div class="ui small list">
+              <div class="item">
+                <div class="ui center aligned header">Payment Schedule</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="ui horizontal segments">
+          <div class="ui segment details-cols2X">
+            <div class="ui list">
+              <div class="item">
+                <div class="content">
+                  <div class="header">{{dataToShow}}</div>
+                  <!-- Child Transactions -->
+                  <div class="list">
+                    <div class="item" *ngFor="let transaction of paymentScheduleList">
+                      <i class="circle icon positive"
+                        *ngIf="transaction.transactionStatus!=null && (transaction.transactionStatus=='Success' || transaction.transactionStatus=='Refund Success')"
+                        style="padding-top: 4px;"></i>
+                      <i class="circle icon negative"
+                        *ngIf="transaction.transactionStatus!=null && (transaction.transactionStatus=='Failed' || transaction.transactionStatus=='Denied' || transaction.transactionStatus=='Hold' || transaction.transactionStatus=='Void' ||  transaction.transactionStatus=='Closed')"
+                        style="padding-top: 4px;"></i>
+                      <i class="circle icon blue"
+                        *ngIf="transaction.transactionStatus!=null && transaction.transactionStatus!='Success' && transaction.transactionStatus!='Denied' && transaction.transactionStatus!='Failed' && transaction.transactionStatus!='Refund Success' && transaction.transactionStatus!='Void' &&  transaction.transactionStatus!='Closed'"
+                        style="padding-top: 4px;"></i>
+                      <i class="circle icon" *ngIf="transaction.transactionStatus==null" style="padding-top: 4px;"></i>
+                      <div class="content">
+                        <div class="header"></div>
+                        <div class="description" *ngIf="transaction.transactionStatus!=null">
+                          <strong>{{transaction.installationType==1?'Down Payment:':'Scheduled:'}}</strong>
+                          {{getFormattedDate(transaction.executionDate)}}
+                          <span class="separator">|</span>
+                          <span><strong>{{transaction.amountDue | CustomFormatCurrency}}</strong></span>
+                          <span class="separator">|</span>
+                          <span><strong>Status:</strong> {{transaction.transactionStatus}}</span>
+                          <span class="separator" *ngIf="transaction.transactionId!=null">|</span>
+                          <span *ngIf="transaction.transactionId!=null"><strong>Paid On:</strong>
+                            {{getFormattedDate(transaction.executionDate)}}</span>
+                          <br><span><strong>Payment Plan Id:</strong> {{transaction.recurringPaymentId}}</span>
+                          <br><span *ngIf="transaction.transactionId!=null"><strong>Transaction Id:</strong>
+                            {{transaction.transactionId}}</span>
+
+                          <br>
+                          <span><strong>Payment Mode:</strong> {{(transaction.accountType == '2')? 'ACH':'CC'}}</span>
+                          <span class="separator">|</span>
+                          <span><strong>Name on Account:</strong> {{(transaction.accountHolderName != '' &&
+                            transaction.accountHolderName != null)? transaction.accountHolderName:'--'}}</span>
+                          <span class="separator">|</span>
+                          <span><strong>Account Number:</strong> {{transaction.maskAccountNumber | psstring }}</span>
+                          <span class="separator" *ngIf="transaction.accountType != '2'">|</span>
+                          <span *ngIf="transaction.accountType != '2'"><strong>Card Type:</strong>
+                            {{(transaction.cardType != '' && transaction.cardType != null)?
+                            transaction.cardType:'--'}}</span>
+                        </div>
+                        <div class="description" *ngIf="transaction.transactionStatus==null">
+                          <div class="item">
+                            <!-- <strong>{{transaction.installationType==1?'Down Payment:':'Scheduled:'}}</strong> {{getFutureFormattedDate(transaction.executionDate)}}<span class="separator">|</span> -->
+                            <strong>{{transaction.installationType==1?'Down Payment:':'Scheduled:'}}</strong>
+                            {{getFormattedDate(transaction.executionDate)}}
+                            <span class="separator">|</span>
+                            <span>{{transaction.amountDue | CustomFormatCurrency}}</span>
+
+                            <br>
+                            <span><strong>Payment Mode:</strong> {{(transaction.accountType == '2')? 'ACH':'CC'}}</span>
+                            <span class="separator">|</span>
+                            <span><strong>Name on Account:</strong> {{(transaction.accountHolderName != '' &&
+                              transaction.accountHolderName != null)? transaction.accountHolderName:'--'}}</span>
+                            <span class="separator">|</span>
+                            <span><strong>Account Number:</strong> {{transaction.maskAccountNumber | psstring }}</span>
+                            <span class="separator" *ngIf="transaction.accountType != '2'">|</span>
+                            <span *ngIf="transaction.accountType != '2'"><strong>Card Type:</strong>
+                              {{(transaction.cardType != '' && transaction.cardType != null)?
+                              transaction.cardType:'--'}}</span>
+                          </div>
+
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- No Records Found Message -->
+            <sui-message class="attached warning" [isDismissable]="false" *ngIf="transactionList.length==0">
+              <p>{{ noResultsMessage }}</p>
+            </sui-message>
+          </div>
+        </div>
+        <div class="ui small bottom attached message">
+          <strong>Memo</strong><br />
+          {{InputData.recurringData.description}}
+        </div>
+      </div><!-- ui segments end -->
+      <div class="u-cf"></div>
+
+    </div>
+  </div>
+  <!-- Receipt End -->
+</form>
+<app-download-receipt [InputData]="inputDataForDownload"></app-download-receipt>

@@ -1,0 +1,460 @@
+<ng-template let-result let-query="query" #template>
+  {{ result.displayName}}
+</ng-template>
+<div class="ui" *ngIf="isLoader_Processing">
+  <div class="ui active dimmer">
+    <div class="ui indeterminate text loader">{{'common.loading' | translate}}</div>
+  </div>
+</div>
+
+<div class="ui segment modal-loader" *ngIf="isLoader">
+  <div class="ui active dimmer">
+    <div class="ui medium text loader">Loading</div>
+  </div>
+</div>
+<div *ngIf="eligibilityList.length == 0 && !isLoader">
+  <sui-message class="attached warning" [isDismissable]="false">
+    <p>{{'No Eligibility Records Found' | translate}}</p>
+  </sui-message>
+</div>
+
+<ng-container *ngIf="eligibilityList.length > 0">
+
+  <sui-accordion [closeOthers]="true">
+
+    <sui-accordion-panel *ngFor="let eligibility of eligibilityList">
+      <div title>
+        <i class="dropdown icon"></i>
+        <span><strong>{{eligibility.doctorName | translate}}</strong></span>
+        <span class="separator">|</span>
+        <span>NPI: {{eligibility.npi | translate}}</span>
+        <ng-container *ngIf="eligibility.doctorAddress">
+          <span class="separator">|</span>
+          <span>Address: {{eligibility.doctorAddress | translate}}</span>
+        </ng-container>
+
+        <div class="ui right floated header">
+          <button class="ui tiny right floated button eligibilityStatus orange" *ngIf="eligibility.eligibilityDetails"
+            style="min-width: 11rem; padding: 0.35rem; cursor: not-allowed; border-radius: 3.285714rem;">{{eligibility.eligibilityDetails.responseDate!=null
+            ? getFormattedDateToDisplay(eligibility.eligibilityDetails.responseDate) : '--'}}</button>
+        </div>
+      </div>
+
+
+      <div content class="ui segment results" (click)="$event.stopPropagation()">
+
+        <div *ngIf="eligibility.eligibilityDetails == null">
+          <sui-message class="attached warning" [isDismissable]="false">
+            <p>{{'No Eligibility Records Found' | translate}}</p>
+          </sui-message>
+        </div>
+
+        <div class="ui divided list" *ngIf="eligibility.eligibilityDetails">
+          <div class="item">
+            <div class="content">
+              <strong> {{'Patient First Name' | translate}}:
+              </strong>{{ eligibility.eligibilityDetails.patientFirstName }}
+              <span class="separator">|</span>
+              <strong> {{'Patient Last Name' | translate}}:
+              </strong>{{ eligibility.eligibilityDetails.patientLastName }}
+              <span class="separator">|</span>
+              <strong> {{'Patient DOB' | translate}}: </strong>
+              {{ (eligibility.eligibilityDetails.patientDOB !=null && eligibility.eligibilityDetails.patientDOB
+              !='')?getFormattedDate(eligibility.eligibilityDetails.patientDOB) :'--' }}
+              <span class="separator">|</span>
+              <strong> {{'Sex' | translate}}:
+              </strong>{{ (eligibility.eligibilityDetails.patientGender !=null &&
+              eligibility.eligibilityDetails.patientGender != '')? eligibility.eligibilityDetails.patientGender:'--' }}
+              <span class="separator">|</span>
+              <strong> {{'Patient Address' | translate}}: </strong>
+              <span
+                *ngIf="eligibility.eligibilityDetails.patientAddress !=null && eligibility.eligibilityDetails.patientAddress !=''; else blankContent">
+                {{eligibility.eligibilityDetails.patientAddress}}
+              </span>
+            </div>
+          </div>
+
+          <div class="item">
+            <div class="content">
+              <strong> {{'Alt Category' | translate}}:</strong>
+              {{(eligibility.eligibilityDetails.altCategory !=null && eligibility.eligibilityDetails.altCategory !='')?
+              eligibility.eligibilityDetails.altCategory :'--'}}
+              <span class="separator">|</span>
+              <strong> {{'Alt Name' | translate}}:</strong>
+              {{(eligibility.eligibilityDetails.altName !=null && eligibility.eligibilityDetails.altName !='')?
+              eligibility.eligibilityDetails.altName: '--'}}
+              <span class="separator">|</span>
+              <strong> {{'Alt Phone' | translate}}:</strong>
+              {{(eligibility.eligibilityDetails.altPhone !=null && eligibility.eligibilityDetails.altPhone !='')?
+              eligibility.eligibilityDetails.altPhone: '--'}}
+              <span class="separator">|</span>
+              <strong> {{'Alt Type' | translate}}:</strong> {{(eligibility.eligibilityDetails.altType !=null &&
+              eligibility.eligibilityDetails.altType !='')? eligibility.eligibilityDetails.altType: '--'}}
+            </div>
+          </div>
+
+          <div class="item">
+            <div class="content">
+              <strong> {{'Copay($)' | translate}}: </strong>
+              <span
+                *ngIf="eligibility.eligibilityDetails.copayAmount !=null && eligibility.eligibilityDetails.copayAmount !=''; blankContent">
+                {{eligibility.eligibilityDetails.copayAmount | CustomFormatCurrency}}
+              </span>
+              <span class="separator">|</span>
+              <strong> {{'Copay($) Specialist' | translate}}: </strong>
+              <span
+                *ngIf="eligibility.eligibilityDetails.copaySpecialist !=null && eligibility.eligibilityDetails.copaySpecialist !=''; else blankContent">
+                {{ eligibility.eligibilityDetails.copaySpecialist}}
+              </span>
+
+            </div>
+          </div>
+
+          <div class="item">
+            <div class="content">
+              <strong> {{'Begin Date Of Service' | translate}}: </strong>
+              {{eligibility.eligibilityDetails.beginDOS!=null ?
+              getFormattedDate(eligibility.eligibilityDetails.beginDOS) : '--'}}
+              <span class="separator">|</span>
+              <strong> {{'Benefit Type Code' | translate}}: </strong>{{ (eligibility.eligibilityDetails.benefitTypeCode
+              !=null && eligibility.eligibilityDetails.benefitTypeCode
+              !='')?eligibility.eligibilityDetails.benefitTypeCode:'--' }}
+              <span class="separator">|</span>
+              <strong> {{'Benefit Type Description' | translate}}: </strong>
+              {{ (eligibility.eligibilityDetails.benefitTypeDesc !=null &&
+              eligibility.eligibilityDetails.benefitTypeDesc!='')? eligibility.eligibilityDetails.benefitTypeDesc: '--'
+              }}
+            </div>
+          </div>
+
+          <div class="item">
+            <div class="content">
+              <strong> {{'Coins In Network' | translate}}: </strong>
+              {{(eligibility.eligibilityDetails.coinsInNetwork !=null && eligibility.eligibilityDetails.coinsInNetwork
+              != '')?eligibility.eligibilityDetails.coinsInNetwork :'--'}}
+              <span class="separator">|</span>
+              <strong> {{'Coins Out of Network' | translate}}: </strong>
+              {{ (eligibility.eligibilityDetails.coinsOutOfNetwork !=null &&
+              eligibility.eligibilityDetails.coinsOutOfNetwork !='')? eligibility.eligibilityDetails.coinsOutOfNetwork :
+              '--'}}
+            </div>
+          </div>
+
+          <div class="item">
+            <div class="content">
+              <span class="ui sub header">Deductible</span>
+            </div>
+          </div>
+          <div class="item">
+            <div class="content">
+              <strong> {{'Family In Network' | translate}}: </strong>
+              <span
+                *ngIf="eligibility.eligibilityDetails.dedFamilyInNetwork !=null && eligibility.eligibilityDetails.dedFamilyInNetwork !=''; else blankContent">
+                {{eligibility.eligibilityDetails.dedFamilyInNetwork | CustomFormatCurrency }}
+              </span>
+              <span class="separator">|</span>
+              <strong> {{'Family In Network Remaining' | translate}}: </strong>
+              <span
+                *ngIf="eligibility.eligibilityDetails.dedFamilyInNetworkRemaining !=null && eligibility.eligibilityDetails.dedFamilyInNetworkRemaining !=''; else blankContent">
+                {{eligibility.eligibilityDetails.dedFamilyInNetworkRemaining | CustomFormatCurrency}}
+              </span>
+              <span class="separator">|</span>
+              <strong> {{'Family Out Of Network' | translate}}: </strong>
+              <span
+                *ngIf="eligibility.eligibilityDetails.dedFamilyOutOfNetwork !=null && eligibility.eligibilityDetails.dedFamilyOutOfNetwork !=''; else blankContent">
+                {{eligibility.eligibilityDetails.dedFamilyOutOfNetwork | CustomFormatCurrency}}
+              </span>
+              <span class="separator">|</span>
+              <strong> {{'Family Out Of Network Remaining' | translate}}: </strong>
+              <span
+                *ngIf="eligibility.eligibilityDetails.dedFamilyOutOfNetworkRemaining !=null && eligibility.eligibilityDetails.dedFamilyOutOfNetworkRemaining !=''; else blankContent">
+                {{eligibility.eligibilityDetails.dedFamilyOutOfNetworkRemaining | CustomFormatCurrency}}
+              </span>
+              <span class="separator">|</span>
+              <strong> {{'Individual In Network' | translate}}: </strong>
+              <span
+                *ngIf="eligibility.eligibilityDetails.dedIndivInNetwork !=null && eligibility.eligibilityDetails.dedIndivInNetwork !=''; else blankContent">
+                {{eligibility.eligibilityDetails.dedIndivInNetwork | CustomFormatCurrency}}
+              </span>
+              <span class="separator">|</span>
+              <strong> {{'Individual In Network Remaining' | translate}}: </strong>
+              <span
+                *ngIf="eligibility.eligibilityDetails.dedIndivInNetworkRemaining !=null && eligibility.eligibilityDetails.dedIndivInNetworkRemaining !=''; else blankContent">
+                {{eligibility.eligibilityDetails.dedIndivInNetworkRemaining | CustomFormatCurrency}}
+              </span>
+              <span class="separator">|</span>
+              <strong> {{'Individual Out Of Network' | translate}}: </strong>
+              <span
+                *ngIf="eligibility.eligibilityDetails.dedIndivOutOfNetwork !=null && eligibility.eligibilityDetails.dedIndivOutOfNetwork !=''; else blankContent">
+                {{eligibility.eligibilityDetails.dedIndivOutOfNetwork | CustomFormatCurrency}}
+              </span>
+              <span class="separator">|</span>
+              <strong> {{'Individual Out Of Network Remaining' | translate}}: </strong>
+              <span
+                *ngIf="eligibility.eligibilityDetails.dedIndivOutOfNetworkRemaining !=null && eligibility.eligibilityDetails.dedIndivOutOfNetworkRemaining !=''; else blankContent">
+                {{eligibility.eligibilityDetails.dedIndivOutOfNetworkRemaining | CustomFormatCurrency}}
+              </span>
+            </div>
+          </div>
+
+          <div class="item">
+            <div class="content">
+              <span class="ui sub header">Out Of Pocket</span>
+            </div>
+          </div>
+
+          <div class="item">
+            <div class="content">
+              <strong> {{'Family In Network' | translate}}: </strong>
+              <span
+                *ngIf="eligibility.eligibilityDetails.oopFamilyInNetwork !=null && eligibility.eligibilityDetails.oopFamilyInNetwork !=''; else blankContent">
+                {{eligibility.eligibilityDetails.oopFamilyInNetwork | CustomFormatCurrency }}
+              </span>
+              <span class="separator">|</span>
+              <strong> {{'Family In Network Remaining' | translate}}: </strong>
+              <span
+                *ngIf="eligibility.eligibilityDetails.oopFamilyInNetworkRemaining !=null && eligibility.eligibilityDetails.oopFamilyInNetworkRemaining !=''; else blankContent">
+                {{eligibility.eligibilityDetails.oopFamilyInNetworkRemaining | CustomFormatCurrency }}
+              </span>
+              <span class="separator">|</span>
+              <strong> {{'Family Out Of Network' | translate}}: </strong>
+              <span
+                *ngIf="eligibility.eligibilityDetails.oopFamilyOutOfNetwork !=null && eligibility.eligibilityDetails.oopFamilyOutOfNetwork !=''; else blankContent">
+                {{eligibility.eligibilityDetails.oopFamilyOutOfNetwork | CustomFormatCurrency }}
+              </span>
+              <span class="separator">|</span>
+              <strong> {{'Family Out Of Network Remaining' | translate}}: </strong>
+              <span
+                *ngIf="eligibility.eligibilityDetails.oopFamilyOutOfNetworkRemaining !=null && eligibility.eligibilityDetails.oopFamilyOutOfNetworkRemaining !=''; else blankContent">
+                {{eligibility.eligibilityDetails.oopFamilyOutOfNetworkRemaining | CustomFormatCurrency }}
+              </span>
+              <span class="separator">|</span>
+              <strong> {{'Individual In Network' | translate}}: </strong>
+              <span
+                *ngIf="eligibility.eligibilityDetails.oopIndivInNetwork !=null && eligibility.eligibilityDetails.oopIndivInNetwork !=''; else blankContent">
+                {{eligibility.eligibilityDetails.oopIndivInNetwork | CustomFormatCurrency }}
+              </span>
+              <span class="separator">|</span>
+              <strong> {{'Individual In Network Remaining' | translate}}: </strong>
+              <span
+                *ngIf="eligibility.eligibilityDetails.oopIndivInNetworkRemaining !=null && eligibility.eligibilityDetails.oopIndivInNetworkRemaining !=''; else blankContent">
+                {{eligibility.eligibilityDetails.oopIndivInNetworkRemaining | CustomFormatCurrency }}
+              </span>
+              <span class="separator">|</span>
+              <strong> {{'Individual Out Of Network' | translate}}: </strong>
+              <span
+                *ngIf="eligibility.eligibilityDetails.oopIndivOutOfNetwork !=null && eligibility.eligibilityDetails.oopIndivOutOfNetwork !=''; else blankContent">
+                {{eligibility.eligibilityDetails.oopIndivOutOfNetwork | CustomFormatCurrency }}
+              </span>
+              <span class="separator">|</span>
+              <strong> {{'Individual Out Of Network Remaining' | translate}}: </strong>
+              <span
+                *ngIf="eligibility.eligibilityDetails.oopIndivOutOfNetworkRemaining !=null && eligibility.eligibilityDetails.oopIndivOutOfNetworkRemaining !=''; else blankContent">
+                {{eligibility.eligibilityDetails.oopIndivOutOfNetworkRemaining | CustomFormatCurrency }}
+              </span>
+            </div>
+          </div>
+
+          <div class="item">
+            <div class="content">
+              <span class="ui sub header">Primary Care Physician</span>
+            </div>
+          </div>
+
+          <div class="item">
+            <div class="content">
+              <strong> {{'First Name' | translate}}: </strong>
+              <span
+                *ngIf=" eligibility.eligibilityDetails.pcpFirstName !=null &&  eligibility.eligibilityDetails.pcpFirstName !=''; else blankContent">
+                {{ eligibility.eligibilityDetails.pcpFirstName }}
+              </span>
+              <span class="separator">|</span>
+              <strong> {{'Last Name' | translate}}: </strong>
+              <span
+                *ngIf=" eligibility.eligibilityDetails.pcpLastName !=null &&  eligibility.eligibilityDetails.pcpLastName !=''; else blankContent">
+                {{ eligibility.eligibilityDetails.pcpLastName }}
+              </span>
+              <span class="separator">|</span>
+              <strong> {{'Fax' | translate}}: </strong>
+              <span
+                *ngIf=" eligibility.eligibilityDetails.pcpFax !=null &&  eligibility.eligibilityDetails.pcpFax !=''; else blankContent">
+                {{ eligibility.eligibilityDetails.pcpFax }}
+              </span>
+              <span class="separator">|</span>
+              <strong> {{'NPI' | translate}}: </strong>
+              <span
+                *ngIf=" eligibility.eligibilityDetails.pcpNPI !=null &&  eligibility.eligibilityDetails.pcpNPI !=''; else blankContent">
+                {{ eligibility.eligibilityDetails.pcpNPI }}
+              </span>
+              <span class="separator">|</span>
+              <strong> {{'Phone' | translate}}: </strong>
+              <span
+                *ngIf=" eligibility.eligibilityDetails.pcpPhone !=null &&  eligibility.eligibilityDetails.pcpPhone !=''; else blankContent">
+                {{ eligibility.eligibilityDetails.pcpPhone }}
+              </span>
+              <span class="separator">|</span>
+              <strong> {{'Address' | translate}}: </strong>
+              <span
+                *ngIf=" eligibility.eligibilityDetails.pcpAddress !=null &&  eligibility.eligibilityDetails.pcpAddress !=''; else blankContent">
+                {{ eligibility.eligibilityDetails.pcpAddress }}
+              </span>
+            </div>
+          </div>
+
+          <div class="item">
+            <div class="content">
+              <span class="ui sub header">Coverage</span>
+            </div>
+          </div>
+          <div class="item">
+            <div class="content">
+              <strong> {{'Start Date' | translate}}: </strong>
+              <span
+                *ngIf="eligibility.eligibilityDetails.coverageStartDate !=null && eligibility.eligibilityDetails.coverageStartDate !=''; else blankContent">
+                {{ getFormattedDate(eligibility.eligibilityDetails.coverageStartDate)}}
+              </span>
+
+              <span class="separator">|</span>
+              <strong> {{'End Date' | translate}}: </strong>
+              <span
+                *ngIf="eligibility.eligibilityDetails.coverageEndDate !=null && eligibility.eligibilityDetails.coverageEndDate !=''; else blankContent">
+                {{ getFormattedDate(eligibility.eligibilityDetails.coverageEndDate)}}
+              </span>
+              <span class="separator">|</span>
+              <strong> {{'Level Code' | translate}}: </strong>
+              {{ (eligibility.eligibilityDetails.coverageLevelCode !=null &&
+              eligibility.eligibilityDetails.coverageLevelCode !='')?
+              eligibility.eligibilityDetails.coverageLevelCode: '--'}}
+              <span class="separator">|</span>
+              <strong> {{'Level Description' | translate}}: </strong>{{
+              (eligibility.eligibilityDetails.coverageLevelDescription !=null &&
+              eligibility.eligibilityDetails.coverageLevelDescription !='')?
+              eligibility.eligibilityDetails.coverageLevelDescription: '--'}}
+              <span class="separator">|</span>
+              <strong> {{'Status Code' | translate}}: </strong>{{ eligibility.eligibilityDetails.coverageStatusCode}}
+              <span class="separator">|</span>
+              <strong> {{'Status Description' | translate}}:
+              </strong>{{(eligibility.eligibilityDetails.coverageStatusDesc !=null &&
+              eligibility.eligibilityDetails.coverageStatusDesc !='')?
+              eligibility.eligibilityDetails.coverageStatusDesc: '--'}}
+            </div>
+          </div>
+          <div class="item">
+            <div class="content">
+              <strong> {{'Payer ID 1' | translate}}:
+              </strong>{{ eligibility.eligibilityDetails.payerID1 }}
+              <span class="separator">|</span>
+              <strong> {{'Payer Name 1' | translate}}:
+              </strong>{{ eligibility.eligibilityDetails.payerName1 }}
+              <span class="separator">|</span>
+              <strong> {{'Payer ID 2' | translate}}:
+              </strong>{{ eligibility.eligibilityDetails.payerID2 }}
+              <span class="separator">|</span>
+              <strong> {{'Payer Name 2' | translate}}:
+              </strong>{{ eligibility.eligibilityDetails.payerName2 }}
+              <span class="separator">|</span>
+              <strong> {{'Payer Address' | translate}}:
+              </strong>{{ eligibility.eligibilityDetails.payerAddress }}
+              <span class="separator">|</span>
+              <strong> {{'Payer Fax' | translate}}:
+              </strong>{{ eligibility.eligibilityDetails.payerFax }}
+              <span class="separator">|</span>
+              <strong> {{'Payer Phone' | translate}}:
+              </strong>{{ eligibility.eligibilityDetails.payerPhone }}
+              <span class="separator">|</span>
+              <strong> {{'Payer TPA' | translate}}:
+              </strong>{{ eligibility.eligibilityDetails.payerTPA }}
+              <span class="separator">|</span>
+              <strong> {{'Payer Website' | translate}}:
+              </strong>{{ eligibility.eligibilityDetails.payerWebsite }}
+            </div>
+          </div>
+          <div class="item">
+            <div class="content">
+              <strong> {{'Plan Number' | translate}}: </strong>
+              {{ (eligibility.eligibilityDetails.planNumber
+              !=null && eligibility.eligibilityDetails.planNumber !='')?
+              eligibility.eligibilityDetails.planNumber: '--'}}
+              <span class="separator">|</span>
+              <strong> {{'Plan Type' | translate}}: </strong>
+              {{ (eligibility.eligibilityDetails.planType
+              !=null && eligibility.eligibilityDetails.planType !='')?
+              eligibility.eligibilityDetails.planType: '--'}}
+              <span class="separator">|</span>
+              <strong> {{'Plan Type Code' | translate}}: </strong>
+              {{ (eligibility.eligibilityDetails.planTypeCode
+              !=null && eligibility.eligibilityDetails.planTypeCode !='')?
+              eligibility.eligibilityDetails.planTypeCode: '--'}}
+              <span class="separator">|</span>
+              <strong> {{'Plan Type Description' | translate}}: </strong>
+              {{ (eligibility.eligibilityDetails.planTypeDescription
+              !=null && eligibility.eligibilityDetails.planTypeDescription !='')?
+              eligibility.eligibilityDetails.planTypeDescription: '--'}}
+            </div>
+          </div>
+          <div class="item">
+            <div class="content">
+              <strong> {{'Member ID' | translate}}:
+              </strong>{{ eligibility.eligibilityDetails.subId }}
+              <span class="separator">|</span>
+              <strong> {{'Subscriber First Name' | translate}}:
+              </strong>{{ eligibility.eligibilityDetails.subFirstName }}
+              <span class="separator">|</span>
+              <strong> {{'Subscriber Last Name' | translate}}:
+              </strong>{{ eligibility.eligibilityDetails.subLastName }}
+              <span class="separator">|</span>
+              <strong> {{'Subscriber Address' | translate}}:
+              </strong>{{ eligibility.eligibilityDetails.subscriberAddress }}
+              <span class="separator">|</span>
+              <strong> {{'Subscriber DOB' | translate}}: </strong>
+              {{ (eligibility.eligibilityDetails.patientDOB !=null && eligibility.eligibilityDetails.subscriberDOB
+              !='')?getFormattedDate(eligibility.eligibilityDetails.subscriberDOB) :'--' }}
+              <span class="separator">|</span>
+              <strong> {{'Subscriber Gender' | translate}}:
+              </strong>{{ eligibility.eligibilityDetails.subscriberGender }}
+            </div>
+          </div>
+          <div class="item">
+            <div class="content">
+              <strong> {{'Group Number' | translate}}:
+              </strong>{{ eligibility.eligibilityDetails.groupNumber }}
+              <span class="separator">|</span>
+              <strong> {{'Internal Account Number 1' | translate}}:
+              </strong>{{ eligibility.eligibilityDetails.internalAccountNumber1 }}
+              <span class="separator">|</span>
+              <strong> {{'Internal Account Number 2' | translate}}:
+              </strong>{{ eligibility.eligibilityDetails.internalAccountNumber2 }}
+            </div>
+          </div>
+          <div class="item">
+            <div class="content">
+              <strong> {{'Primary Care Facility' | translate}}:
+              </strong>{{ eligibility.eligibilityDetails.primaryCareFacility }}
+              <span class="separator">|</span>
+              <strong> {{'Relationship Code' | translate}}:
+              </strong>{{ eligibility.eligibilityDetails.relationshipCode }}
+              <span class="separator">|</span>
+              <strong> {{'Relationship Description' | translate}}:
+              </strong>{{ eligibility.eligibilityDetails.relationshipDesc }}
+              <span class="separator">|</span>
+              <strong> {{'Request Status' | translate}}:
+              </strong>{{ eligibility.eligibilityDetails.requestStatus }}
+              <span class="separator">|</span>
+              <strong> {{'Request Status Code' | translate}}:
+              </strong>{{ eligibility.eligibilityDetails.requestStatusCode }}
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+
+    </sui-accordion-panel>
+
+  </sui-accordion>
+
+</ng-container>
+
+<ng-template #blankContent>
+  <span>--</span>
+</ng-template>

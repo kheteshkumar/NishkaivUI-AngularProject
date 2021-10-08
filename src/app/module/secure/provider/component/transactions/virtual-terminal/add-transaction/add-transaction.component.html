@@ -1,0 +1,938 @@
+<!-- Loader Start -->
+<div class="ui" *ngIf="isLoader_ProcessTransaction">
+  <div class="ui active dimmer">
+    <div class="ui indeterminate text loader">{{'transaction.add.processingTransaction' | translate}}</div>
+  </div>
+  <p></p>
+</div>
+<!-- Loader End -->
+
+<!-- Success Message Start -->
+<div class="toaster-static toaster-s" *ngIf="showSuccessMessage">
+  <span><a href="javascript:void(0)" (click)="showSuccessMessage=!showSuccessMessage">
+      <i class="close icon"></i></a></span>
+  <p>{{successMessage}}</p>
+</div>
+<!-- Success Message End -->
+
+<!-- Error Message Start -->
+<div class="toaster-static toaster-e" *ngIf="showErrorMessage">
+  <span><a href="javascript:void(0)" (click)="showErrorMessage=!showErrorMessage"><i class="close icon"></i></a></span>
+  <p>{{errorMessage}}</p>
+</div>
+<!-- Error Message Start -->
+<div class="toaster-static toaster-e" *ngIf="loggedInUserData.userType==0 && showNoCardErrorMessage">
+  <p>{{'transaction.add.addCard' | translate}}</p>
+</div>
+<!-- Find Patient Template Start -->
+<ng-template let-popup #FindPatientTemplate>
+  <button style="margin: 0.5rem" class="circular ui mini icon button right floated"
+    (click)="patientListVisibility=false">
+    <i class="close link icon"></i>
+  </button>
+  <br><br>
+  <div class="ui divider"></div>
+  <div style="overflow: auto; overflow-x: hidden; max-height: 26em;padding-left: 2px" *ngIf="isLoader_PatientList">
+    <div class="ui comments cust-result">
+      <div class="comment">
+        <div class="content">
+          <div class="text">
+            Loading..
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="overflow: auto; overflow-x: hidden; max-height: 26em;padding-left: 2px" *ngIf="!isLoader_PatientList">
+    <div *ngFor="let patient of searchPatientList">
+      <div class="ui comments cust-result">
+        <div class="comment">
+          <a class="avatar">
+            <img src="../../../../assets/images/elliot.png">
+          </a>
+          <div class="content">
+            <a class="author" (click)="onPatientSelection(patient)">{{patient.name}}</a>
+            <div class="text">
+              {{patient.email}}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="patient.showAccounts">
+        <div class="ui segment modal-loader" *ngIf="isLoader_FindCustAcc">
+          <div class="ui active dimmer">
+            <div class="ui medium text loader">Loading</div>
+          </div>
+        </div>
+        <div class="ui segment" *ngIf="!isLoader_FindCustAcc">
+          <div class="ui cards">
+            <div *ngFor="let account of patient.searchCustAccList">
+              <div style="margin: 5px" class="ui card card-selectX" *ngIf="account.accountType=='1'"
+                (click)="isLoader_ProcessTransaction = true; onAccountSelectionClick(patient, account);">
+                <div class="content">
+                  <!-- <div class="ui mini green left corner label"></div> -->
+                  <div class="header">{{account.accountHolderName}}</div>
+                  <div class="meta"></div>
+                </div>
+                <div class="content">
+                  <span class="left floated like">
+                    <b>****{{account.maskedCardNumber}}</b><br>
+                    Valid through: {{account.cardExpiry}}
+                  </span>
+                  <span class="right floated star">
+                    <img class="ui image" *ngIf="account.cardType==''||account.cardType==null"
+                      src="../../../../../../../assets/images/cards/BlankCard.png" />
+                    <img class="ui image" *ngIf="account.cardType=='AMEX'"
+                      src="../../../../../../../assets/images/cards/Amex.png" />
+                    <img class="ui image" *ngIf="account.cardType=='DINERS'"
+                      src="../../../../../../../assets/images/cards/Diners.png" />
+                    <img class="ui image" *ngIf="account.cardType=='DISCOVER'"
+                      src="../../../../../../../assets/images/cards/Discover.png" />
+                    <img class="ui image" *ngIf="account.cardType=='JCB'"
+                      src="../../../../../../../assets/images/cards/JCB.png" />
+                    <img class="ui image" *ngIf="account.cardType=='MASTERCARD'"
+                      src="../../../../../../../assets/images/cards/MasterCard.png" />
+                    <img class="ui image" *ngIf="account.cardType=='VISA'"
+                      src="../../../../../../../assets/images/cards/Visa.png" />
+                  </span>
+                </div>
+              </div>
+              <div style="margin: 5px" class="ui card" *ngIf="account.accountType=='2'"
+                (click)="isLoader_ProcessTransaction = true; onAccountSelectionClick(patient, account);">
+                <div class="content">
+                  <!-- <div class="ui mini green left corner label"></div> -->
+                  <div class="header">{{account.accountHolderName}}</div>
+                  <div class="meta"></div>
+                </div>
+                <div class="content">
+                  <span class="left floated like">
+                    <b>****{{account.maskedAccountNo}}</b><br>
+                    Bank Name: {{account.bankName}}
+                  </span>
+                  <span class="right floated star">
+                    <img src="../../../../../../../assets/images/cards/ach.png" class="ui image">
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div class="ui info message" *ngIf="patient.searchCustAccList.length == 0">
+              <p>
+                <i class="exclamation triangle icon"></i> There is no payment account found for this patient, <a
+                  href="javascript:void(0)" style="color:darkblue !important;"
+                  (click)="openPaymentAccount(patient)">please add
+                  new</a>.
+              </p>
+            </div>
+            <button class="fluid ui orange button" *ngIf="patient.searchCustAccList.length > 0"
+              (click)="openPaymentAccount(patient)">Add Payment Account</button>
+            <button class="fluid ui button" *ngIf="patient.searchCustAccList.length > 0"
+              (click)="patientListVisibility=false">None of the above</button>
+          </div>
+        </div>
+      </div>
+      <div style="margin: 0.5rem 0;" class="ui divider"></div>
+    </div>
+  </div>
+</ng-template>
+<!-- Find Patient Template End -->
+
+<!-- Card Trasaction Amount Template Start -->
+<ng-template #cardAmountTemplate>
+  <form [formGroup]="cardTransactionDetailsForm" class="ui normal form">
+    <div class="ps-content">
+      <h4>{{'transaction.add.paymentSummary' | translate}}</h4>
+      <div class="field" [ngClass]="processorConfig.processorName=='TSYS' ? 'required' : ''"
+        *ngIf="InputData.invoicePayment">
+        <label>{{'transaction.add.invoiceNo' | translate}}</label>
+        <input type="text" name="" placeholder="{{'transaction.add.invoiceNo' | translate}}"
+          formControlName="InvoiceNo">
+        <span>{{cardTransactionDetailsFormErrors.InvoiceNo}}</span>
+      </div>
+      <div class="field required">
+        <label>Amount</label>
+        <div class="ui left icon input">
+          <i class="dollar sign icon"></i>
+          <input type="text" name="" placeholder="0.00" formControlName="Amount" currencyMask>
+        </div>
+        <span>{{cardTransactionDetailsFormErrors.Amount}}</span>
+      </div>
+      <!-- <div class="field">
+        <label>Tax Amount</label>
+        <div class="ui left icon input">
+        <i class="dollar sign icon"></i>
+        <input type="text" name="" placeholder="0.00" formControlName="TaxAmount">
+        </div>
+        <span>{{cardTransactionDetailsFormErrors.TaxAmount}}</span>
+      </div> -->
+      <!-- <div class="inline fields"> -->
+      <!-- <div class="field">
+        <label>{{'customPlans.add.discount' | translate}}</label>
+        <div class="ui right labeled input">
+          <input type="text" placeholder="0.00" formControlName="Discount"
+            (blur)="formatCurrency('cardTransactionDetailsForm', 'Discount', $event)" style="width: 70%">
+          <sui-select class="selection" [options]="discountList" formControlName="DiscountList" labelField="label"
+            valueField="id" style="border-bottom-left-radius: 0rem;border-top-left-radius: 0rem;">
+            <sui-select-option *ngFor="let option of discountList" [value]="option">
+            </sui-select-option>
+          </sui-select>
+        </div>
+        <span>{{cardTransactionDetailsFormErrors.Discount}}</span>
+      </div>
+      <div class="field" *ngIf="isCardPercentageSelected">
+        <label>{{'customPlans.add.discountAmount' | translate}}</label>
+        <input type="text" placeholder="Discount Amount" formControlName="DiscountAmount" readonly
+          (blur)="formatCurrency('cardTransactionDetailsForm', 'DiscountAmount', $event)">
+        <span>{{cardTransactionDetailsFormErrors.DiscountAmount}}</span>
+      </div> -->
+      <!-- <div class="field">
+        <label>Tax</label>
+        <div class="ui right icon input">
+          <i class="icon" style="line-height:2.8"><b>&#37;</b></i>
+          <input type="text" placeholder="0.00" formControlName="TaxPercent"
+            (blur)="formatCurrency('cardTransactionDetailsForm', 'TaxPercent', $event)">
+        </div>
+        <span>{{cardTransactionDetailsFormErrors.TaxPercent}}</span>
+      </div> -->
+
+      <div class="field">
+        <label>{{'transaction.add.taxAmount' | translate}}</label>
+        <input type="text" placeholder="0.00" formControlName="TaxAmount" readonly currencyMask>
+        <span>{{cardTransactionDetailsFormErrors.TaxAmount}}</span>
+      </div>
+
+      <!-- </div> 
+        <p class="error-msg1">{{installmentPlanFormErrors.TaxCalculated}}</p>
+        <p class="error-msg1">{{installmentPlanFormErrors.TaxAmount}}</p>-->
+    </div>
+    <div class="pymnt-amount" style="text-align: left !important">
+      <div class="ui list pymnt-total">
+        <div class="item">
+          <span class="pymnt-total" style="font-weight: 400 !important; font-size: 1rem !important;">Total Amount:
+            {{cardTransactionDetailsForm.value.TotalAmount |
+            CustomFormatCurrency}}</span>
+        </div>
+      </div>
+    </div>
+  </form>
+</ng-template>
+<!-- Card Trasaction Amount Template End -->
+
+<!-- ACH Trasaction Amount Template Start -->
+<ng-template #achAmountTemplate>
+  <form [formGroup]="achTransactionDetailsForm" class="ui normal form">
+    <div class="ps-content">
+      <h4>{{ 'transaction.add.paymentSummary' | translate }}</h4>
+      <div class="field" *ngIf="InputData.invoicePayment">
+        <label>{{'transaction.add.invoiceNo' | translate}}</label>
+        <input type="text" name="" placeholder="{{'transaction.add.invoiceNo' | translate}}"
+          formControlName="InvoiceNo">
+        <span>{{achTransactionDetailsFormErrors.InvoiceNo}}</span>
+      </div>
+      <div class="field required">
+        <label>Amount</label>
+        <div class="ui left icon input">
+          <i class="dollar sign icon"></i>
+          <input type="text" name="" placeholder="0.00" formControlName="Amount" currencyMask>
+        </div>
+        <span>{{achTransactionDetailsFormErrors.Amount}}</span>
+      </div>
+      <div class="field">
+        <label>{{'transaction.add.taxAmount' | translate}}</label>
+        <input type="text" placeholder="0.00" formControlName="TaxAmount" readonly currencyMask>
+        <span>{{achTransactionDetailsFormErrors.TaxAmount}}</span>
+      </div>
+    </div>
+    <div class="pymnt-amount" style="text-align: left !important">
+      <div class="ui list pymnt-total">
+        <div class="item">
+          <span class="pymnt-total" style="font-weight: 400 !important; font-size: 1rem !important;">
+            Total Amount:
+            {{achTransactionDetailsForm.value.TotalAmount | CustomFormatCurrency}}
+          </span>
+        </div>
+      </div>
+    </div>
+  </form>
+</ng-template>
+<!-- ACH Trasaction Amount Template End -->
+
+<!-- SWIPE Trasaction Amount Template Start -->
+<ng-template #swipeAmountTemplate>
+  SWIPE
+</ng-template>
+<!-- SWIPE Trasaction Amount Template End -->
+
+<!-- Cash Trasaction Amount Template Start -->
+<ng-template #cashAmountTemplate>
+
+  <form [formGroup]="cashTransactionDetailsForm" class="ui normal form">
+    <div class="ps-content">
+      <h4>{{'transaction.add.paymentSummary' | translate}}</h4>
+
+      <div class="field" [ngClass]="processorConfig.processorName=='TSYS' ? 'required' : ''"
+        *ngIf="InputData.invoicePayment">
+        <label>{{'transaction.add.invoiceNo' | translate}}</label>
+        <input type="text" name="" placeholder="{{'transaction.add.invoiceNo' | translate}}"
+          formControlName="InvoiceNo">
+        <span>{{cardTransactionDetailsFormErrors.InvoiceNo}}</span>
+      </div>
+      <div class="field required">
+        <label>Amount</label>
+        <div class="ui left icon input">
+          <i class="dollar sign icon"></i>
+          <input type="text" name="" placeholder="0.00" formControlName="Amount" currencyMask>
+        </div>
+        <span>{{cashTransactionDetailsFormErrors.Amount}}</span>
+      </div>
+      <!-- <div class="field">
+        <label>{{'customPlans.add.discount' | translate}}</label>
+        <div class="ui right labeled input">
+          <input type="text" placeholder="0.00" formControlName="Discount"
+            (blur)="formatCurrency('cashTransactionDetailsForm', 'Discount', $event)" style="width: 70%">
+          <sui-select class="selection" [options]="discountList" formControlName="DiscountList" labelField="label"
+            valueField="id" style="border-bottom-left-radius: 0rem;border-top-left-radius: 0rem;">
+            <sui-select-option *ngFor="let option of discountList" [value]="option">
+            </sui-select-option>
+          </sui-select>
+        </div>
+        <span>{{cashTransactionDetailsFormErrors.Discount}}</span>
+      </div>
+      <div class="field" *ngIf="isCashPercentageSelected">
+        <label>{{'customPlans.add.discountAmount' | translate}}</label>
+        <input type="text" placeholder="Discount Amount" formControlName="DiscountAmount" readonly
+          (blur)="formatCurrency('cashTransactionDetailsForm', 'DiscountAmount', $event)">
+        <span>{{cashTransactionDetailsFormErrors.DiscountAmount}}</span>
+      </div>
+      <div class="field">
+        <label>Tax</label>
+        <div class="ui right icon input">
+          <i class="icon" style="line-height:2.8"><b>&#37;</b></i>
+          <input type="text" placeholder="0.00" formControlName="TaxPercent"
+            (blur)="formatCurrency('cashTransactionDetailsForm', 'TaxPercent', $event)">
+        </div>
+        <span>{{cashTransactionDetailsFormErrors.TaxPercent}}</span>
+      </div> -->
+
+      <div class="field">
+        <label>{{'transaction.add.taxAmount' | translate}}</label>
+        <input type="text" placeholder="0.00" formControlName="TaxAmount" readonly currencyMask>
+        <span>{{cashTransactionDetailsFormErrors.TaxAmount}}</span>
+      </div>
+
+    </div>
+    <div class="pymnt-amount" style="text-align: left !important">
+      <div class="ui list pymnt-total">
+        <div class="item">
+          <span class="pymnt-total" style="font-weight: 400 !important; font-size: 1rem !important;">Total Amount:
+            {{cashTransactionDetailsForm.value.TotalAmount |
+            CustomFormatCurrency}}</span>
+        </div>
+      </div>
+    </div>
+  </form>
+</ng-template>
+<!-- Cash Trasaction Amount Template End -->
+
+<!-- Check Trasaction Amount Template Start -->
+<ng-template #chequeAmountTemplate>
+
+  <form [formGroup]="chequeTransactionDetailsForm" class="ui normal form">
+    <div class="ps-content">
+      <h4>{{'transaction.add.paymentSummary' | translate}}</h4>
+
+      <div class="field" [ngClass]="processorConfig.processorName=='TSYS' ? 'required' : ''"
+        *ngIf="InputData.invoicePayment">
+        <label>{{'transaction.add.invoiceNo' | translate}}</label>
+        <input type="text" name="" placeholder="{{'transaction.add.invoiceNo' | translate}}"
+          formControlName="InvoiceNo">
+        <span>{{cardTransactionDetailsFormErrors.InvoiceNo}}</span>
+      </div>
+      <div class="field required">
+        <label>Amount</label>
+        <div class="ui left icon input">
+          <i class="dollar sign icon"></i>
+          <input type="text" name="" placeholder="0.00" formControlName="Amount" currencyMask>
+        </div>
+        <span>{{chequeTransactionDetailsFormErrors.Amount}}</span>
+      </div>
+      <!-- <div class="field">
+        <label>{{'customPlans.add.discount' | translate}}</label>
+        <div class="ui right labeled input">
+          <input type="text" placeholder="0.00" formControlName="Discount"
+            (blur)="formatCurrency('chequeTransactionDetailsForm', 'Discount', $event)" style="width: 70%">
+          <sui-select class="selection" [options]="discountList" formControlName="DiscountList" labelField="label"
+            valueField="id" style="border-bottom-left-radius: 0rem;border-top-left-radius: 0rem;">
+            <sui-select-option *ngFor="let option of discountList" [value]="option">
+            </sui-select-option>
+          </sui-select>
+        </div>
+        <span>{{chequeTransactionDetailsFormErrors.Discount}}</span>
+      </div>
+      <div class="field" *ngIf="isChequePercentageSelected">
+        <label>{{'customPlans.add.discountAmount' | translate}}</label>
+        <input type="text" placeholder="Discount Amount" formControlName="DiscountAmount" readonly
+          (blur)="formatCurrency('chequeTransactionDetailsForm', 'DiscountAmount', $event)">
+        <span>{{chequeTransactionDetailsFormErrors.DiscountAmount}}</span>
+      </div>
+      <div class="field">
+        <label>Tax</label>
+        <div class="ui right icon input">
+          <i class="icon" style="line-height:2.8"><b>&#37;</b></i>
+          <input type="text" placeholder="0.00" formControlName="TaxPercent"
+            (blur)="formatCurrency('chequeTransactionDetailsForm', 'TaxPercent', $event)">
+        </div>
+        <span>{{chequeTransactionDetailsFormErrors.TaxPercent}}</span>
+      </div> -->
+
+      <div class="field">
+        <label>{{'transaction.add.taxAmount' | translate}}</label>
+        <input type="text" placeholder="0.00" formControlName="TaxAmount" readonly currencyMask>
+        <span>{{chequeTransactionDetailsFormErrors.TaxAmount}}</span>
+      </div>
+
+    </div>
+    <div class="pymnt-amount" style="text-align: left !important">
+      <div class="ui list pymnt-total">
+        <div class="item">
+          <span class="pymnt-total" style="font-weight: 400 !important; font-size: 1rem !important;">Total Amount:
+            {{chequeTransactionDetailsForm.value.TotalAmount |
+            CustomFormatCurrency}}</span>
+        </div>
+      </div>
+    </div>
+  </form>
+</ng-template>
+<!-- Check Trasaction Amount Template End -->
+
+<!-- Card Trasaction Details Start -->
+<ng-template #cardTransactionDetailsTemplate>
+  <form [formGroup]="cardTransactionDetailsForm">
+    <div class="fields">
+      <div class="seven wide field required">
+        <label>Name On Card</label>
+        <input type="text" name="" placeholder="Name On Card" formControlName="CardHolderName"
+          [attr.disabled]="selectedCustAcc ? true : true">
+        <span>{{cardTransactionDetailsFormErrors.CardHolderName}}</span>
+      </div>
+      <div class="five wide field required">
+        <label>Last 4 of Card</label>
+        <input type="text" name="" placeholder="Card Number" formControlName="cardNumber" autocomplete="new-password"
+          [attr.disabled]="selectedCustAcc ? true : true">
+        <span>{{cardTransactionDetailsFormErrors.cardNumber}}</span>
+      </div>
+      <div class="two wide field">
+        <label>{{cardDetails.cardType}}&nbsp;</label>
+        <img class="mt2"
+          *ngIf="cardTransactionDetailsForm.value.CardType==''||cardTransactionDetailsForm.value.CardType==null"
+          src="../../../../../../../assets/images/cards/BlankCard.png" />
+        <img class="mt2" *ngIf="cardTransactionDetailsForm.value.CardType=='AMEX'"
+          src="../../../../../../../assets/images/cards/Amex.png" />
+        <img class="mt2" *ngIf="cardTransactionDetailsForm.value.CardType=='DINERS'"
+          src="../../../../../../../assets/images/cards/Diners.png" />
+        <img class="mt2" *ngIf="cardTransactionDetailsForm.value.CardType=='DISCOVER'"
+          src="../../../../../../../assets/images/cards/Discover.png" />
+        <img class="mt2" *ngIf="cardTransactionDetailsForm.value.CardType=='JCB'"
+          src="../../../../../../../assets/images/cards/JCB.png" />
+        <img class="mt2" *ngIf="cardTransactionDetailsForm.value.CardType=='MASTERCARD'"
+          src="../../../../../../../assets/images/cards/MasterCard.png" />
+        <img class="mt2" *ngIf="cardTransactionDetailsForm.value.CardType=='VISA'"
+          src="../../../../../../../assets/images/cards/Visa.png" />
+        <!-- {{cardDetails.cardType}} -->
+      </div>
+      <div class="two wide field required">
+        <label>CVV</label>
+        <input type="text" name="" class="pw" placeholder="" [validation]="false" mask="0009" unmask=true
+          formControlName="CVV">
+        <span>{{cardTransactionDetailsFormErrors.CVV}}</span>
+      </div>
+    </div>
+    <div class="fields">
+      <div class="three wide field required">
+        <label>Expiration</label>
+        <input type="text" name="" placeholder="MM/YY" [validation]="false" mask="00/00" unmask=true
+          formControlName="cardExpiry" [attr.disabled]="selectedCustAcc ? true : true">
+        <span>{{cardTransactionDetailsFormErrors.cardExpiry}}</span>
+      </div>
+      <!--<div class="three wide field required">
+        <label>Zip code</label>
+        <form [formGroup]="addressDetailsForm">
+          <input type="text" name="" placeholder="Zip code" [value]="addressDetailsForm.value.PostalCode" formControlName="PostalCode">
+        </form>
+        <span>{{addressDetailsFormErrors.PostalCode}}</span>
+      </div>-->
+      <div class="six wide field">
+        <label>{{ 'transaction.add.email' | translate }}</label>
+        <input type="text" name="" placeholder="abc@xyz.com" formControlName="TransactionEmail">
+        <span>{{cardTransactionDetailsFormErrors.TransactionEmail}}</span>
+      </div>
+      <div class="seven wide field required">
+        <label>Schedule transaction on</label>
+        <div class="ui left icon input">
+          <i class="calendar icon"></i>
+          <input suiDatepicker [pickerMode]="dateMode" [pickerFirstDayOfWeek]="firstDayOfWeek"
+            [pickerUseNativeOnMobile]="false" [pickerMinDate]="minStartDate" [pickerMaxDate]="maxStartDate"
+            formControlName="TransactionDate" #TransactionDate readonly>
+        </div>
+        <span>{{cardTransactionDetailsFormErrors.TransactionDate}}</span>
+      </div>
+
+    </div>
+    <div class="field">
+      <label>Memo</label>
+      <textarea rows="2" formControlName="Memo" maxlength="500"
+        placeholder="This memo description will appear in the receipt..."></textarea>
+      <span>{{cardTransactionDetailsFormErrors.Memo}}</span>
+    </div>
+    <!--<div class="ui segment" style="padding: 0.5em 1em !important;" *ngIf="cardDetails.cardType === 'CREDIT'">
+      <div class="field">
+        <sui-checkbox class="toggle" formControlName="TransactionType" suiPopup popupText="Transaction will be authorized only" popupInverted [popupPlacement]="'top'">
+          Do not capture this transaction
+        </sui-checkbox>
+      </div>
+    </div>-->
+  </form>
+</ng-template>
+<!-- Card Trasaction Details End -->
+
+<!-- ACH Trasaction Details Start -->
+<ng-template #achTransactionDetailsTemplate>
+
+  <form [formGroup]="achTransactionDetailsForm">
+    <!-- <div class="fields">
+      <div class="four wide field required">
+        <label>{{ 'transaction.add.checkType' | translate }}</label>
+        <sui-select class="selection" [options]="checkTypeList" formControlName="CheckType" labelField="title"
+          valueField="value">
+          <sui-select-option *ngFor="let option of checkTypeList" [value]="option"> </sui-select-option>
+        </sui-select>
+        <span>{{ achTransactionDetailsFormErrors.CheckType }}</span>
+      </div>
+      <div class="ten wide field required">
+        <label>
+          {{ 'transaction.add.SecCode' | translate }}
+          <i class="info circle icon" data-html="true" suiPopup [popupTemplate]="popupTemplate" popupInverted
+            [popupPlacement]="'right'"></i>
+        </label>
+        <sui-select class="selection" [options]="secCodeList" formControlName="SecCode" labelField="value"
+          valueField="title" #SecCode>
+          <sui-select-option *ngFor="let option of secCodeList" [value]="option"> </sui-select-option>
+        </sui-select>
+        <span>{{ achTransactionDetailsFormErrors.SecCode }}</span>
+      </div>
+    </div> -->
+    <div class="fields">
+      <div class="eight wide field required">
+        <label>{{ 'transaction.add.routingOrTransitNo' | translate }}</label>
+        <input placeholder="Routing/Transit No" type="text" formControlName="RoutingNo"
+          [maxlength]="inputValidation.transaction.add.addTransaction.routingNumber.maxLength"
+          [attr.disabled]="selectedCustAcc != undefined ? true : true" />
+        <span>{{ achTransactionDetailsFormErrors.RoutingNo }}</span>
+      </div>
+
+      <div class="eight wide field required">
+        <label>{{ 'transaction.add.accountNo' | translate }}</label>
+        <input placeholder="Account No" type="text" formControlName="AccountNo"
+          [maxlength]="inputValidation.transaction.add.addTransaction.accountNumber.maxLength"
+          [attr.disabled]="selectedCustAcc != undefined ? true : true" />
+        <span>{{ achTransactionDetailsFormErrors.AccountNo }}</span>
+      </div>
+    </div>
+    <div class="fields">
+      <div class="eight wide field required">
+        <label>{{ 'transaction.add.nameOnAccount' | translate }}</label>
+        <input type="text" name="" placeholder="{{ 'transaction.add.nameOnAccount' | translate }}"
+          formControlName="NameOnAccount" [attr.disabled]="selectedCustAcc != undefined ? true : true" />
+        <span>{{ achTransactionDetailsFormErrors.NameOnAccount }}</span>
+      </div>
+      <div class="eight wide field">
+        <label>{{ 'transaction.add.accountType' | translate }}</label>
+        <sui-select class="selection" [options]="accountTypeList" formControlName="AccountType" labelField="value"
+          valueField="title" [isDisabled]="selectedCustAcc != undefined ? true : true">
+          <sui-select-option *ngFor="let option of accountTypeList" [value]="option"> </sui-select-option>
+        </sui-select>
+        <span>{{ achTransactionDetailsFormErrors.AccountType }}</span>
+      </div>
+    </div>
+    <div class="fields">
+      <div class="eight wide field">
+        <label>
+          {{ 'transaction.add.email' | translate }}
+        </label>
+        <input type="text" name="" placeholder="abc@xyz.com" formControlName="TransactionEmail" />
+        <span>{{ achTransactionDetailsFormErrors.TransactionEmail }}</span>
+      </div>
+    </div>
+    <div class="field">
+      <label>Memo</label>
+      <textarea rows="2" formControlName="Memo"
+        placeholder="This memo description will appear in the receipt..."></textarea>
+      <span>{{ cardTransactionDetailsFormErrors.Memo }}</span>
+    </div>
+  </form>
+
+</ng-template>
+<!-- ACH Trasaction Details End -->
+
+<!-- Swipe Trasaction Details Start -->
+<ng-template #swipeTransactionDetailsTemplate>
+  SWIPE
+</ng-template>
+<!-- Swipe Trasaction Details End -->
+
+<!-- Cash Trasaction Details Start -->
+<ng-template #cashTransactionDetailsTemplate>
+  <form [formGroup]="cashTransactionDetailsForm">
+
+    <div class="fields">
+      <div class="seven wide field required">
+        <label>{{'transaction.add.collectionDate' | translate}}</label>
+        <div class="ui left icon input">
+          <i class="calendar icon"></i>
+          <input suiDatepicker [pickerMode]="dateMode" [pickerFirstDayOfWeek]="firstDayOfWeek"
+            [pickerUseNativeOnMobile]="false" [pickerMinDate]="minCCStartDate" [pickerMaxDate]="maxCCStartDate"
+            formControlName="TransactionDate" #TransactionDate readonly>
+        </div>
+      </div>
+      <p class="error-msg1">{{cashTransactionDetailsFormErrors.TransactionDate}}</p>
+    </div>
+    <div class="field">
+      <label>Memo</label>
+      <textarea rows="2" formControlName="Memo" maxlength="500"
+        placeholder="This memo description will appear in the receipt..."></textarea>
+      <span>{{cashTransactionDetailsFormErrors.Memo}}</span>
+    </div>
+  </form>
+</ng-template>
+<!-- Cash Trasaction Details End -->
+
+<!-- Cheque Trasaction Details Start -->
+<ng-template #chequeTransactionDetailsTemplate>
+  <form [formGroup]="chequeTransactionDetailsForm">
+
+    <div class="fields">
+      <div class="seven wide field required">
+        <label>{{'transaction.add.collectionDate' | translate}}</label>
+        <div class="ui left icon input">
+          <i class="calendar icon"></i>
+          <input suiDatepicker [pickerMode]="dateMode" [pickerFirstDayOfWeek]="firstDayOfWeek"
+            [pickerUseNativeOnMobile]="false" [pickerMinDate]="minCCStartDate" [pickerMaxDate]="maxCCStartDate"
+            formControlName="TransactionDate" #TransactionDate readonly>
+        </div>
+        <p class="error-msg1">{{chequeTransactionDetailsFormErrors.TransactionDate}}</p>
+      </div>
+      <div class="seven wide field required">
+        <label>Check Number</label>
+        <input type="text" name="" placeholder="Check Number" formControlName="checkNumber">
+        <span>{{chequeTransactionDetailsFormErrors.checkNumber}}</span>
+      </div>
+    </div>
+    <div class="fields">
+      <div class="seven wide field">
+        <label>Routing Number</label>
+        <input type="text" name="" placeholder="Routing Number" formControlName="routingNumber">
+        <span>{{chequeTransactionDetailsFormErrors.routingNumber}}</span>
+      </div>
+      <div class="seven wide field">
+        <label>Account Number</label>
+        <input type="text" name="" placeholder="Account Number" formControlName="accountNumber">
+        <span>{{chequeTransactionDetailsFormErrors.accountNumber}}</span>
+      </div>
+    </div>
+    <div class="fields">
+      <div class="seven wide field">
+        <label>Name of Institution</label>
+        <input type="text" name="" placeholder="Name of Institution" formControlName="institutionName">
+        <span>{{chequeTransactionDetailsFormErrors.institutionName}}</span>
+      </div>
+    </div>
+    <div class="field">
+      <label>Memo</label>
+      <textarea rows="2" formControlName="Memo" maxlength="500"
+        placeholder="This memo description will appear in the receipt..."></textarea>
+      <span>{{chequeTransactionDetailsFormErrors.Memo}}</span>
+    </div>
+  </form>
+</ng-template>
+<!-- Cheque Trasaction Details End -->
+
+<form class="ui normal form">
+  <div class="ui two column stackable padded grid"
+    *ngIf="!showTransactionFailedReceipt && !showTransactionSuccessReceipt">
+    <!-- Payment Summary Start -->
+    <div class="four wide column pymnt-sumry">
+      <div *ngIf="selectedTab == 'card'">
+        <ng-container *ngTemplateOutlet="cardAmountTemplate"></ng-container>
+      </div>
+      <div *ngIf="selectedTab == 'ach' && (permissions && permissions.achPayments)">
+        <ng-container *ngTemplateOutlet="achAmountTemplate"></ng-container>
+      </div>
+      <div *ngIf="selectedTab == 'swipe'">
+        <ng-container *ngTemplateOutlet="swipeAmountTemplate"></ng-container>
+      </div>
+      <div
+        *ngIf="selectedTab == 'cash' && (permissions && (permissions.cashAndCheckPayments || permissions.updateCashAndCheckPayments))">
+        <ng-container *ngTemplateOutlet="cashAmountTemplate"></ng-container>
+      </div>
+      <div
+        *ngIf="selectedTab == 'check' && (permissions && (permissions.cashAndCheckPayments || permissions.updateCashAndCheckPayments))">
+        <ng-container *ngTemplateOutlet="chequeAmountTemplate"></ng-container>
+      </div>
+    </div>
+    <!-- Payment Summary End -->
+    <div class="twelve wide column pymnt-ctrl">
+      <!-- Patient Selection Start -->
+
+      <form class="ui form" [formGroup]="findPatientForm" *ngIf="loggedInUserData.userType!=0">
+        <h4>Search Patient..</h4>
+
+        <div class="field required" *ngIf="selectedTab === 'card' || selectedTab === 'ach'">
+          <div class="popover-wrapper">
+            <input type="text" name="" placeholder="Search Patient" formControlName="PatientName"
+              (input)="patientLookUp($event.target.value)" (focus)="patientListVisibility=true" #PatientName>
+            <span>{{findPatientFormErrors.PatientName}}</span>
+            <div [ngClass]="patientListVisibility ? 'popover-content popover-content-open' : 'popover-content'">
+              <ng-container *ngTemplateOutlet="FindPatientTemplate"></ng-container>
+            </div>
+          </div>
+        </div>
+      </form>
+
+      <form class="ui form" [formGroup]="cashTransactionDetailsForm" *ngIf="loggedInUserData.userType!=0">
+        <div class="field" *ngIf="selectedTab === 'cash'">
+          <sui-select class="selection" formControlName="PatientName" #PatientName labelField="displayName"
+            valueField="id" [isSearchable]="true" [options]="searchPatientList" icon="search">
+            <sui-select-option *ngFor="let o of PatientName.filteredOptions" [value]="o"></sui-select-option>
+          </sui-select>
+          <span>{{cashTransactionDetailsFormErrors.PatientName}}</span>
+        </div>
+      </form>
+
+      <form class="ui form" [formGroup]="chequeTransactionDetailsForm" *ngIf="loggedInUserData.userType!=0">
+        <div class="field" *ngIf="selectedTab === 'check'">
+          <sui-select class="selection" formControlName="PatientName" #PatientName labelField="displayName"
+            valueField="id" [isSearchable]="true" [options]="searchPatientList" icon="search">
+            <sui-select-option *ngFor="let o of PatientName.filteredOptions" [value]="o"></sui-select-option>
+          </sui-select>
+          <span>{{chequeTransactionDetailsFormErrors.PatientName}}</span>
+        </div>
+      </form>
+      <!-- <h4>Select Provider</h4>-->
+      <!-- <form class="ui form" [formGroup]="findProviderForm" *ngIf="loggedInUserData.userType==0">
+          <div class="field required">
+            <div class="popover-wrapper">
+              <input type="text" name="" placeholder="Search Provider" formControlName="ProviderName" (input)="providerLookUp($event.target.value)" (focus)="providerListVisibility=true">
+              <span>{{findProviderFormErrors.ProviderName}}</span>
+              <div [ngClass]= "providerListVisibility ? 'popover-content popover-content-open' : 'popover-content'">
+                <ng-container *ngTemplateOutlet="FindProviderTemplate"></ng-container>
+              </div>
+            </div>
+          </div>
+        </form>-->
+      <!--<div class="ui tiny form">
+            <div class="three fields mb0">
+              <div class="field">
+      <sui-multi-select
+      class="selection"
+      formControlName="ProviderName"
+      #ProviderName 
+      [hasLabels]="true"
+      labelField="displayName"
+      valueField="id"
+      [isSearchable]="true"
+      [options]="providerList"
+      icon="search">
+  <sui-select-option *ngFor="let o of ProviderName.filteredOptions" [value]="o"></sui-select-option>
+</sui-multi-select>
+    </div>
+        </div>
+        </div>-->
+      <form class="ui form" [formGroup]="findProviderForm" *ngIf="loggedInUserData.userType==0">
+        <div class="two fields">
+          <!--  <div class="required field">
+                <label>{{'transaction.add.providerSelect' | translate}}</label>
+                <sui-select class="selection" [options]="providerList" formControlName="ProviderName" labelField="displayName" valueField="id" #provider>
+                    <div class="ui icon search input">
+                        <i class="search icon"></i>
+                        <input suiSelectSearch type="text" placeholder="Search options...">
+                      </div>
+                      <div class="divider"></div>
+                  <sui-select-option *ngFor="let o of provider.filteredOptions" [value]="o"></sui-select-option>
+                </sui-select>
+                <span>{{findProviderFormErrors.ProviderName}}</span>
+              </div>-->
+          <div class="required field">
+            <label>{{'transaction.add.providerSelect' | translate}}</label>
+            <sui-select class="selection" [options]="providerList" formControlName="ProviderName"
+              labelField="displayName" valueField="id">
+              <sui-select-option *ngFor="let option of providerList" [value]="option">
+              </sui-select-option>
+            </sui-select>
+            <span>{{findProviderFormErrors.ProviderName}}</span>
+          </div>
+          <div class="required field" *ngIf="hasCardList">
+            <label>{{'transaction.add.cardSelect' | translate}}</label>
+            <sui-select class="selection" [options]="cardList" formControlName="SelectedCard" labelField="maskedNumber"
+              valueField="id"
+              (selectedOptionChange)="isLoader_ProcessTransaction = true; onAccountSelectionClick(loggedInUserData.parentId, $event)">
+              <sui-select-option *ngFor="let option of cardList" [value]="option">
+              </sui-select-option>
+            </sui-select>
+            <span>{{findProviderFormErrors.SelectedCard}}</span>
+          </div>
+        </div>
+      </form>
+      <br>
+      <!-- Patient Selection End -->
+      <sui-tabset>
+        <div class="ui top attached tabular menu">
+
+          <ng-container *ngIf="loggedInUserData.userType == 0">
+            <a class="item" *ngIf="!cardTabDisable" [isActive]="selectedTab=='card'" href="javascript:void(0);"
+              suiTabHeader="1"
+              (click)="selectedTab='card'; channelTypeValue='credit';this.populateCard('');clear('PatientName')"><i
+                class="credit card outline icon"></i>
+              Card</a>
+
+            <a class="item"
+              *ngIf="!cardTabDisable && (permissions && permissions.achPayments)"
+              [isActive]="selectedTab=='ach'" href="javascript:void(0);" suiTabHeader="2"
+              (click)="selectedTab='ach'; channelTypeValue='ach';this.populateCard('');clear('PatientName')"><i
+                class="credit card outline icon"></i>
+              Ach</a>
+          </ng-container>
+          <ng-container *ngIf="loggedInUserData.userType == 1">
+            <a class="item" *ngIf="!cardTabDisable" [isActive]="selectedTab=='card'" href="javascript:void(0);"
+              suiTabHeader="1" (click)="selectedTab='card';this.patientLookUp('');clear('PatientName')"><i
+                class="credit card outline icon"></i>
+              Card</a>
+
+            <a class="item"
+              *ngIf="!cardTabDisable && (permissions && permissions.achPayments)"
+              [isActive]="selectedTab=='ach'" href="javascript:void(0);" suiTabHeader="2"
+              (click)="selectedTab='ach';this.patientLookUp('');clear('PatientName')"><i
+                class="credit card outline icon"></i>
+              Ach</a>
+          </ng-container>
+
+          <a class="item" [isActive]="selectedTab=='cash'"
+            *ngIf="loggedInUserData.userType != 0 && !cashTabDisable && (permissions && (permissions.cashAndCheckPayments || permissions.updateCashAndCheckPayments))"
+            href="javascript:void(0);" suiTabHeader="4" (click)="selectedTab='cash';clear('PatientName')">
+            <i class="money bill alternate outline icon"></i> Cash
+          </a>
+          <a class="item" [isActive]="selectedTab=='check'"
+            *ngIf="loggedInUserData.userType != 0 && !chequeTabDisable && (permissions && (permissions.cashAndCheckPayments || permissions.updateCashAndCheckPayments))"
+            href="javascript:void(0);" suiTabHeader="5" (click)="selectedTab='check';clear('PatientName')">
+            <i class="money bill alternate outline icon"></i> Check
+          </a>
+
+        </div>
+        <div class="ui bottom attached segment" suiTabContent="1">
+          <!-- <div *ngIf="selectedTab == 'card'">{{!cardTabDisable}} -->
+          <ng-container *ngTemplateOutlet="cardTransactionDetailsTemplate"></ng-container>
+          <!-- </div> -->
+        </div>
+        <div class="ui bottom attached segment" suiTabContent="2">
+          <div *ngIf="selectedTab == 'ach'">
+            <ng-container *ngTemplateOutlet="achTransactionDetailsTemplate"></ng-container>
+          </div>
+        </div>
+        <div class="ui bottom attached segment" suiTabContent="3">
+          <div *ngIf="selectedTab == 'swipe'">
+            <ng-container *ngTemplateOutlet="swipeTransactionDetailsTemplate"></ng-container>
+          </div>
+        </div>
+        <div class="ui bottom attached segment" suiTabContent="4">
+          <!-- <div *ngIf="selectedTab == 'cash'"> -->
+          <ng-container *ngTemplateOutlet="cashTransactionDetailsTemplate"></ng-container>
+          <!-- </div> -->
+        </div>
+        <div class="ui bottom attached segment" suiTabContent="5">
+          <!-- <div *ngIf="selectedTab == 'check'"> -->
+          <ng-container *ngTemplateOutlet="chequeTransactionDetailsTemplate"></ng-container>
+          <!-- </div> -->
+        </div>
+      </sui-tabset>
+      <!-- More options/Address Details Start-->
+      <!-- <sui-accordion>
+        <sui-accordion-panel>
+          <div title>
+            <i class="dropdown icon"></i>
+            More Options
+          </div>
+          <div content (click)="$event.stopPropagation()">
+            <form [formGroup]="addressDetailsForm" class="ui normal form">
+              <div class="field">
+                <label>{{'transaction.add.addressLine' | translate}} 1</label>
+                <input placeholder="Address Line 1" type="text" formControlName="AddressLine1">
+                <span>{{addressDetailsFormErrors.AddressLine1}}</span>
+              </div>
+              <div class="field">
+                <label>{{'transaction.add.addressLine' | translate}} 2</label>
+                <input placeholder="Address Line 2" type="text" formControlName="AddressLine2">
+                <span>{{addressDetailsFormErrors.AddressLine2}}</span>
+              </div>
+              <div class="two fields">
+                <div class="field">
+                  <label>{{'transaction.add.city' | translate}}</label>
+                  <input placeholder="City" type="text" formControlName="City">
+                  <span>{{addressDetailsFormErrors.City}}</span>
+                </div>
+                <div class="field">
+                  <label>{{'transaction.add.state' | translate}}</label>
+                  <sui-select class="selection" [options]="stateList" formControlName="State" labelField="name"
+                    valueField="abbreviation" #state>
+                    <div class="ui icon search input">
+                      <i class="search icon"></i>
+                      <input suiSelectSearch type="text" placeholder="Search options...">
+                    </div>
+                    <div class="divider"></div>
+                    <sui-select-option *ngFor="let o of state.filteredOptions" [value]="o"></sui-select-option>
+                  </sui-select>
+                  <span>{{addressDetailsFormErrors.State}}</span>
+                </div>
+                 <div class="field">
+                  <label>{{'transaction.add.country' | translate}}</label>
+                  <sui-select class="selection" [options]="countryList" formControlName="Country" (selectedOptionChange)="populateState($event)" labelField="name" valueField="countryId" #country>
+                    <div class="ui icon search input">
+                      <i class="search icon"></i>
+                      <input suiSelectSearch type="text" placeholder="Search options...">
+                    </div>
+                    <div class="divider"></div>
+                    <sui-select-option *ngFor="let o of country.filteredOptions" [value]="o"></sui-select-option>
+                  </sui-select>
+                  <span>{{addressDetailsFormErrors.Country}}</span>
+                </div> 
+              </div>
+              <div class="two fields">
+                <div class="field">
+                  <label>{{'transaction.add.postalCode' | translate}}</label>
+                  <input placeholder="Postal (Zip) Code" type="text" mask="00000-0000" unmask=true [validation]="false" [value]="addressDetailsForm.value.PostalCode" formControlName="PostalCode">
+                  <span>{{addressDetailsFormErrors.PostalCode}}</span>
+                </div>
+              </div>
+
+            </form>
+          </div>
+        </sui-accordion-panel>
+      </sui-accordion>-->
+      <!-- More options/Address Details End-->
+    </div>
+  </div>
+</form>
+
+<!-- Transaction Receipt Start -->
+<div *ngIf="showTransactionFailedReceipt || showTransactionSuccessReceipt">
+  <app-transaction-operations [InputData]="inputDataForOperation"
+    (OutputData)="outputDataFromTransactionOperation($event)"></app-transaction-operations>
+</div>
+<!-- Transaction Receipt End -->
+
+<!-- Modal Buttons Start -->
+<div class="ui fitted divider wizard-footer"></div>
+<button class="tiny ui orange button" autofocus (click)="processTransaction()"
+  *ngIf="!showTransactionFailedReceipt && !showTransactionSuccessReceipt"
+  [attr.disabled]="loggedInUserData.userType==0 ?( (hasCardList && hasProviderList)?null:true):null">
+  {{InputData.isEdit?'Update':'Submit'}}</button>
+<button class="tiny ui button" (click)="cancel()">{{cancelValue}}</button>
+<!-- Modal Buttons End -->
